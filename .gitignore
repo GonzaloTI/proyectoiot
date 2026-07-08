@@ -1,0 +1,13 @@
+# Compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Base de datos local (evita subir tu historial de pruebas a Git)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+
+

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Panel de Control - BMP280 & Relé</title>
+    <!-- Bootstrap 5.3.0 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+          --bg-color: #0b0f19;
+          --card-bg: rgba(22, 28, 45, 0.6);
+          --card-border: rgba(255, 255, 255, 0.08);
+          --accent-color: #00f2fe;
+          --temp-color: #ff4757;
+          --pres-color: #2ed573;
+          --alt-color: #ffa502;
+        }
+
+        body {
+          background-color: var(--bg-color);
+          color: #f1f2f6;
+          font-family: 'Inter', sans-serif;
+          min-height: 100vh;
+          background-image: 
+            radial-gradient(at 10% 20%, rgba(13, 110, 253, 0.08) 0px, transparent 50%),
+            radial-gradient(at 90% 80%, rgba(0, 242, 254, 0.05) 0px, transparent 50%);
+          background-attachment: fixed;
+        }
+
+        /* Estilo de Navbar Premium */
+        .navbar-custom {
+          background: rgba(18, 22, 33, 0.7) !important;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .text-primary-gradient {
+          background: linear-gradient(135deg, #0d6efd, #00f2fe);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        .logo-glow-dot {
+          width: 10px;
+          height: 10px;
+          background-color: #00f2fe;
+          border-radius: 50%;
+          display: inline-block;
+          box-shadow: 0 0 10px #00f2fe, 0 0 20px #00f2fe;
+        }
+
+        .bg-success-glow {
+          background-color: rgba(25, 135, 84, 0.15) !important;
+          color: #2ec4b6 !important;
+          border: 1px solid rgba(25, 135, 84, 0.3);
+          font-weight: 500;
+        }
+        
+        .status-pulse-dot {
+          width: 8px;
+          height: 8px;
+          background-color: #2ec4b6;
+          border-radius: 50%;
+          display: inline-block;
+          animation: statusPulse 1.8s infinite ease-in-out;
+        }
+
+        @keyframes statusPulse {
+          0% {
+            transform: scale(0.9);
+            box-shadow: 0 0 0 0 rgba(46, 196, 182, 0.7);
+          }
+          70% {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 6px rgba(46, 196, 182, 0);
+          }
+          100% {
+            transform: scale(0.9);
+            box-shadow: 0 0 0 0 rgba(46, 196, 182, 0);
+          }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Navbar principal del sistema -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <div class="logo-glow-dot"></div>
+                <span class="fw-bold text-uppercase tracking-wide" style="font-family: 'Outfit', sans-serif; letter-spacing: 1px;">
+                    <span class="text-primary-gradient">Antigravity</span> IoT Monitor
+                </span>
+            </a>
+            
+            <!-- Botón Toggler para Móviles -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link px-3 rounded-pill" href="/" id="nav-dashboard"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 rounded-pill" href="/historial" id="nav-historial"><i class="bi bi-calendar3 me-1"></i> Historial</a>
+                    </li>
+                </ul>
+                <span class="navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5 mt-2 mt-lg-0" id="connection-status" style="width: fit-content;">
+                    <span class="status-pulse-dot"></span> ESP32: Online
+                </span>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        <!-- Bloque de contenido principal -->
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Scripts externos -->
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Resaltar enlace activo -->
+    <script>
+        const path = window.location.pathname;
+        if (path === '/' || path === '') {
+            document.getElementById('nav-dashboard').classList.add('active');
+        } else if (path.startsWith('/historial')) {
+            document.getElementById('nav-historial').classList.add('active');
+        }
+    </script>
+</body>
+</html>

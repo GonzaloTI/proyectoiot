@@ -1,0 +1,651 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Cargar el plugin de zoom de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+<style>
+  .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .stat-card {
+    border-left: 4px solid var(--card-border);
+  }
+
+  .stat-card-temp { border-left-color: var(--temp-color); }
+  .stat-card-pres { border-left-color: var(--pres-color); }
+  .stat-card-alt { border-left-color: var(--alt-color); }
+  .stat-card-relay { border-left-color: var(--accent-color); }
+  .stat-card-co2 { border-left-color: var(--accent-color); }
+  .stat-card-humo { border-left-color: var(--alt-color); }
+
+  .stat-val {
+    font-size: 1.8rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+  }
+
+  .table-responsive-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .table-custom {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  
+  .table-custom th {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+  }
+
+  .table-custom td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .form-select-custom, .form-input-custom {
+    background-color: rgba(22, 28, 45, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+  }
+
+  .form-select-custom:focus, .form-input-custom:focus {
+    border-color: var(--accent-color) !important;
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.3) !important;
+  }
+
+  .btn-action {
+    border-radius: 10px;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .relay-badge-on {
+    background-color: rgba(46, 213, 115, 0.15);
+    color: #2ed573;
+    border: 1px solid rgba(46, 213, 115, 0.3);
+  }
+
+  .relay-badge-off {
+    background-color: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+  }
+
+  .chart-big-container {
+    position: relative;
+    height: 380px;
+    width: 100%;
+  }
+
+  .nav-tabs-custom {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .nav-tabs-custom .nav-link {
+    color: rgba(255, 255, 255, 0.5);
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+  }
+
+  .nav-tabs-custom .nav-link:hover {
+    color: white;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-tabs-custom .nav-link.active {
+    background: transparent !important;
+    color: var(--accent-color) !important;
+    border-bottom: 2px solid var(--accent-color);
+  }
+
+  /* Scrollbar personalizado */
+  .table-responsive-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .table-responsive-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .table-responsive-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+  }
+  .table-responsive-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+</style>
+
+<div class="row mb-4 align-items-center">
+  <div class="col-md-6">
+    <h2 class="mb-1 text-white">Historial de Mediciones</h2>
+    <p class="text-secondary mb-0">Consulta y analiza los datos históricos registrados del ESP32</p>
+  </div>
+  
+  <div class="col-md-6 mt-3 mt-md-0">
+    <div class="d-flex flex-wrap gap-3 justify-content-md-end">
+      <!-- Selector de fechas disponibles -->
+      <div class="d-flex align-items-center gap-2">
+        <label for="date-select" class="text-secondary text-nowrap fw-medium">Seleccionar Día:</label>
+        <select id="date-select" class="form-select form-select-custom">
+          <option value="">Cargando fechas...</option>
+        </select>
+      </div>
+      
+      <!-- Entrada de fecha manual -->
+      <input type="date" id="date-input" class="form-control form-input-custom" style="width: auto;">
+    </div>
+  </div>
+</div>
+
+<!-- Fila 1 de Tarjetas Estadísticas -->
+<div class="row g-4 mb-4">
+  
+  <!-- Tiempo Activo del Relé -->
+  <div class="col-lg-4 col-sm-6">
+    <div class="glass-card p-4 stat-card stat-card-relay h-100">
+      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Actividad Relé</span>
+      <div class="stat-val text-info" id="stat-relay-time">0s</div>
+      <span class="text-secondary fs-7" id="stat-readings-count">0 lecturas totales</span>
+    </div>
+  </div>
+
+  <!-- Stats Temperatura -->
+  <div class="col-lg-4 col-sm-6">
+    <div class="glass-card p-4 stat-card stat-card-temp h-100">
+      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Temperatura</span>
+      <div class="stat-val text-danger" id="stat-temp-avg">--.- <span class="fs-6 fw-normal">°C prom</span></div>
+      <div class="text-secondary fs-7 mt-1">
+        <span class="text-light fw-medium"><i class="bi bi-arrow-down-short text-info"></i> Mín: <span id="stat-temp-min">--.-</span>°C</span> | 
+        <span class="text-light fw-medium"><i class="bi bi-arrow-up-short text-danger"></i> Máx: <span id="stat-temp-max">--.-</span>°C</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Presión -->
+  <div class="col-lg-4 col-sm-6">
+    <div class="glass-card p-4 stat-card stat-card-pres h-100">
+      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Presión Atmosférica</span>
+      <div class="stat-val text-success" id="stat-pres-avg">----.- <span class="fs-6 fw-normal">hPa prom</span></div>
+      <div class="text-secondary fs-7 mt-1">
+        <span class="text-light fw-medium"><i class="bi bi-arrow-down-short text-info"></i> Mín: <span id="stat-pres-min">---</span></span> | 
+        <span class="text-light fw-medium"><i class="bi bi-arrow-up-short text-danger"></i> Máx: <span id="stat-pres-max">---</span></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Fila 2 de Tarjetas Estadísticas (Altitud y Calidad del Aire) -->
+<div class="row g-4 mb-4">
+  
+  <!-- Stats Altitud -->
+  <div class="col-lg-4 col-sm-6">
+    <div class="glass-card p-4 stat-card stat-card-alt h-100">
+      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Altitud calculada</span>
+      <div class="stat-val text-warning" id="stat-alt-avg">--.- <span class="fs-6 fw-normal">m prom</span></div>
+      <div class="text-secondary fs-7 mt-1">
+        <span class="text-light fw-medium"><i class="bi bi-arrow-down-short text-info"></i> Mín: <span id="stat-alt-min">--</span>m</span> | 
+        <span class="text-light fw-medium"><i class="bi bi-arrow-up-short text-danger"></i> Máx: <span id="stat-alt-max">--</span>m</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats CO2 -->
+  <div class="col-lg-4 col-sm-6">
+    <div class="glass-card p-4 stat-card stat-card-co2 h-100">
+      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Dióxido de Carbono (CO₂)</span>
+      <div class="stat-val text-info" id="stat-co2-avg">--- <span class="fs-6 fw-normal">PPM prom</span></div>
+      <div class="text-secondary fs-7 mt-1">
+        <span class="text-light fw-medium"><i class="bi bi-arrow-down-short text-info"></i> Mín: <span id="stat-co2-min">--</span></span> | 
+        <span class="text-light fw-medium"><i class="bi bi-arrow-up-short text-danger"></i> Máx: <span id="stat-co2-max">--</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Humo -->
+  <div class="col-lg-4 col-sm-6">
+    <div class="glass-card p-4 stat-card stat-card-humo h-100">
+      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Humo / Combustión</span>
+      <div class="stat-val text-warning" id="stat-humo-avg">-- <span class="fs-6 fw-normal">PPM prom</span></div>
+      <div class="text-secondary fs-7 mt-1">
+        <span class="text-light fw-medium"><i class="bi bi-arrow-down-short text-info"></i> Mín: <span id="stat-humo-min">--</span></span> | 
+        <span class="text-light fw-medium"><i class="bi bi-arrow-up-short text-danger"></i> Máx: <span id="stat-humo-max">--</span></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Sección del Gráfico Detallado -->
+<div class="row g-4 mb-4">
+  <div class="col-12">
+    <div class="glass-card p-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-3">
+          <h4 class="mb-0 text-white"><i class="bi bi-graph-up me-2"></i> Gráfico Diario Zoomable</h4>
+          <span class="badge bg-secondary-subtle text-light rounded-pill px-2.5 py-1 fs-8"><i class="bi bi-info-circle me-1"></i> Desplázate con la rueda del ratón o pellizca en móvil para hacer zoom</span>
+        </div>
+        <button class="btn btn-outline-secondary btn-action btn-sm" onclick="resetChartZoom()"><i class="bi bi-arrow-counterclockwise"></i> Reiniciar Zoom</button>
+      </div>
+
+      <!-- Pestañas para elegir qué gráfico ver en grande -->
+      <ul class="nav nav-tabs nav-tabs-custom mb-3" id="chartTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="temp-tab" data-bs-toggle="tab" data-bs-target="#temp-pane" type="button" role="tab" aria-selected="true"><i class="bi bi-thermometer-half"></i> Temperatura y Relé</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="pres-tab" data-bs-toggle="tab" data-bs-target="#pres-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-speedometer"></i> Presión</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="alt-tab" data-bs-toggle="tab" data-bs-target="#alt-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-cloud-arrow-up"></i> Altitud</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="co2-tab" data-bs-toggle="tab" data-bs-target="#co2-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-wind"></i> CO₂ y Relé</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="humo-tab" data-bs-toggle="tab" data-bs-target="#humo-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-smoke"></i> Humo / Gases</button>
+        </li>
+      </ul>
+
+      <!-- Contenedor del Gráfico -->
+      <div class="chart-big-container">
+        <canvas id="bigHistoryChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabla de Registros del Día -->
+<div class="row">
+  <div class="col-12">
+    <div class="glass-card p-4">
+      <h4 class="mb-3 text-white"><i class="bi bi-table me-2"></i> Registro Detallado (Minuto a Minuto)</h4>
+      <div class="table-responsive table-responsive-scroll">
+        <table class="table table-custom table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Temperatura</th>
+              <th>Presión</th>
+              <th>Altitud</th>
+              <th>CO₂ (PPM)</th>
+              <th>Humo (PPM)</th>
+              <th>Relé</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr>
+              <td colspan="7" class="text-center text-secondary py-4">Selecciona un día para cargar los datos</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let rawChartData = [];
+  let historyChart = null;
+  let activeTab = 'temp';
+
+  // Configurar e Inicializar el Gráfico
+  function initChart() {
+    const ctx = document.getElementById('bigHistoryChart').getContext('2d');
+    
+    const gradTemp = ctx.createLinearGradient(0, 0, 0, 300);
+    gradTemp.addColorStop(0, 'rgba(255, 71, 87, 0.35)');
+    gradTemp.addColorStop(1, 'rgba(255, 71, 87, 0.0)');
+    
+    const gradPres = ctx.createLinearGradient(0, 0, 0, 300);
+    gradPres.addColorStop(0, 'rgba(46, 213, 115, 0.35)');
+    gradPres.addColorStop(1, 'rgba(46, 213, 115, 0.0)');
+    
+    const gradAlt = ctx.createLinearGradient(0, 0, 0, 300);
+    gradAlt.addColorStop(0, 'rgba(255, 165, 2, 0.35)');
+    gradAlt.addColorStop(1, 'rgba(255, 165, 2, 0.0)');
+
+    const gradCo2 = ctx.createLinearGradient(0, 0, 0, 300);
+    gradCo2.addColorStop(0, 'rgba(0, 242, 254, 0.35)');
+    gradCo2.addColorStop(1, 'rgba(0, 242, 254, 0.0)');
+
+    const gradHumo = ctx.createLinearGradient(0, 0, 0, 300);
+    gradHumo.addColorStop(0, 'rgba(255, 165, 2, 0.35)');
+    gradHumo.addColorStop(1, 'rgba(255, 165, 2, 0.0)');
+
+    const config = {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: []
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            labels: { color: 'rgba(255, 255, 255, 0.7)', font: { family: 'Inter' } }
+          },
+          zoom: {
+            zoom: {
+              wheel: { enabled: true, speed: 0.08 },
+              pinch: { enabled: true },
+              mode: 'x',
+            },
+            pan: {
+              enabled: true,
+              mode: 'x',
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: 'rgba(255, 255, 255, 0.6)', maxTicksLimit: 24 }
+          },
+          y: {
+            id: 'y',
+            position: 'left',
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+          },
+          y1: {
+            id: 'y1',
+            position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { 
+              color: 'rgba(0, 242, 254, 0.7)',
+              callback: function(value) { return value === 1 ? 'ACTIVO' : 'APAGADO'; }
+            },
+            min: -0.1,
+            max: 1.1
+          }
+        }
+      }
+    };
+
+    historyChart = new Chart(ctx, config);
+  }
+
+  // Actualizar el conjunto de datos en el gráfico según la pestaña activa
+  function updateChartDatasets() {
+    if (!historyChart || rawChartData.length === 0) return;
+
+    const times = rawChartData.map(d => d.time);
+    historyChart.data.labels = times;
+
+    historyChart.options.scales.y1.display = false;
+
+    if (activeTab === 'temp') {
+      const temps = rawChartData.map(d => d.temperatura);
+      const relays = rawChartData.map(d => d.relay_activo ? 1 : 0);
+
+      historyChart.data.datasets = [
+        {
+          label: 'Temperatura (°C)',
+          data: temps,
+          borderColor: '#ff4757',
+          backgroundColor: 'rgba(255, 71, 87, 0.2)',
+          fill: true,
+          borderWidth: 2,
+          yAxisID: 'y',
+          tension: 0.3,
+          pointRadius: 0
+        },
+        {
+          label: 'Estado Relé (0 = Apagado, 1 = Activo)',
+          data: relays,
+          borderColor: '#00f2fe',
+          backgroundColor: 'rgba(0, 242, 254, 0.05)',
+          fill: false,
+          borderWidth: 1.5,
+          yAxisID: 'y1',
+          stepped: true,
+          pointRadius: 0
+        }
+      ];
+      historyChart.options.scales.y1.display = true;
+    } 
+    else if (activeTab === 'pres') {
+      const pres = rawChartData.map(d => d.presion);
+      historyChart.data.datasets = [{
+        label: 'Presión Atmosférica (hPa)',
+        data: pres,
+        borderColor: '#2ed573',
+        backgroundColor: 'rgba(46, 213, 115, 0.2)',
+        fill: true,
+        borderWidth: 2,
+        yAxisID: 'y',
+        tension: 0.3,
+        pointRadius: 0
+      }];
+    } 
+    else if (activeTab === 'alt') {
+      const alts = rawChartData.map(d => d.altitud);
+      historyChart.data.datasets = [{
+        label: 'Altitud (m)',
+        data: alts,
+        borderColor: '#ffa502',
+        backgroundColor: 'rgba(255, 165, 2, 0.2)',
+        fill: true,
+        borderWidth: 2,
+        yAxisID: 'y',
+        tension: 0.3,
+        pointRadius: 0
+      }];
+    }
+    else if (activeTab === 'co2') {
+      const co2s = rawChartData.map(d => d.co2);
+      const relays = rawChartData.map(d => d.relay_activo ? 1 : 0);
+      
+      historyChart.data.datasets = [
+        {
+          label: 'CO₂ (PPM)',
+          data: co2s,
+          borderColor: '#00f2fe',
+          backgroundColor: 'rgba(0, 242, 254, 0.2)',
+          fill: true,
+          borderWidth: 2,
+          yAxisID: 'y',
+          tension: 0.3,
+          pointRadius: 0
+        },
+        {
+          label: 'Estado Relé (0 = Apagado, 1 = Activo)',
+          data: relays,
+          borderColor: '#ff4757',
+          backgroundColor: 'rgba(255, 71, 87, 0.05)',
+          fill: false,
+          borderWidth: 1.5,
+          yAxisID: 'y1',
+          stepped: true,
+          pointRadius: 0
+        }
+      ];
+      historyChart.options.scales.y1.display = true;
+    }
+    else if (activeTab === 'humo') {
+      const humos = rawChartData.map(d => d.humo);
+      historyChart.data.datasets = [{
+        label: 'Humo / Gases (PPM)',
+        data: humos,
+        borderColor: '#ffa502',
+        backgroundColor: 'rgba(255, 165, 2, 0.2)',
+        fill: true,
+        borderWidth: 2,
+        yAxisID: 'y',
+        tension: 0.3,
+        pointRadius: 0
+      }];
+    }
+
+    historyChart.update();
+  }
+
+  // Reiniciar Zoom del Gráfico
+  function resetChartZoom() {
+    if (historyChart) {
+      historyChart.resetZoom();
+    }
+  }
+
+  // Cargar lista de fechas disponibles
+  async function loadAvailableDates() {
+    try {
+      const response = await fetch('/api/history/dates');
+      if (!response.ok) throw new Error('Error al cargar fechas');
+      const dates = await response.json();
+      
+      const select = document.getElementById('date-select');
+      select.innerHTML = '';
+      
+      if (dates.length === 0) {
+        select.innerHTML = '<option value="">Sin registros</option>';
+        return;
+      }
+
+      dates.forEach(d => {
+        const option = document.createElement('option');
+        option.value = d;
+        option.innerText = d;
+        select.appendChild(option);
+      });
+
+      // Poner por defecto la fecha más reciente
+      select.value = dates[0];
+      document.getElementById('date-input').value = dates[0];
+      loadDailyData(dates[0]);
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('date-select').innerHTML = '<option value="">Error cargando fechas</option>';
+    }
+  }
+
+  // Cargar datos y estadísticas de una fecha específica
+  async function loadDailyData(dateStr) {
+    try {
+      const response = await fetch(`/api/history/daily?date=${dateStr}`);
+      if (!response.ok) throw new Error('Error al cargar el historial diario');
+      const data = await response.json();
+
+      rawChartData = data.history;
+
+      // Actualizar Gráfico
+      updateChartDatasets();
+
+      // Actualizar Estadísticas de Tarjetas
+      const stats = data.stats;
+      document.getElementById('stat-relay-time').innerText = stats.active_time_str || '0s';
+      document.getElementById('stat-readings-count').innerText = `${stats.total_readings || 0} registros`;
+      
+      document.getElementById('stat-temp-avg').innerHTML = `${stats.temp_avg || '--'} <span class="fs-6 fw-normal">°C prom</span>`;
+      document.getElementById('stat-temp-min').innerText = stats.temp_min || '--';
+      document.getElementById('stat-temp-max').innerText = stats.temp_max || '--';
+
+      document.getElementById('stat-pres-avg').innerHTML = `${stats.pres_avg || '----'} <span class="fs-6 fw-normal">hPa prom</span>`;
+      document.getElementById('stat-pres-min').innerText = stats.pres_min || '--';
+      document.getElementById('stat-pres-max').innerText = stats.pres_max || '--';
+
+      document.getElementById('stat-alt-avg').innerHTML = `${stats.alt_avg || '--'} <span class="fs-6 fw-normal">m prom</span>`;
+      document.getElementById('stat-alt-min').innerText = stats.alt_min || '--';
+      document.getElementById('stat-alt-max').innerText = stats.alt_max || '--';
+
+      // Calidad del aire
+      document.getElementById('stat-co2-avg').innerHTML = `${stats.co2_avg || '---'} <span class="fs-6 fw-normal">PPM prom</span>`;
+      document.getElementById('stat-co2-min').innerText = stats.co2_min || '--';
+      document.getElementById('stat-co2-max').innerText = stats.co2_max || '--';
+
+      document.getElementById('stat-humo-avg').innerHTML = `${stats.humo_avg || '--'} <span class="fs-6 fw-normal">PPM prom</span>`;
+      document.getElementById('stat-humo-min').innerText = stats.humo_min || '--';
+      document.getElementById('stat-humo-max').innerText = stats.humo_max || '--';
+
+      // Actualizar Tabla de Registros
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      if (rawChartData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-secondary">No hay datos en esta fecha.</td></tr>';
+        return;
+      }
+
+      rawChartData.forEach(r => {
+        const tr = document.createElement('tr');
+        
+        const badgeClass = r.relay_activo ? 'relay-badge-on' : 'relay-badge-off';
+        const badgeText = r.relay_activo ? 'ACTIVO' : 'APAGADO';
+
+        const co2Val = r.co2 !== undefined ? r.co2 : 400;
+        const humoVal = r.humo !== undefined ? r.humo : 0;
+
+        tr.innerHTML = `
+          <td>${r.time}</td>
+          <td>${r.temperatura.toFixed(1)} °C</td>
+          <td>${r.presion.toFixed(1)} hPa</td>
+          <td>${r.altitud.toFixed(1)} m</td>
+          <td>${co2Val.toFixed(0)} PPM</td>
+          <td>${humoVal.toFixed(0)} PPM</td>
+          <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // Escuchadores de eventos
+  document.getElementById('date-select').addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val) {
+      document.getElementById('date-input').value = val;
+      loadDailyData(val);
+    }
+  });
+
+  document.getElementById('date-input').addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val) {
+      document.getElementById('date-select').value = val;
+      loadDailyData(val);
+    }
+  });
+
+  // Manejar cambio de pestañas de gráficos
+  document.getElementById('temp-tab').addEventListener('click', () => { activeTab = 'temp'; updateChartDatasets(); });
+  document.getElementById('pres-tab').addEventListener('click', () => { activeTab = 'pres'; updateChartDatasets(); });
+  document.getElementById('alt-tab').addEventListener('click', () => { activeTab = 'alt'; updateChartDatasets(); });
+  document.getElementById('co2-tab').addEventListener('click', () => { activeTab = 'co2'; updateChartDatasets(); });
+  document.getElementById('humo-tab').addEventListener('click', () => { activeTab = 'humo'; updateChartDatasets(); });
+
+  // Inicio
+  window.addEventListener('DOMContentLoaded', () => {
+    initChart();
+    loadAvailableDates();
+  });
+</script>
+{% endblock %}
