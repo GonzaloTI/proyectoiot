@@ -24,6 +24,7 @@
   .stat-card-relay { border-left-color: var(--accent-color); }
   .stat-card-co2 { border-left-color: var(--accent-color); }
   .stat-card-humo { border-left-color: var(--alt-color); }
+  .stat-card-soil { border-left-color: #10ac84; }
 
   .stat-val {
     font-size: 1.8rem;
@@ -155,11 +156,11 @@
   </div>
 </div>
 
-<!-- Fila 1 de Tarjetas Estadísticas -->
+<!-- Fila 1 de Tarjetas Estadísticas (Clima y Estado) -->
 <div class="row g-4 mb-4">
   
   <!-- Tiempo Activo del Relé -->
-  <div class="col-lg-4 col-sm-6">
+  <div class="col-lg-3 col-sm-6">
     <div class="glass-card p-4 stat-card stat-card-relay h-100">
       <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Actividad Relé</span>
       <div class="stat-val text-info" id="stat-relay-time">0s</div>
@@ -168,7 +169,7 @@
   </div>
 
   <!-- Stats Temperatura -->
-  <div class="col-lg-4 col-sm-6">
+  <div class="col-lg-3 col-sm-6">
     <div class="glass-card p-4 stat-card stat-card-temp h-100">
       <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Temperatura</span>
       <div class="stat-val text-danger" id="stat-temp-avg">--.- <span class="fs-6 fw-normal">°C prom</span></div>
@@ -180,7 +181,7 @@
   </div>
 
   <!-- Stats Presión -->
-  <div class="col-lg-4 col-sm-6">
+  <div class="col-lg-3 col-sm-6">
     <div class="glass-card p-4 stat-card stat-card-pres h-100">
       <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Presión Atmosférica</span>
       <div class="stat-val text-success" id="stat-pres-avg">----.- <span class="fs-6 fw-normal">hPa prom</span></div>
@@ -191,13 +192,8 @@
     </div>
   </div>
 
-</div>
-
-<!-- Fila 2 de Tarjetas Estadísticas (Altitud y Calidad del Aire) -->
-<div class="row g-4 mb-4">
-  
   <!-- Stats Altitud -->
-  <div class="col-lg-4 col-sm-6">
+  <div class="col-lg-3 col-sm-6">
     <div class="glass-card p-4 stat-card stat-card-alt h-100">
       <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Altitud calculada</span>
       <div class="stat-val text-warning" id="stat-alt-avg">--.- <span class="fs-6 fw-normal">m prom</span></div>
@@ -208,6 +204,11 @@
     </div>
   </div>
 
+</div>
+
+<!-- Fila 2 de Tarjetas Estadísticas (Gases y Humedad) -->
+<div class="row g-4 mb-4">
+  
   <!-- Stats CO2 -->
   <div class="col-lg-4 col-sm-6">
     <div class="glass-card p-4 stat-card stat-card-co2 h-100">
@@ -228,6 +229,18 @@
       <div class="text-secondary fs-7 mt-1">
         <span class="text-light fw-medium"><i class="bi bi-arrow-down-short text-info"></i> Mín: <span id="stat-humo-min">--</span></span> | 
         <span class="text-light fw-medium"><i class="bi bi-arrow-up-short text-danger"></i> Máx: <span id="stat-humo-max">--</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Humedad de Suelo -->
+  <div class="col-lg-4 col-sm-6">
+    <div class="glass-card p-4 stat-card stat-card-soil h-100">
+      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Humedad de Suelo</span>
+      <div class="stat-val text-success" id="stat-humedad-avg">--.- <span class="fs-6 fw-normal">% prom</span></div>
+      <div class="text-secondary fs-7 mt-1">
+        <span class="text-light fw-medium"><i class="bi bi-arrow-down-short text-info"></i> Mín: <span id="stat-humedad-min">--.-</span>%</span> | 
+        <span class="text-light fw-medium"><i class="bi bi-arrow-up-short text-danger"></i> Máx: <span id="stat-humedad-max">--.-</span>%</span>
       </div>
     </div>
   </div>
@@ -263,6 +276,9 @@
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="humo-tab" data-bs-toggle="tab" data-bs-target="#humo-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-smoke"></i> Humo / Gases</button>
         </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="humedad-tab" data-bs-toggle="tab" data-bs-target="#humedad-pane" type="button" role="tab" aria-selected="false"><i class="bi bi-droplet-half"></i> Humedad Suelo</button>
+        </li>
       </ul>
 
       <!-- Contenedor del Gráfico -->
@@ -288,12 +304,13 @@
               <th>Altitud</th>
               <th>CO₂ (PPM)</th>
               <th>Humo (PPM)</th>
+              <th>Humedad Suelo</th>
               <th>Relé</th>
             </tr>
           </thead>
           <tbody id="table-body">
             <tr>
-              <td colspan="7" class="text-center text-secondary py-4">Selecciona un día para cargar los datos</td>
+              <td colspan="8" class="text-center text-secondary py-4">Selecciona un día para cargar los datos</td>
             </tr>
           </tbody>
         </table>
@@ -488,12 +505,26 @@
       historyChart.options.scales.y1.display = true;
     }
     else if (activeTab === 'humo') {
-      const humos = rawChartData.map(d => d.humo);
+      const humo = rawChartData.map(d => d.humo);
       historyChart.data.datasets = [{
         label: 'Humo / Gases (PPM)',
-        data: humos,
+        data: humo,
         borderColor: '#ffa502',
         backgroundColor: 'rgba(255, 165, 2, 0.2)',
+        fill: true,
+        borderWidth: 2,
+        yAxisID: 'y',
+        tension: 0.3,
+        pointRadius: 0
+      }];
+    }
+    else if (activeTab === 'humedad') {
+      const humedades = rawChartData.map(d => d.humedad_suelo);
+      historyChart.data.datasets = [{
+        label: 'Humedad de Suelo (%)',
+        data: humedades,
+        borderColor: '#10ac84',
+        backgroundColor: 'rgba(16, 172, 132, 0.2)',
         fill: true,
         borderWidth: 2,
         yAxisID: 'y',
@@ -583,12 +614,17 @@
       document.getElementById('stat-humo-min').innerText = stats.humo_min || '--';
       document.getElementById('stat-humo-max').innerText = stats.humo_max || '--';
 
+      // Humedad de Suelo
+      document.getElementById('stat-humedad-avg').innerHTML = `${stats.humedad_suelo_avg || '--'} <span class="fs-6 fw-normal">% prom</span>`;
+      document.getElementById('stat-humedad-min').innerText = stats.humedad_suelo_min || '--';
+      document.getElementById('stat-humedad-max').innerText = stats.humedad_suelo_max || '--';
+
       // Actualizar Tabla de Registros
       const tbody = document.getElementById('table-body');
       tbody.innerHTML = '';
 
       if (rawChartData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-secondary">No hay datos en esta fecha.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-secondary">No hay datos en esta fecha.</td></tr>';
         return;
       }
 
@@ -600,6 +636,7 @@
 
         const co2Val = r.co2 !== undefined ? r.co2 : 400;
         const humoVal = r.humo !== undefined ? r.humo : 0;
+        const humedadSueloVal = r.humedad_suelo !== undefined ? r.humedad_suelo : 0.0;
 
         tr.innerHTML = `
           <td>${r.time}</td>
@@ -608,6 +645,7 @@
           <td>${r.altitud.toFixed(1)} m</td>
           <td>${co2Val.toFixed(0)} PPM</td>
           <td>${humoVal.toFixed(0)} PPM</td>
+          <td>${humedadSueloVal.toFixed(1)} %</td>
           <td><span class="badge ${badgeClass}">${badgeText}</span></td>
         `;
         tbody.appendChild(tr);
@@ -641,6 +679,7 @@
   document.getElementById('alt-tab').addEventListener('click', () => { activeTab = 'alt'; updateChartDatasets(); });
   document.getElementById('co2-tab').addEventListener('click', () => { activeTab = 'co2'; updateChartDatasets(); });
   document.getElementById('humo-tab').addEventListener('click', () => { activeTab = 'humo'; updateChartDatasets(); });
+  document.getElementById('humedad-tab').addEventListener('click', () => { activeTab = 'humedad'; updateChartDatasets(); });
 
   // Inicio
   window.addEventListener('DOMContentLoaded', () => {

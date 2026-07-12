@@ -6,6 +6,13 @@
 
 #define SDA_PIN 21
 #define SCL_PIN 22
+#define SOIL_MOISTURE_PIN 35 // Pin analógico al que se conecta el pin 'A0' del sensor de humedad de suelo
+
+// Calibración típica para el sensor de humedad de suelo (ADC de 12 bits en ESP32: 0 - 4095)
+// Ajusta estos valores según las lecturas físicas de tu sensor
+const int SOIL_DRY_VAL = 4095; // Sensor en el aire (seco)
+const int SOIL_WET_VAL = 1000; // Sensor sumergido en agua/tierra húmeda
+
 #define RELAY_PIN 4 // Pin GPIO al que se conecta el pin 'IN' del relé
 #define MQ135_PIN 34 // Pin analógico (GPIO 34) al que se conecta el pin 'AO' del MQ-135
 
@@ -32,8 +39,9 @@ void setup() {
   digitalWrite(RELAY_PIN, RELAY_OFF); // Inicialmente apagado
   relay_activo = false;
 
-  // Configuración del pin analógico del MQ-135
+  // Configuración de los pines analógicos
   pinMode(MQ135_PIN, INPUT);
+  pinMode(SOIL_MOISTURE_PIN, INPUT);
 
   Wire.begin(SDA_PIN, SCL_PIN);
 
@@ -85,6 +93,13 @@ void loop() {
   // El humo se activa por encima de un umbral base (ej: 700 ADC)
   float humo_ppm = (raw_mq > 700) ? ((float)(raw_mq - 700) * 0.3) : 0.0;
 
+  // Leer sensor de humedad de suelo en GPIO 35
+  int raw_soil = analogRead(SOIL_MOISTURE_PIN);
+  // Convertir lectura analógica a porcentaje (%)
+  float humedad_suelo = 100.0 * (1.0 - ((float)(raw_soil - SOIL_WET_VAL) / (SOIL_DRY_VAL - SOIL_WET_VAL)));
+  if (humedad_suelo < 0.0) humedad_suelo = 0.0;
+  if (humedad_suelo > 100.0) humedad_suelo = 100.0;
+
   Serial.println("=================================");
   Serial.print("Temperatura : ");
   Serial.print(temperatura, 2);
@@ -103,6 +118,11 @@ void loop() {
   Serial.println(" ppm");
   Serial.print("ADC MQ-135  : ");
   Serial.println(raw_mq);
+  Serial.print("Humedad Suel: ");
+  Serial.print(humedad_suelo, 1);
+  Serial.println(" %");
+  Serial.print("ADC Humedad : ");
+  Serial.println(raw_soil);
 
   // Si estamos conectados a WiFi, enviamos datos al servidor
   if (WiFi.status() == WL_CONNECTED) {
@@ -110,13 +130,14 @@ void loop() {
     http.begin(serverName);
     http.addHeader("Content-Type", "application/json");
 
-    // Construimos el payload JSON directamente como String con CO2 y Humo
+    // Construimos el payload JSON directamente como String con CO2, Humo y Humedad de suelo
     String jsonPayload = "{\"temperatura\":" + String(temperatura, 2) + 
                          ",\"presion\":" + String(presion, 2) + 
                          ",\"altitud\":" + String(altitud, 2) + 
                          ",\"relay_activo\":" + (relay_activo ? "true" : "false") + 
                          ",\"co2\":" + String(co2_ppm, 1) + 
-                         ",\"humo\":" + String(humo_ppm, 1) + "}";
+                         ",\"humo\":" + String(humo_ppm, 1) + 
+                         ",\"humedad_suelo\":" + String(humedad_suelo, 1) + "}";
 
     Serial.println("Enviando datos al servidor...");
     int httpResponseCode = http.POST(jsonPayload);

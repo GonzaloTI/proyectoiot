@@ -29,13 +29,14 @@ def recibir_datos():
     relay_activo = bool(data.get('relay_activo', False))
     co2 = float(data.get('co2', 400.0))
     humo = float(data.get('humo', 0.0))
+    humedad_suelo = float(data.get('humedad_suelo', 0.0))
 
     # Actualizar estado del relé reportado
     relay_state["last_esp32_relay_status"] = relay_activo
 
     # Guardar en la base de datos a través de la clase Database
     try:
-        db.save_reading(temperatura, presion, altitud, relay_activo, co2, humo)
+        db.save_reading(temperatura, presion, altitud, relay_activo, co2, humo, humedad_suelo)
     except Exception as e:
         print(f"Error guardando datos en la BD: {e}")
 
@@ -66,7 +67,8 @@ def get_history():
                 "altitud": r[3],
                 "relay_activo": bool(r[4]),
                 "co2": r[5] if len(r) > 5 else 400.0,
-                "humo": r[6] if len(r) > 6 else 0.0
+                "humo": r[6] if len(r) > 6 else 0.0,
+                "humedad_suelo": r[7] if len(r) > 7 else 0.0
             })
     except Exception as e:
         print(f"Error obteniendo historial: {e}")

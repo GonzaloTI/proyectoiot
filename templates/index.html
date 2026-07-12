@@ -35,6 +35,7 @@
   .icon-relay { background: rgba(0, 242, 254, 0.15); color: var(--accent-color); }
   .icon-co2 { background: rgba(0, 242, 254, 0.15); color: var(--accent-color); }
   .icon-humo { background: rgba(255, 165, 2, 0.15); color: var(--alt-color); }
+  .icon-soil { background: rgba(16, 172, 132, 0.15); color: #10ac84; }
 
   /* Botones con Estilo Premium */
   .btn-custom {
@@ -264,16 +265,16 @@
 
 </div>
 
-<!-- SECCIÓN: Calidad del Aire (MQ-135) -->
+<!-- SECCIÓN: Calidad del Aire y Monitoreo de Suelo -->
 <h3 class="mb-3 text-white" style="font-family: 'Outfit', sans-serif; letter-spacing: 0.5px;">
-  <i class="bi bi-wind text-info me-2"></i> Calidad del Aire (Sensor MQ-135)
+  <i class="bi bi-moisture text-info me-2"></i> Calidad del Aire y Monitoreo de Suelo
 </h3>
 
-<!-- FILA 3: Tarjetas de Calidad del Aire -->
+<!-- FILA 3: Tarjetas de Calidad y Suelo -->
 <div class="row g-4 mb-4">
   
   <!-- CO2 Card -->
-  <div class="col-md-6 col-sm-6">
+  <div class="col-md-4 col-sm-12">
     <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between" id="co2-card">
       <div>
         <div class="card-title-icon icon-co2">
@@ -294,7 +295,7 @@
   </div>
 
   <!-- Humo Card -->
-  <div class="col-md-6 col-sm-6">
+  <div class="col-md-4 col-sm-12">
     <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between" id="humo-card">
       <div>
         <div class="card-title-icon icon-humo">
@@ -314,13 +315,34 @@
     </div>
   </div>
 
+  <!-- Humedad de Suelo Card -->
+  <div class="col-md-4 col-sm-12">
+    <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between" id="humedad-suelo-card">
+      <div>
+        <div class="card-title-icon icon-soil">
+          <i class="bi bi-droplet-half"></i>
+        </div>
+        <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide">Humedad de Suelo</span>
+        <div class="d-flex align-items-baseline mt-2">
+          <span class="display-5 fw-bold" id="current-humedad-suelo">--.-</span>
+          <span class="indicator-unit ms-1">%</span>
+        </div>
+      </div>
+      <div class="mt-3">
+        <span class="badge w-100 py-2 d-none" id="humedad-suelo-alert-badge">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i> Suelo Seco (< 30%)
+        </span>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- FILA 4: Gráficos de Calidad del Aire -->
+<!-- FILA 4: Gráficos de Calidad y Suelo -->
 <div class="row g-4">
   
   <!-- Gráfico CO2 -->
-  <div class="col-lg-6">
+  <div class="col-lg-4">
     <div class="glass-card p-4">
       <h5 class="mb-4 d-flex align-items-center gap-2">
         <i class="bi bi-activity text-info"></i> Gráfico de CO₂
@@ -332,13 +354,25 @@
   </div>
 
   <!-- Gráfico Humo -->
-  <div class="col-lg-6">
+  <div class="col-lg-4">
     <div class="glass-card p-4">
       <h5 class="mb-4 d-flex align-items-center gap-2">
         <i class="bi bi-activity text-warning"></i> Gráfico de Humo
       </h5>
       <div class="chart-container">
         <canvas id="humoChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico Humedad de Suelo -->
+  <div class="col-lg-4">
+    <div class="glass-card p-4">
+      <h5 class="mb-4 d-flex align-items-center gap-2">
+        <i class="bi bi-activity text-success"></i> Gráfico de Humedad
+      </h5>
+      <div class="chart-container">
+        <canvas id="humedadSueloChart"></canvas>
       </div>
     </div>
   </div>
@@ -477,6 +511,28 @@
     options: chartOptions
   });
 
+  const ctxHumedadSuelo = document.getElementById('humedadSueloChart').getContext('2d');
+  const gradHumedadSuelo = ctxHumedadSuelo.createLinearGradient(0, 0, 0, 200);
+  gradHumedadSuelo.addColorStop(0, 'rgba(16, 172, 132, 0.4)');
+  gradHumedadSuelo.addColorStop(1, 'rgba(16, 172, 132, 0.0)');
+  const humedadSueloChart = new Chart(ctxHumedadSuelo, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        borderColor: '#10ac84',
+        backgroundColor: gradHumedadSuelo,
+        fill: true,
+        borderWidth: 2.5,
+        tension: 0.3,
+        pointRadius: 1,
+        pointHoverRadius: 5,
+        data: []
+      }]
+    },
+    options: chartOptions
+  });
+
   // Variables de Control UI
   const modeSwitch = document.getElementById('mode-switch');
   const relayBtn = document.getElementById('relay-toggle-btn');
@@ -489,6 +545,8 @@
   const co2Card = document.getElementById('co2-card');
   const humoAlertBadge = document.getElementById('humo-alert-badge');
   const humoCard = document.getElementById('humo-card');
+  const humedadSueloAlertBadge = document.getElementById('humedad-suelo-alert-badge');
+  const humedadSueloCard = document.getElementById('humedad-suelo-card');
 
   let currentRelayState = false;
   let isManualMode = false;
@@ -512,9 +570,11 @@
         
         const co2Val = lastReading.co2 !== undefined ? lastReading.co2 : 400;
         const humoVal = lastReading.humo !== undefined ? lastReading.humo : 0;
+        const humedadSueloVal = lastReading.humedad_suelo !== undefined ? lastReading.humedad_suelo : 0.0;
         
         document.getElementById('current-co2').innerText = co2Val.toFixed(0);
         document.getElementById('current-humo').innerText = humoVal.toFixed(0);
+        document.getElementById('current-humedad-suelo').innerText = humedadSueloVal.toFixed(1);
 
         // Alerta de Temperatura (>= 40 °C)
         if (lastReading.temperatura >= 40.0) {
@@ -546,6 +606,16 @@
           humoCard.classList.remove('border-danger');
         }
 
+        // Alerta de Humedad Suelo (< 30.0%)
+        if (humedadSueloVal < 30.0) {
+          humedadSueloAlertBadge.classList.remove('d-none');
+          humedadSueloAlertBadge.classList.add('bg-warning', 'bg-alert-glow');
+          humedadSueloCard.classList.add('border-warning');
+        } else {
+          humedadSueloAlertBadge.classList.add('d-none');
+          humedadSueloCard.classList.remove('border-warning');
+        }
+
         // Actualizar datos de los gráficos
         const labels = history.map(item => item.timestamp);
         
@@ -568,6 +638,10 @@
         humoChart.data.labels = labels;
         humoChart.data.datasets[0].data = history.map(item => item.humo !== undefined ? item.humo : 0.0);
         humoChart.update('none');
+
+        humedadSueloChart.data.labels = labels;
+        humedadSueloChart.data.datasets[0].data = history.map(item => item.humedad_suelo !== undefined ? item.humedad_suelo : 0.0);
+        humedadSueloChart.update('none');
         
         lastDataTime = new Date();
       }

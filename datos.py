@@ -18,7 +18,8 @@ class Database:
                 altitud REAL,
                 relay_activo INTEGER,
                 co2 REAL,
-                humo REAL
+                humo REAL,
+                humedad_suelo REAL
             )
         ''')
         
@@ -29,16 +30,18 @@ class Database:
             cursor.execute("ALTER TABLE readings ADD COLUMN co2 REAL")
         if 'humo' not in columns:
             cursor.execute("ALTER TABLE readings ADD COLUMN humo REAL")
+        if 'humedad_suelo' not in columns:
+            cursor.execute("ALTER TABLE readings ADD COLUMN humedad_suelo REAL")
             
         conn.commit()
         conn.close()
 
-    def save_reading(self, temperatura, presion, altitud, relay_activo, co2, humo):
+    def save_reading(self, temperatura, presion, altitud, relay_activo, co2, humo, humedad_suelo):
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO readings (temperatura, presion, altitud, relay_activo, co2, humo) VALUES (?, ?, ?, ?, ?, ?)',
-            (temperatura, presion, altitud, 1 if relay_activo else 0, co2, humo)
+            'INSERT INTO readings (temperatura, presion, altitud, relay_activo, co2, humo, humedad_suelo) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (temperatura, presion, altitud, 1 if relay_activo else 0, co2, humo, humedad_suelo)
         )
         conn.commit()
         conn.close()
@@ -47,7 +50,7 @@ class Database:
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
         cursor.execute(
-            'SELECT timestamp, temperatura, presion, altitud, relay_activo, co2, humo FROM readings ORDER BY id DESC LIMIT ?',
+            'SELECT timestamp, temperatura, presion, altitud, relay_activo, co2, humo, humedad_suelo FROM readings ORDER BY id DESC LIMIT ?',
             (limit,)
         )
         rows = cursor.fetchall()
@@ -75,12 +78,13 @@ class Database:
                    AVG(altitud) as avg_alt, 
                    MAX(relay_activo) as max_relay,
                    AVG(co2) as avg_co2,
-                   AVG(humo) as avg_humo
+                   AVG(humo) as avg_humo,
+                   AVG(humedad_suelo) as avg_humedad_suelo
             FROM readings 
             WHERE date(timestamp) = ? 
             GROUP BY time_label 
             ORDER BY time_label ASC
-        ''', (date_str,))
+          ''', (date_str,))
         rows = cursor.fetchall()
         conn.close()
         
@@ -91,14 +95,15 @@ class Database:
             "altitud": round(r[3], 2) if r[3] is not None else 0,
             "relay_activo": bool(r[4]),
             "co2": round(r[5], 1) if r[5] is not None else 0,
-            "humo": round(r[6], 1) if r[6] is not None else 0
+            "humo": round(r[6], 1) if r[6] is not None else 0,
+            "humedad_suelo": round(r[7], 1) if r[7] is not None else 0
         } for r in rows]
 
     def get_daily_stats(self, date_str):
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT timestamp, temperatura, presion, altitud, relay_activo, co2, humo FROM readings 
+            SELECT timestamp, temperatura, presion, altitud, relay_activo, co2, humo, humedad_suelo FROM readings 
             WHERE date(timestamp) = ? 
             ORDER BY id ASC
         ''', (date_str,))
@@ -113,14 +118,15 @@ class Database:
                 "pres_min": 0, "pres_max": 0, "pres_avg": 0,
                 "alt_min": 0, "alt_max": 0, "alt_avg": 0,
                 "co2_min": 0, "co2_max": 0, "co2_avg": 0,
-                "humo_min": 0, "humo_max": 0, "humo_avg": 0
+                "humo_min": 0, "humo_max": 0, "humo_avg": 0,
+                "humedad_suelo_min": 0, "humedad_suelo_max": 0, "humedad_suelo_avg": 0
             }
         
         # Calcular tiempo activo del relé
         active_seconds = 0
         for i in range(len(rows) - 1):
-            t1_str, _, _, _, active1, _, _ = rows[i]
-            t2_str, _, _, _, active2, _, _ = rows[i+1]
+            t1_str, _, _, _, active1, _, _, _ = rows[i]
+            t2_str, _, _, _, active2, _, _, _ = rows[i+1]
             
             if active1:
                 try:
@@ -151,6 +157,7 @@ class Database:
         alts = [r[3] for r in rows if r[3] is not None]
         co2s = [r[5] for r in rows if r[5] is not None]
         humos = [r[6] for r in rows if r[6] is not None]
+        humedades = [r[7] for r in rows if len(r) > 7 and r[7] is not None]
         
         return {
             "total_readings": len(rows),
@@ -169,5 +176,8 @@ class Database:
             "co2_avg": round(sum(co2s)/len(co2s), 1) if co2s else 0,
             "humo_min": round(min(humos), 1) if humos else 0,
             "humo_max": round(max(humos), 1) if humos else 0,
-            "humo_avg": round(sum(humos)/len(humos), 1) if humos else 0
+            "humo_avg": round(sum(humos)/len(humos), 1) if humos else 0,
+            "humedad_suelo_min": round(min(humedades), 1) if humedades else 0,
+            "humedad_suelo_max": round(max(humedades), 1) if humedades else 0,
+            "humedad_suelo_avg": round(sum(humedades)/len(humedades), 1) if humedades else 0
         }
