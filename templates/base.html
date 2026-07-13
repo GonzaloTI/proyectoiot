@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Panel de Control - BMP280 & Relé</title>
+    <title>Monitor IoT</title>
     <!-- Bootstrap 5.3.0 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -24,31 +24,108 @@
           --temp-color: #ff4757;
           --pres-color: #2ed573;
           --alt-color: #ffa502;
+          
+          --text-color: #f1f2f6;
+          --text-muted: rgba(255, 255, 255, 0.5);
+          --text-secondary: rgba(255, 255, 255, 0.6);
+          --nav-bg: rgba(18, 22, 33, 0.7);
+          --nav-border: rgba(255, 255, 255, 0.08);
+          --logo-gradient: linear-gradient(135deg, #0d6efd, #00f2fe);
+          --body-bg-gradient: radial-gradient(at 10% 20%, rgba(13, 110, 253, 0.08) 0px, transparent 50%),
+                              radial-gradient(at 90% 80%, rgba(0, 242, 254, 0.05) 0px, transparent 50%);
+        }
+
+        body.light-theme {
+          --bg-color: #f5f6fa;
+          --card-bg: rgba(255, 255, 255, 0.75);
+          --card-border: rgba(0, 0, 0, 0.08);
+          --text-color: #2f3640;
+          --text-muted: rgba(0, 0, 0, 0.5);
+          --text-secondary: rgba(0, 0, 0, 0.6);
+          --nav-bg: rgba(255, 255, 255, 0.85);
+          --nav-border: rgba(0, 0, 0, 0.08);
+          --logo-gradient: linear-gradient(135deg, #0d6efd, #05c46b);
+          --body-bg-gradient: radial-gradient(at 10% 20%, rgba(13, 110, 253, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 90% 80%, rgba(16, 172, 132, 0.03) 0px, transparent 50%);
         }
 
         body {
           background-color: var(--bg-color);
-          color: #f1f2f6;
+          color: var(--text-color);
           font-family: 'Inter', sans-serif;
           min-height: 100vh;
-          background-image: 
-            radial-gradient(at 10% 20%, rgba(13, 110, 253, 0.08) 0px, transparent 50%),
-            radial-gradient(at 90% 80%, rgba(0, 242, 254, 0.05) 0px, transparent 50%);
+          background-image: var(--body-bg-gradient);
           background-attachment: fixed;
+          transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Estilo de Navbar Premium */
         .navbar-custom {
-          background: rgba(18, 22, 33, 0.7) !important;
+          background: var(--nav-bg) !important;
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          border-bottom: 1px solid var(--nav-border);
+          transition: background 0.3s ease, border-bottom 0.3s ease;
         }
 
         .text-primary-gradient {
-          background: linear-gradient(135deg, #0d6efd, #00f2fe);
+          background: var(--logo-gradient);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
+        }
+
+        /* Overrides para el Tema Claro */
+        body.light-theme .text-secondary {
+          color: var(--text-secondary) !important;
+        }
+        body.light-theme .text-white {
+          color: var(--text-color) !important;
+        }
+        body.light-theme h2, 
+        body.light-theme h3, 
+        body.light-theme h4, 
+        body.light-theme h5, 
+        body.light-theme h6 {
+          color: var(--text-color) !important;
+        }
+        body.light-theme .glass-card {
+          box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+        }
+        body.light-theme .navbar-custom .nav-link {
+          color: rgba(0, 0, 0, 0.6) !important;
+        }
+        body.light-theme .navbar-custom .nav-link.active {
+          color: #0d6efd !important;
+          font-weight: 600;
+        }
+        body.light-theme .navbar-custom .nav-link:hover {
+          color: #000000 !important;
+        }
+        body.light-theme .indicator-unit {
+          color: rgba(0, 0, 0, 0.5);
+        }
+        body.light-theme .form-select-custom, 
+        body.light-theme .form-input-custom {
+          background-color: rgba(255, 255, 255, 0.9) !important;
+          color: #2f3640 !important;
+          border-color: rgba(0, 0, 0, 0.15) !important;
+        }
+        body.light-theme .table-custom {
+          color: #2f3640 !important;
+        }
+        body.light-theme .table-custom th {
+          background-color: rgba(0, 0, 0, 0.03);
+          color: rgba(0, 0, 0, 0.6);
+          border-bottom: 2px solid rgba(0, 0, 0, 0.08);
+        }
+        body.light-theme .table-custom td {
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        body.light-theme .border-top {
+          border-top-color: rgba(0, 0, 0, 0.08) !important;
+        }
+        body.light-theme .border-secondary-subtle {
+          border-color: rgba(0, 0, 0, 0.08) !important;
         }
 
         .logo-glow-dot {
@@ -93,6 +170,12 @@
     </style>
 </head>
 <body>
+    <script>
+        // Aplicar tema guardado antes de renderizar para evitar parpadeos
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-theme');
+        }
+    </script>
     
     <!-- Navbar principal del sistema -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm">
@@ -100,7 +183,7 @@
             <a class="navbar-brand d-flex align-items-center gap-2" href="#">
                 <div class="logo-glow-dot"></div>
                 <span class="fw-bold text-uppercase tracking-wide" style="font-family: 'Outfit', sans-serif; letter-spacing: 1px;">
-                    <span class="text-primary-gradient">Antigravity</span> IoT Monitor
+                    <span class="text-primary-gradient">Monitor</span> IoT
                 </span>
             </a>
             
@@ -118,9 +201,17 @@
                         <a class="nav-link px-3 rounded-pill" href="/historial" id="nav-historial"><i class="bi bi-calendar3 me-1"></i> Historial</a>
                     </li>
                 </ul>
-                <span class="navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5 mt-2 mt-lg-0" id="connection-status" style="width: fit-content;">
-                    <span class="status-pulse-dot"></span> ESP32: Online
-                </span>
+                <div class="d-flex align-items-center gap-3 mt-2 mt-lg-0">
+                    <!-- Selector de Tema Claro/Oscuro -->
+                    <div class="form-check form-switch mb-0 d-flex align-items-center gap-2" style="padding-left: 2.5em;">
+                        <i class="bi bi-moon-stars-fill text-secondary" style="font-size: 0.9rem;"></i>
+                        <input class="form-check-input" type="checkbox" id="theme-switch" style="cursor: pointer; margin-left: 0;">
+                        <i class="bi bi-brightness-high-fill text-warning" style="font-size: 1rem;"></i>
+                    </div>
+                    <span class="navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5" id="connection-status" style="width: fit-content;">
+                        <span class="status-pulse-dot"></span> ESP32: Online
+                    </span>
+                </div>
             </div>
         </div>
     </nav>
@@ -143,14 +234,42 @@
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Resaltar enlace activo -->
+    <!-- Control de Tema Claro / Oscuro y Enlaces Activos -->
     <script>
+        // Lógica de Enlaces Activos
         const path = window.location.pathname;
         if (path === '/' || path === '') {
             document.getElementById('nav-dashboard').classList.add('active');
         } else if (path.startsWith('/historial')) {
             document.getElementById('nav-historial').classList.add('active');
         }
+
+        // Lógica de Tema
+        const themeSwitch = document.getElementById('theme-switch');
+        
+        // Cargar tema inicial en el switch
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            themeSwitch.checked = true;
+        } else {
+            themeSwitch.checked = false;
+        }
+
+        // Escuchar cambios del switch
+        themeSwitch.addEventListener('change', () => {
+            const isLight = themeSwitch.checked;
+            if (isLight) {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.classList.remove('light-theme');
+                localStorage.setItem('theme', 'dark');
+            }
+            // Emitir evento para actualizar gráficos Chart.js
+            window.dispatchEvent(new CustomEvent('themeChanged', { 
+                detail: { theme: isLight ? 'light' : 'dark' } 
+            }));
+        });
     </script>
 </body>
 </html>

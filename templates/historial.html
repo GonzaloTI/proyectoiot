@@ -348,6 +348,10 @@
     gradHumo.addColorStop(0, 'rgba(255, 165, 2, 0.35)');
     gradHumo.addColorStop(1, 'rgba(255, 165, 2, 0.0)');
 
+    const isLight = document.body.classList.contains('light-theme');
+    const initTickColor = isLight ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)';
+    const initGridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+
     const config = {
       type: 'line',
       data: {
@@ -364,7 +368,7 @@
         plugins: {
           legend: {
             display: true,
-            labels: { color: 'rgba(255, 255, 255, 0.7)', font: { family: 'Inter' } }
+            labels: { color: initTickColor, font: { family: 'Inter' } }
           },
           zoom: {
             zoom: {
@@ -380,21 +384,21 @@
         },
         scales: {
           x: {
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: 'rgba(255, 255, 255, 0.6)', maxTicksLimit: 24 }
+            grid: { color: initGridColor },
+            ticks: { color: initTickColor, maxTicksLimit: 24 }
           },
           y: {
             id: 'y',
             position: 'left',
-            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-            ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+            grid: { color: initGridColor },
+            ticks: { color: initTickColor }
           },
           y1: {
             id: 'y1',
             position: 'right',
             grid: { drawOnChartArea: false },
             ticks: { 
-              color: 'rgba(0, 242, 254, 0.7)',
+              color: isLight ? '#0d6efd' : 'rgba(0, 242, 254, 0.7)',
               callback: function(value) { return value === 1 ? 'ACTIVO' : 'APAGADO'; }
             },
             min: -0.1,
@@ -670,6 +674,24 @@
     if (val) {
       document.getElementById('date-select').value = val;
       loadDailyData(val);
+    }
+  });
+
+  // Escuchar cambios de tema en tiempo real para actualizar los gráficos
+  window.addEventListener('themeChanged', (e) => {
+    const isLight = e.detail.theme === 'light';
+    const tickCol = isLight ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)';
+    const gridCol = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+    const y1Col = isLight ? '#0d6efd' : 'rgba(0, 242, 254, 0.7)';
+    
+    if (historyChart) {
+      historyChart.options.scales.x.ticks.color = tickCol;
+      historyChart.options.scales.x.grid.color = gridCol;
+      historyChart.options.scales.y.ticks.color = tickCol;
+      historyChart.options.scales.y.grid.color = gridCol;
+      historyChart.options.scales.y1.ticks.color = y1Col;
+      historyChart.options.plugins.legend.labels.color = tickCol;
+      historyChart.update();
     }
   });
 

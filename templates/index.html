@@ -380,6 +380,17 @@
 </div>
 
 <script>
+  // Obtener colores de ejes y cuadrículas basados en el tema
+  function getThemeChartColors() {
+    const isLight = document.body.classList.contains('light-theme');
+    return {
+      tick: isLight ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.5)',
+      grid: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)'
+    };
+  }
+
+  const initialColors = getThemeChartColors();
+
   // Configuración base de los gráficos
   const chartOptions = {
     responsive: true,
@@ -389,12 +400,12 @@
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-        ticks: { color: 'rgba(255, 255, 255, 0.5)', maxRotation: 45, minRotation: 45 }
+        grid: { color: initialColors.grid },
+        ticks: { color: initialColors.tick, maxRotation: 45, minRotation: 45 }
       },
       y: {
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-        ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+        grid: { color: initialColors.grid },
+        ticks: { color: initialColors.tick }
       }
     }
   };
@@ -724,6 +735,24 @@
     } catch (err) {
       console.error(err);
     }
+  });
+
+  // Escuchar cambios de tema en tiempo real para actualizar los gráficos
+  window.addEventListener('themeChanged', (e) => {
+    const isLight = e.detail.theme === 'light';
+    const tickCol = isLight ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.5)';
+    const gridCol = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+    
+    const chartsList = [tempChart, presChart, altChart, co2Chart, humoChart, humedadSueloChart];
+    chartsList.forEach(chart => {
+      if (chart) {
+        chart.options.scales.x.ticks.color = tickCol;
+        chart.options.scales.x.grid.color = gridCol;
+        chart.options.scales.y.ticks.color = tickCol;
+        chart.options.scales.y.grid.color = gridCol;
+        chart.update();
+      }
+    });
   });
 
   // Polling cada 2 segundos
