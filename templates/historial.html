@@ -162,7 +162,7 @@
   <!-- Tiempo Activo del Relé -->
   <div class="col-lg-3 col-sm-6">
     <div class="glass-card p-4 stat-card stat-card-relay h-100">
-      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Actividad Relé</span>
+      <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-1">Actividad Relé <span class="text-info fs-8" id="relay-alias-badge"></span></span>
       <div class="stat-val text-info" id="stat-relay-time">0s</div>
       <span class="text-secondary fs-7" id="stat-readings-count">0 lecturas totales</span>
     </div>
@@ -707,6 +707,12 @@
   window.addEventListener('DOMContentLoaded', () => {
     initChart();
     loadAvailableDates();
+    
+    // Cargar alias del relé si existe
+    const savedAlias = localStorage.getItem('relayAlias');
+    if (savedAlias && savedAlias !== 'Relé') {
+      document.getElementById('relay-alias-badge').innerText = `(${savedAlias})`;
+    }
   });
 </script>
 {% endblock %}

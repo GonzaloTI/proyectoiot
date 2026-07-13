@@ -201,7 +201,13 @@
         <div class="card-title-icon icon-relay">
           <i class="bi bi-toggle2-on"></i>
         </div>
-        <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide">Estado Relé</span>
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide">Estado Relé</span>
+          <span class="fs-7 fw-semibold text-info" id="relay-alias-container" style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="openRelayAliasModal()" title="Editar identificador">
+            <span id="relay-alias-text">Relé</span>
+            <i class="bi bi-pencil-square" style="font-size: 0.8rem; margin-top: -2px;"></i>
+          </span>
+        </div>
         <div class="mt-2 d-flex align-items-center justify-content-between">
           <span class="badge py-2 px-3 fs-6 rounded-pill" id="relay-status-badge">DESACTIVADO</span>
         </div>
@@ -377,6 +383,28 @@
     </div>
   </div>
 
+</div>
+
+<!-- Modal para Editar Alias del Relé -->
+<div class="modal fade" id="relayAliasModal" tabindex="-1" aria-labelledby="relayAliasModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-card" style="border: 1px solid var(--card-border); background: var(--bg-color); color: var(--text-color);">
+      <div class="modal-header border-bottom border-secondary-subtle">
+        <h5 class="modal-title text-white" id="relayAliasModalLabel"><i class="bi bi-pencil-square me-2 text-info"></i>Editar Identificador del Relé</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="relay-alias-input" class="form-label text-secondary fs-7">Nombre / Alias (ej: Agua, Bomba, Luz):</label>
+          <input type="text" class="form-control form-input-custom" id="relay-alias-input" placeholder="Escribe el nombre del relé..." maxlength="20">
+        </div>
+      </div>
+      <div class="modal-footer border-top border-secondary-subtle">
+        <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-color);">Cancelar</button>
+        <button type="button" class="btn btn-custom btn-custom-primary" onclick="saveRelayAlias()">Guardar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -754,6 +782,32 @@
       }
     });
   });
+
+  // Lógica del Alias del Relé
+  const relayAliasText = document.getElementById('relay-alias-text');
+  const relayAliasInput = document.getElementById('relay-alias-input');
+  let aliasModalInstance = null;
+
+  // Cargar alias guardado desde localStorage
+  const savedAlias = localStorage.getItem('relayAlias') || 'Relé';
+  relayAliasText.innerText = savedAlias;
+
+  function openRelayAliasModal() {
+    if (!aliasModalInstance) {
+      aliasModalInstance = new bootstrap.Modal(document.getElementById('relayAliasModal'));
+    }
+    relayAliasInput.value = relayAliasText.innerText;
+    aliasModalInstance.show();
+  }
+
+  function saveRelayAlias() {
+    const value = relayAliasInput.value.trim() || 'Relé';
+    localStorage.setItem('relayAlias', value);
+    relayAliasText.innerText = value;
+    if (aliasModalInstance) {
+      aliasModalInstance.hide();
+    }
+  }
 
   // Polling cada 2 segundos
   setInterval(updateDashboard, 2000);
