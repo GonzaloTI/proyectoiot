@@ -1,0 +1,539 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .btn-custom {
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-custom-primary {
+    background: linear-gradient(135deg, #0d6efd, #00f2fe);
+    border: none;
+    color: white;
+  }
+  .btn-custom-primary:hover {
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+    color: white;
+  }
+
+  .btn-custom-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-color);
+  }
+  .btn-custom-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-color);
+  }
+
+  .table-custom {
+    color: var(--text-color);
+    vertical-align: middle;
+  }
+  .table-custom th {
+    background-color: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .table-custom td {
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .char-counter {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.25rem;
+  }
+
+  .form-control-custom {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: var(--text-color);
+  }
+  .form-control-custom:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-color);
+    color: var(--text-color);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+  }
+  
+  .permission-item-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.8rem;
+    transition: background 0.2s ease;
+  }
+  .permission-item-box:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+</style>
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <div>
+    <h2 class="fw-bold mb-1" style="font-family: 'Outfit', sans-serif;">
+      <i class="bi bi-people-fill text-info me-2"></i>Gestión de Usuarios, Roles y Permisos
+    </h2>
+    <p class="text-secondary mb-0 fs-7">Administra los accesos, permisos especiales y roles del sistema IoT</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    {% if has_permission('CREAR_ROLES') %}
+    <button class="btn btn-custom btn-custom-secondary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createRoleModal">
+      <i class="bi bi-shield-plus text-warning"></i> Nuevo Rol
+    </button>
+    {% endif %}
+    {% if has_permission('CREAR_USUARIOS') %}
+    <button class="btn btn-custom btn-custom-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createUserModal">
+      <i class="bi bi-person-plus-fill"></i> Crear Usuario
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  
+  <!-- TABLA DE USUARIOS -->
+  <div class="col-lg-8">
+    <div class="glass-card p-4 h-100">
+      <h5 class="mb-3 fw-bold d-flex align-items-center gap-2">
+        <i class="bi bi-person-lines-fill text-primary"></i> Usuarios Registrados
+      </h5>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Usuario</th>
+              <th>Roles Asignados</th>
+              <th>Estado</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr>
+              <td class="fw-bold text-secondary">#{{ u.id }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-person-circle fs-5 text-info"></i>
+                  <span class="fw-semibold">{{ u.usuario }}</span>
+                </div>
+              </td>
+              <td>
+                {% if u.roles %}
+                  {% for r in u.roles %}
+                    <span class="badge {% if r.rol == 'Admin' %}bg-danger{% else %}bg-info text-dark{% endif %} px-2 py-1 me-1 rounded-pill fs-7">
+                      <i class="bi bi-shield-check me-1"></i>{{ r.rol }}
+                    </span>
+                  {% endfor %}
+                {% else %}
+                  <span class="badge bg-secondary px-2 py-1 rounded-pill fs-7">Sin rol</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if u.estado %}
+                  <span class="badge bg-success-glow px-3 py-1 rounded-pill">Activo</span>
+                {% else %}
+                  <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25 px-3 py-1 rounded-pill">Inactivo</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="d-inline-flex gap-1">
+                  <!-- Botón Editar Datos (Contraseña y Roles) -->
+                  {% if has_permission('CREAR_USUARIOS') or has_permission('MODIFICAR_PERMISOS') %}
+                  <button 
+                    type="button" 
+                    class="btn btn-sm btn-outline-warning rounded-pill px-3 fs-7" 
+                    title="Editar datos del usuario"
+                    onclick='openEditUserModal({{ u.id }}, "{{ u.usuario }}", {{ u.roles | tojson }})'
+                  >
+                    <i class="bi bi-pencil-fill me-1"></i>Editar
+                  </button>
+                  {% endif %}
+
+                  <!-- Botón Permisos -->
+                  {% if has_permission('MODIFICAR_PERMISOS') %}
+                  <button 
+                    type="button" 
+                    class="btn btn-sm btn-outline-info rounded-pill px-3 fs-7" 
+                    title="Modificar permisos"
+                    onclick='openPermissionsModal({{ u.id }}, "{{ u.usuario }}", {{ u.permissions | tojson }})'
+                  >
+                    <i class="bi bi-key-fill me-1"></i>Permisos
+                  </button>
+                  {% endif %}
+
+                  <!-- Botón Desactivar/Activar -->
+                  {% if has_permission('DESACTIVAR_USUARIOS') %}
+                  <form action="/api/usuarios/toggle_status" method="POST" class="d-inline">
+                    <input type="hidden" name="user_id" value="{{ u.id }}">
+                    {% if u.estado %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fs-7" title="Desactivar usuario">
+                        <i class="bi bi-slash-circle me-1"></i>Desactivar
+                      </button>
+                    {% else %}
+                      <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3 fs-7" title="Activar usuario">
+                        <i class="bi bi-check-circle me-1"></i>Activar
+                      </button>
+                    {% endif %}
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TARJETA DE ROLES EXISTENTES -->
+  <div class="col-lg-4">
+    <div class="glass-card p-4 h-100">
+      <h5 class="mb-3 fw-bold d-flex align-items-center gap-2">
+        <i class="bi bi-shield-lock-fill text-warning"></i> Roles Configurados
+      </h5>
+      <div class="list-group list-group-flush bg-transparent">
+        {% for r in roles %}
+        <div class="list-group-item bg-transparent text-white px-0 py-3 border-bottom border-secondary-subtle">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="fw-bold fs-6 text-info">
+              <i class="bi bi-shield-shaded me-1"></i>{{ r.rol }}
+            </span>
+            <span class="badge bg-secondary rounded-pill">ID: {{ r.id }}</span>
+          </div>
+          <p class="mb-0 fs-7 text-secondary">{{ r.descripcion or 'Sin descripción' }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL EDITAR USUARIO -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-card" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--card-border);">
+      <div class="modal-header border-bottom border-secondary-subtle">
+        <h5 class="modal-title fw-bold" id="editUserModalLabel"><i class="bi bi-pencil-square me-2 text-warning"></i>Editar Usuario</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/api/usuarios/editar" method="POST" onsubmit="return validateEditUserForm()">
+        <input type="hidden" name="user_id" id="edit_user_id">
+        <div class="modal-body">
+          
+          <!-- Nombre de usuario (Solo Lectura) -->
+          <div class="mb-3">
+            <label for="edit_usuario_readonly" class="form-label fs-7 fw-semibold text-secondary">Nombre de Usuario (No modificable)</label>
+            <input type="text" class="form-control form-control-custom opacity-75" id="edit_usuario_readonly" disabled readonly style="cursor: not-allowed; background: rgba(255,255,255,0.03);">
+          </div>
+
+          <!-- Nueva Contraseña -->
+          <div class="mb-3">
+            <label for="edit_password" class="form-label fs-7 fw-semibold text-secondary">Nueva Contraseña (Opcional, Máx 40 caracteres)</label>
+            <input type="password" class="form-control form-control-custom" id="edit_password" name="password" placeholder="Dejar en blanco para no modificar" maxlength="40" oninput="updateCharCount('edit_password', 'count_edit_password')">
+            <div class="char-counter" id="count_edit_password">0 / 40 caracteres</div>
+          </div>
+
+          <!-- Asignar Roles -->
+          <div class="mb-3">
+            <label class="form-label fs-7 fw-semibold text-secondary mb-2">Modificar Roles</label>
+            <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);">
+              {% for r in roles %}
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="role_ids" value="{{ r.id }}" id="edit_role_check_{{ r.id }}">
+                <label class="form-check-label fw-medium" for="edit_role_check_{{ r.id }}">
+                  {{ r.rol }} <span class="fs-7 text-secondary">({{ r.descripcion }})</span>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer border-top border-secondary-subtle">
+          <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-custom btn-custom-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GESTIONAR PERMISOS -->
+<div class="modal fade" id="managePermissionsModal" tabindex="-1" aria-labelledby="managePermissionsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content glass-card" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--card-border);">
+      <div class="modal-header border-bottom border-secondary-subtle">
+        <h5 class="modal-title fw-bold" id="managePermissionsModalLabel">
+          <i class="bi bi-key-fill me-2 text-info"></i>Permisos del Usuario: <span id="perm_username_title" class="text-info"></span>
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/api/usuarios/permisos" method="POST">
+        <input type="hidden" name="user_id" id="perm_user_id">
+        <div class="modal-body" style="max-height: 65vh; overflow-y: auto;">
+          <p class="fs-7 text-secondary mb-3">Selecciona los permisos que tendrá asignados este usuario y define si la validez es <strong>Indefinida</strong> o tiene fecha de expiración:</p>
+          
+          {% for p in all_permissions %}
+          <div class="permission-item-box">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" name="perm_{{ p.id }}" id="modal_perm_{{ p.id }}" onchange="togglePermDateInputs({{ p.id }})">
+                <label class="form-check-label fw-bold" for="modal_perm_{{ p.id }}">
+                  {{ p.permiso }} <span class="badge bg-secondary ms-1 fs-7">{{ p.codigo }}</span>
+                </label>
+              </div>
+              
+              <!-- Opción Indefinido / Fecha Expiración -->
+              <div class="d-flex align-items-center gap-2" id="date_group_{{ p.id }}">
+                <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" name="indefinite_{{ p.id }}" id="modal_indef_{{ p.id }}" value="1" checked onchange="toggleIndefinite({{ p.id }})">
+                  <label class="form-check-label fs-7 fw-semibold text-info" for="modal_indef_{{ p.id }}">Indefinido</label>
+                </div>
+                <input 
+                  type="date" 
+                  class="form-control form-control-sm form-control-custom d-none" 
+                  name="fechafinal_{{ p.id }}" 
+                  id="modal_date_{{ p.id }}" 
+                  style="width: 160px;"
+                >
+              </div>
+            </div>
+            <p class="mb-0 fs-7 text-secondary ps-4">{{ p.descripcion }}</p>
+          </div>
+          {% endfor %}
+
+        </div>
+        <div class="modal-footer border-top border-secondary-subtle">
+          <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-custom btn-custom-primary">Guardar Permisos</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR USUARIO -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-card" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--card-border);">
+      <div class="modal-header border-bottom border-secondary-subtle">
+        <h5 class="modal-title fw-bold" id="createUserModalLabel"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Crear Nuevo Usuario</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/api/usuarios/crear" method="POST" onsubmit="return validateCreateUserForm()">
+        <div class="modal-body">
+          
+          <!-- Usuario -->
+          <div class="mb-3">
+            <label for="modal_usuario" class="form-label fs-7 fw-semibold text-secondary">Nombre de Usuario (Máx 40 caracteres)</label>
+            <input type="text" class="form-control form-control-custom" id="modal_usuario" name="usuario" placeholder="Ej: operador1" maxlength="40" required oninput="updateCharCount('modal_usuario', 'count_usuario')">
+            <div class="char-counter" id="count_usuario">0 / 40 caracteres</div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="mb-3">
+            <label for="modal_password" class="form-label fs-7 fw-semibold text-secondary">Contraseña (Máx 40 caracteres)</label>
+            <input type="password" class="form-control form-control-custom" id="modal_password" name="password" placeholder="Contraseña de acceso" maxlength="40" required oninput="updateCharCount('modal_password', 'count_password')">
+            <div class="char-counter" id="count_password">0 / 40 caracteres</div>
+          </div>
+
+          <!-- Selección de Roles -->
+          <div class="mb-3">
+            <label class="form-label fs-7 fw-semibold text-secondary mb-2">Asignar Roles</label>
+            <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);">
+              {% for r in roles %}
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="role_ids" value="{{ r.id }}" id="role_check_{{ r.id }}" {% if r.rol == 'Operador' %}checked{% endif %}>
+                <label class="form-check-label fw-medium" for="role_check_{{ r.id }}">
+                  {{ r.rol }} <span class="fs-7 text-secondary">({{ r.descripcion }})</span>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer border-top border-secondary-subtle">
+          <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-custom btn-custom-primary">Guardar Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR ROL -->
+<div class="modal fade" id="createRoleModal" tabindex="-1" aria-labelledby="createRoleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-card" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--card-border);">
+      <div class="modal-header border-bottom border-secondary-subtle">
+        <h5 class="modal-title fw-bold" id="createRoleModalLabel"><i class="bi bi-shield-plus me-2 text-warning"></i>Crear Nuevo Rol</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/api/roles/crear" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="role_name" class="form-label fs-7 fw-semibold text-secondary">Nombre del Rol (Máx 40 caracteres)</label>
+            <input type="text" class="form-control form-control-custom" id="role_name" name="rol" placeholder="Ej: Supervisor" maxlength="40" required>
+          </div>
+          <div class="mb-3">
+            <label for="role_desc" class="form-label fs-7 fw-semibold text-secondary">Descripción</label>
+            <textarea class="form-control form-control-custom" id="role_desc" name="descripcion" rows="3" placeholder="Descripción de los permisos del rol..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-top border-secondary-subtle">
+          <button type="button" class="btn btn-secondary btn-custom" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-custom btn-custom-primary">Guardar Rol</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  let permModalInstance = null;
+  let editUserModalInstance = null;
+
+  function updateCharCount(inputId, counterId) {
+    const val = document.getElementById(inputId).value;
+    const cnt = document.getElementById(counterId);
+    cnt.innerText = `${val.length} / 40 caracteres`;
+    cnt.style.color = val.length >= 40 ? '#ff4757' : 'var(--text-muted)';
+  }
+
+  function validateCreateUserForm() {
+    const u = document.getElementById('modal_usuario').value;
+    const p = document.getElementById('modal_password').value;
+    if (u.length > 40 || p.length > 40) {
+      alert('El usuario y la contraseña no pueden superar los 40 caracteres.');
+      return false;
+    }
+    return true;
+  }
+
+  function validateEditUserForm() {
+    const p = document.getElementById('edit_password').value;
+    if (p.length > 40) {
+      alert('La nueva contraseña no puede superar los 40 caracteres.');
+      return false;
+    }
+    return true;
+  }
+
+  function openEditUserModal(userId, username, userRoles) {
+    if (!editUserModalInstance) {
+      editUserModalInstance = new bootstrap.Modal(document.getElementById('editUserModal'));
+    }
+    
+    document.getElementById('edit_user_id').value = userId;
+    document.getElementById('edit_usuario_readonly').value = username;
+    document.getElementById('edit_password').value = '';
+    updateCharCount('edit_password', 'count_edit_password');
+
+    // Resetear checkboxes de roles
+    document.querySelectorAll('[id^="edit_role_check_"]').forEach(cb => cb.checked = false);
+
+    // Marcar roles que el usuario tiene actualmente asignados
+    if (userRoles) {
+      userRoles.forEach(r => {
+        const cb = document.getElementById(`edit_role_check_${r.id}`);
+        if (cb) cb.checked = true;
+      });
+    }
+
+    editUserModalInstance.show();
+  }
+
+  function toggleIndefinite(permId) {
+    const indefCheck = document.getElementById(`modal_indef_${permId}`);
+    const dateInput = document.getElementById(`modal_date_${permId}`);
+    if (indefCheck.checked) {
+      dateInput.classList.add('d-none');
+      dateInput.value = '';
+    } else {
+      dateInput.classList.remove('d-none');
+    }
+  }
+
+  function togglePermDateInputs(permId) {
+    const permCheck = document.getElementById(`modal_perm_${permId}`);
+    const dateGroup = document.getElementById(`date_group_${permId}`);
+    if (permCheck.checked) {
+      dateGroup.classList.remove('opacity-50');
+      dateGroup.querySelectorAll('input').forEach(i => i.removeAttribute('disabled'));
+    } else {
+      dateGroup.classList.add('opacity-50');
+      dateGroup.querySelectorAll('input').forEach(i => i.setAttribute('disabled', 'true'));
+    }
+  }
+
+  function openPermissionsModal(userId, username, userPerms) {
+    if (!permModalInstance) {
+      permModalInstance = new bootstrap.Modal(document.getElementById('managePermissionsModal'));
+    }
+    
+    document.getElementById('perm_user_id').value = userId;
+    document.getElementById('perm_username_title').innerText = username;
+
+    // Resetear todos los checkboxes
+    document.querySelectorAll('[id^="modal_perm_"]').forEach(cb => {
+      cb.checked = false;
+      const pid = cb.id.replace('modal_perm_', '');
+      togglePermDateInputs(pid);
+    });
+
+    // Cargar permisos actuales del usuario
+    if (userPerms) {
+      Object.keys(userPerms).forEach(codigo => {
+        const item = userPerms[codigo];
+        const pid = item.id;
+        const cb = document.getElementById(`modal_perm_${pid}`);
+        const indefCb = document.getElementById(`modal_indef_${pid}`);
+        const dateInput = document.getElementById(`modal_date_${pid}`);
+
+        if (cb) {
+          cb.checked = true;
+          togglePermDateInputs(pid);
+
+          if (item.is_indefinite) {
+            indefCb.checked = true;
+            dateInput.classList.add('d-none');
+            dateInput.value = '';
+          } else {
+            indefCb.checked = false;
+            dateInput.classList.remove('d-none');
+            if (item.fechafinal) {
+              dateInput.value = item.fechafinal.substring(0, 10);
+            }
+          }
+        }
+      });
+    }
+
+    permModalInstance.show();
+  }
+</script>
+{% endblock %}

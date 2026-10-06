@@ -183,8 +183,8 @@
     <!-- Navbar principal del sistema -->
     <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
-                <div class="logo-glow-dot"></div>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="{{ url_for('static', filename='icono.jpg') }}" alt="Logo" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #00f2fe;">
                 <span class="fw-bold text-uppercase tracking-wide" style="font-family: 'Outfit', sans-serif; letter-spacing: 1px;">
                     <span class="text-primary-gradient">Monitor</span> IoT
                 </span>
@@ -196,14 +196,25 @@
             </button>
             
             <div class="collapse navbar-collapse" id="navbarContent">
+                {% if session.get('user_id') %}
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link px-3 rounded-pill" href="/" id="nav-dashboard"><i class="bi bi-speedometer2 me-1"></i> Dashboard</a>
                     </li>
+                    {% if has_permission('VER_HISTORIAL') %}
                     <li class="nav-item">
                         <a class="nav-link px-3 rounded-pill" href="/historial" id="nav-historial"><i class="bi bi-calendar3 me-1"></i> Historial</a>
                     </li>
+                    {% endif %}
+                    {% if has_permission('CREAR_USUARIOS') or has_permission('CREAR_ROLES') or has_permission('MODIFICAR_PERMISOS') or has_permission('DESACTIVAR_USUARIOS') %}
+                    <li class="nav-item">
+                        <a class="nav-link px-3 rounded-pill" href="/usuarios" id="nav-usuarios"><i class="bi bi-people-fill me-1"></i> Usuarios y Roles</a>
+                    </li>
+                    {% endif %}
                 </ul>
+                {% else %}
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0"></ul>
+                {% endif %}
                 <div class="d-flex align-items-center gap-3 mt-2 mt-lg-0">
                     <!-- Selector de Tema Claro/Oscuro -->
                     <div class="form-check form-switch mb-0 d-flex align-items-center gap-2" style="padding-left: 2.5em;">
@@ -211,9 +222,20 @@
                         <input class="form-check-input" type="checkbox" id="theme-switch" style="cursor: pointer; margin-left: 0;">
                         <i class="bi bi-brightness-high-fill text-warning" style="font-size: 1rem;"></i>
                     </div>
+                    
+                    {% if session.get('user_id') %}
                     <span class="navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5" id="connection-status" style="width: fit-content;">
                         <span class="status-pulse-dot"></span> ESP32: Online
                     </span>
+                    <div class="dropdown ms-2">
+                        <button class="btn btn-sm btn-outline-info rounded-pill px-3 dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> {{ session.get('usuario') }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end glass-card p-1 shadow">
+                            <li><a class="dropdown-menu-item text-danger dropdown-item rounded d-flex align-items-center gap-2" href="/logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                        </ul>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -242,9 +264,11 @@
         // Lógica de Enlaces Activos
         const path = window.location.pathname;
         if (path === '/' || path === '') {
-            document.getElementById('nav-dashboard').classList.add('active');
+            document.getElementById('nav-dashboard')?.classList.add('active');
         } else if (path.startsWith('/historial')) {
-            document.getElementById('nav-historial').classList.add('active');
+            document.getElementById('nav-historial')?.classList.add('active');
+        } else if (path.startsWith('/usuarios')) {
+            document.getElementById('nav-usuarios')?.classList.add('active');
         }
 
         // Lógica de Tema

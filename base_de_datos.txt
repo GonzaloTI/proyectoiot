@@ -1,0 +1,77 @@
+
+-- 1. Tablas independientes
+CREATE TABLE IF NOT EXISTS rol (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rol TEXT NOT NULL,
+    descripcion TEXT
+);
+
+CREATE TABLE IF NOT EXISTS permisos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo TEXT NOT NULL,
+    permiso TEXT NOT NULL,
+    descripcion TEXT,
+    estado INTEGER DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS dispositivo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT,
+    modelo TEXT,
+    mac TEXT UNIQUE,
+    serial TEXT UNIQUE
+);
+
+-- 2. Tabla de Usuario
+CREATE TABLE IF NOT EXISTS usuario (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    estado INTEGER DEFAULT 1,
+    id_dispositivo INTEGER,
+    FOREIGN KEY (id_dispositivo) REFERENCES dispositivo(id)
+);
+
+-- 3. Tablas Intermedias
+CREATE TABLE IF NOT EXISTS usuario_rol (
+    id_usuario INTEGER NOT NULL,
+    id_rol INTEGER NOT NULL,
+    PRIMARY KEY (id_usuario, id_rol),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_rol) REFERENCES rol(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS usuario_permiso (
+    id_usuario INTEGER NOT NULL,
+    id_permiso INTEGER NOT NULL,
+    fechainicio DATETIME,
+    fechafinal DATETIME,
+    PRIMARY KEY (id_usuario, id_permiso),
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_permiso) REFERENCES permisos(id) ON DELETE CASCADE
+);
+
+-- 4. Tabla de Suscripción
+CREATE TABLE IF NOT EXISTS suscripcion (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_usuario INTEGER UNIQUE NOT NULL,
+    endpoint TEXT UNIQUE NOT NULL,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE CASCADE
+);
+
+-- 5. Tabla de Lecturas
+CREATE TABLE IF NOT EXISTS readings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_dispositivo INTEGER NOT NULL,
+    timestamp DATETIME DEFAULT (datetime('now', 'localtime')),
+    temperatura REAL,
+    presion REAL,
+    altitud REAL,
+    relay_activo INTEGER,
+    co2 REAL,
+    humo REAL,
+    humedad_suelo REAL,
+    FOREIGN KEY (id_dispositivo) REFERENCES dispositivo(id) ON DELETE CASCADE
+);

@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .login-container {
+    min-height: 75vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s ease;
+  }
+
+  .login-card:hover {
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .brand-logo-img {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #00f2fe;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .brand-logo-img:hover {
+    transform: scale(1.05) rotate(3deg);
+    box-shadow: 0 0 28px rgba(0, 242, 254, 0.7);
+  }
+
+  .form-control-custom {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    color: var(--text-color);
+    padding: 0.75rem 1rem 0.75rem 2.8rem;
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
+  }
+
+  .form-control-custom:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 12px rgba(0, 242, 254, 0.3);
+    color: var(--text-color);
+  }
+
+  body.light-theme .form-control-custom {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #2f3640;
+  }
+
+  body.light-theme .form-control-custom:focus {
+    background: #ffffff;
+    border-color: #0d6efd;
+    box-shadow: 0 0 12px rgba(13, 110, 253, 0.25);
+    color: #2f3640;
+  }
+
+  .input-icon-wrapper {
+    position: relative;
+  }
+
+  .input-icon-wrapper i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+
+  .btn-login {
+    background: linear-gradient(135deg, #0d6efd, #00f2fe);
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.8rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 242, 254, 0.4);
+    color: #ffffff;
+  }
+
+  .char-counter {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.25rem;
+  }
+</style>
+
+<div class="login-container">
+  <div class="login-card text-center">
+    
+    <!-- Imagen de Icono -->
+    <div class="mb-3">
+      <img src="{{ url_for('static', filename='icono.jpg') }}" alt="Logo Monitor IoT" class="brand-logo-img mb-2">
+      <h3 class="fw-bold mt-2 mb-1" style="font-family: 'Outfit', sans-serif;">Acceso al Sistema</h3>
+      <p class="text-secondary fs-7">Ingresa tus credenciales para ingresar al Dashboard IoT</p>
+    </div>
+
+    <!-- Alertas de Error / Notificaciones -->
+    {% if error %}
+      <div class="alert alert-danger alert-dismissible fade show text-start py-2 px-3 fs-7 border-0 rounded-3 mb-3" role="alert" style="background: rgba(255, 71, 87, 0.2); color: #ff4757; border: 1px solid rgba(255, 71, 87, 0.4)!important;">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ error }}
+        <button type="button" class="btn-close btn-close-white ms-auto py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endif %}
+
+    <!-- Formulario de Login -->
+    <form action="/login" method="POST" id="loginForm" onsubmit="return validateForm()">
+      
+      <!-- Campo Usuario -->
+      <div class="mb-3 text-start">
+        <label for="usuario" class="form-label fs-7 fw-semibold text-secondary mb-1">Nombre de Usuario</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-person-fill"></i>
+          <input 
+            type="text" 
+            class="form-control form-control-custom" 
+            id="usuario" 
+            name="usuario" 
+            placeholder="Usuario (Máx. 40 caracteres)" 
+            maxlength="40" 
+            required 
+            autocomplete="username"
+            oninput="updateCounter('usuario', 'counter-usuario')"
+          >
+        </div>
+        <div class="char-counter" id="counter-usuario">0 / 40 caracteres</div>
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="mb-4 text-start">
+        <label for="password" class="form-label fs-7 fw-semibold text-secondary mb-1">Contraseña</label>
+        <div class="input-icon-wrapper">
+          <i class="bi bi-lock-fill"></i>
+          <input 
+            type="password" 
+            class="form-control form-control-custom" 
+            id="password" 
+            name="password" 
+            placeholder="Contraseña (Máx. 40 caracteres)" 
+            maxlength="40" 
+            required 
+            autocomplete="current-password"
+            oninput="updateCounter('password', 'counter-password')"
+          >
+        </div>
+        <div class="char-counter" id="counter-password">0 / 40 caracteres</div>
+      </div>
+
+      <!-- Botón Submit -->
+      <button type="submit" class="btn btn-login w-100 d-flex align-items-center justify-content-center gap-2">
+        <i class="bi bi-box-arrow-in-right fs-5"></i> Iniciar Sesión
+      </button>
+
+    </form>
+
+    <div class="mt-4 pt-2 border-top border-secondary-subtle">
+      <span class="fs-7 text-muted">Monitor IoT &copy; 2026 - Control & Telemetría</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function updateCounter(inputId, counterId) {
+    const input = document.getElementById(inputId);
+    const counter = document.getElementById(counterId);
+    counter.innerText = `${input.value.length} / 40 caracteres`;
+    if (input.value.length >= 40) {
+      counter.style.color = '#ff4757';
+    } else {
+      counter.style.color = 'var(--text-muted)';
+    }
+  }
+
+  function validateForm() {
+    const u = document.getElementById('usuario').value;
+    const p = document.getElementById('password').value;
+    if (u.length > 40 || p.length > 40) {
+      alert('El usuario y la contraseña no pueden superar los 40 caracteres.');
+      return false;
+    }
+    return true;
+  }
+</script>
+{% endblock %}
