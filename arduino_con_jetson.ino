@@ -37,7 +37,12 @@
 #define RELAY_2_PIN 5 // Pin GPIO para Relé 2 (Dedo Medio)
 #define LED_PIN 2     // LED integrado en ESP32
 
-// Lógica de activación de relé (LOW en la mayoría de módulos relé)
+// Lógica de activación de relé:
+// NOTA IMPORTANTE:
+// - La mayoría de módulos relé para Arduino/ESP32 se activan con nivel BAJO (LOW).
+// - Si tu módulo relé se activa con nivel ALTO (o tiene el jumper en 'H'), cambia:
+//     #define RELAY_ON  HIGH
+//     #define RELAY_OFF LOW
 #define RELAY_ON LOW
 #define RELAY_OFF HIGH
 
@@ -63,21 +68,23 @@ Adafruit_BMP280 bmp;
 bool relay_1_activo = false;
 bool relay_2_activo = false;
 
-// Variables de control de Jetson Nano vs Servidor Flask
-bool controlJetsonActivo = false;
+// Variables de control de Modo
+bool modoManualWeb = false;         // True si desde la Web se activó 'Modo Manual'
+bool controlJetsonActivo = false;   // True si la Jetson Nano está transmitiendo por UART
 unsigned long ultimoComandoJetson = 0;
-const unsigned long TIMEOUT_JETSON_MS = 3500; // Si no hay dedos por 3.5s, libera control
+const unsigned long TIMEOUT_JETSON_MS = 6000; // Margen de 6 segundos sin comandos de Jetson 
 
-// Temporizador no bloqueante para envío HTTP a Flask (cada 2 segundos)
+// Temporizador no bloqueante para envío HTTP a Flask (cada 4 segundos para no saturar CPU con SSL)
 unsigned long ultimoEnvioHttp = 0;
-const unsigned long INTERVALO_HTTP_MS = 2000;
+const unsigned long INTERVALO_HTTP_MS = 4000;
 
 void setup() {
   // 1. Inicializar Serial USB (para depurar en PC)
   Serial.begin(115200);
 
-  // 2. Inicializar Serial2 para comunicación UART con Jetson Nano
+  // 2. Inicializar Serial2 para comunicación UART con Jetson Nano (con timeout corto para no bloquear)
   Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
+  Serial2.setTimeout(30); // 30ms max de espera en lectura UART
 
   // 3. Configuración de pines de salida para Relés y LED
   pinMode(RELAY_1_PIN, OUTPUT);
@@ -100,8 +107,10 @@ void setup() {
   Serial.println();
   Serial.println("=========================================================");
   Serial.println(" ESP32 DEMO: IOT + CONTROL RELÉS POR VISIÓN ARTIFICIAL");
-  Serial.println(" UART Jetson Nano: RX2=GPIO16 (Pin 8), TX2=GPIO17 (Pin 10)");
-  Serial.println(" Relé 1: GPIO 4 | Relé 2: GPIO 5");
+  Serial.println(" UART Jetson Nano: RX2=GPIO16, TX2=GPIO17 (115200 baud)");
+  Serial.println(" Pines de Relés : Relé 1 = GPIO 4 | Relé 2 = GPIO 5");
+  Serial.print(" Nivel de Activación: ");
+  Serial.println(RELAY_ON == LOW ? "NIVEL BAJO (LOW)" : "NIVEL ALTO (HIGH)");
   Serial.println("=========================================================");
 
   // Inicializar sensor BMP280
@@ -149,38 +158,53 @@ void loop() {
       ultimoComandoJetson = ahora;
       controlJetsonActivo = true;
 
-      // --- Procesar comando para Relé 1 (Dedo Índice) ---
-      int r1Idx = comandoJetson.indexOf("\"relay_command\"");
-      if (r1Idx >= 0) {
-        int endR1 = comandoJetson.indexOf(",", r1Idx);
-        if (endR1 < 0) endR1 = comandoJetson.indexOf("}", r1Idx);
-        String sub1 = comandoJetson.substring(r1Idx, endR1);
-        if (sub1.indexOf("\"ON\"") >= 0) {
-          digitalWrite(RELAY_1_PIN, RELAY_ON);
-          relay_1_activo = true;
-        } else if (sub1.indexOf("\"OFF\"") >= 0) {
-          digitalWrite(RELAY_1_PIN, RELAY_OFF);
-          relay_1_activo = false;
+      // =====================================================================
+      // PRIORIDAD DE CONTROL:
+      // Si la interfaz Web está en 'Modo Manual', la Web manda y la Jetson no
+      // puede apagar ni alterar los relés.
+      // Si la interfaz Web está en 'Modo Automático', la Jetson Nano controla
+      // los relés por Visión Artificial (dedos levantados).
+      // =====================================================================
+      if (modoManualWeb) {
+        Serial.println("[PRIORIDAD]: Modo Manual activo en Web. Ignorando comando de Jetson Nano.");
+      } else {
+        // --- Procesar comando para Relé 1 (Dedo Índice) ---
+        int r1Idx = comandoJetson.indexOf("\"relay_command\"");
+        if (r1Idx >= 0) {
+          int endR1 = comandoJetson.indexOf(",", r1Idx);
+          if (endR1 < 0) endR1 = comandoJetson.indexOf("}", r1Idx);
+          String sub1 = comandoJetson.substring(r1Idx, endR1);
+          if (sub1.indexOf("\"ON\"") >= 0) {
+            digitalWrite(RELAY_1_PIN, RELAY_ON);
+            relay_1_activo = true;
+            Serial.println("[JETSON UART] >>> RELE 1 ENCENDIDO (GPIO 4 = " + String(RELAY_ON == LOW ? "LOW" : "HIGH") + ")");
+          } else if (sub1.indexOf("\"OFF\"") >= 0) {
+            digitalWrite(RELAY_1_PIN, RELAY_OFF);
+            relay_1_activo = false;
+            Serial.println("[JETSON UART] >>> RELE 1 APAGADO (GPIO 4 = " + String(RELAY_OFF == LOW ? "LOW" : "HIGH") + ")");
+          }
         }
-      }
 
-      // --- Procesar comando para Relé 2 (Dedo Medio) ---
-      int r2Idx = comandoJetson.indexOf("\"relay_2_command\"");
-      if (r2Idx >= 0) {
-        int endR2 = comandoJetson.indexOf(",", r2Idx);
-        if (endR2 < 0) endR2 = comandoJetson.indexOf("}", r2Idx);
-        String sub2 = comandoJetson.substring(r2Idx, endR2);
-        if (sub2.indexOf("\"ON\"") >= 0) {
-          digitalWrite(RELAY_2_PIN, RELAY_ON);
-          relay_2_activo = true;
-        } else if (sub2.indexOf("\"OFF\"") >= 0) {
-          digitalWrite(RELAY_2_PIN, RELAY_OFF);
-          relay_2_activo = false;
+        // --- Procesar comando para Relé 2 (Dedo Medio) ---
+        int r2Idx = comandoJetson.indexOf("\"relay_2_command\"");
+        if (r2Idx >= 0) {
+          int endR2 = comandoJetson.indexOf(",", r2Idx);
+          if (endR2 < 0) endR2 = comandoJetson.indexOf("}", r2Idx);
+          String sub2 = comandoJetson.substring(r2Idx, endR2);
+          if (sub2.indexOf("\"ON\"") >= 0) {
+            digitalWrite(RELAY_2_PIN, RELAY_ON);
+            relay_2_activo = true;
+            Serial.println("[JETSON UART] >>> RELE 2 ENCENDIDO (GPIO 5 = " + String(RELAY_ON == LOW ? "LOW" : "HIGH") + ")");
+          } else if (sub2.indexOf("\"OFF\"") >= 0) {
+            digitalWrite(RELAY_2_PIN, RELAY_OFF);
+            relay_2_activo = false;
+            Serial.println("[JETSON UART] >>> RELE 2 APAGADO (GPIO 5 = " + String(RELAY_OFF == LOW ? "LOW" : "HIGH") + ")");
+          }
         }
-      }
 
-      // Encender LED integrado si al menos 1 relé está activo
-      digitalWrite(LED_PIN, (relay_1_activo || relay_2_activo) ? HIGH : LOW);
+        // Encender LED integrado si al menos 1 relé está activo
+        digitalWrite(LED_PIN, (relay_1_activo || relay_2_activo) ? HIGH : LOW);
+      }
 
       // Enviar confirmación UART hacia Jetson Nano
       Serial2.println("{\"ack\": \"ok\", \"r1\": " + String(relay_1_activo ? "1" : "0") +
@@ -239,7 +263,7 @@ void loop() {
 
       HTTPClient http;
       http.begin(client, serverName);
-      http.setTimeout(10000); // 10 segundos para tolerar el inicio/hibernación de Render
+      http.setTimeout(3500); // 3.5 segundos máximo de espera para no congelar el microcontrolador
       http.addHeader("Content-Type", "application/json");
 
       String jsonPayload = "{\"temperatura\":" + String(temperatura, 2) +
@@ -258,62 +282,86 @@ void loop() {
         Serial.print("Respuesta Servidor ("); Serial.print(httpResponseCode); Serial.print("): ");
         Serial.println(response);
 
-        // Si Jetson NO está controlando activamente, procesar los comandos del servidor Flask
-        if (!controlJetsonActivo) {
-          int modeIdx = response.indexOf("\"mode\"");
-          bool manualMode = false;
-          if (modeIdx >= 0) {
-            String modeSub = response.substring(modeIdx);
-            if (modeSub.indexOf("\"manual\"") >= 0) {
-              manualMode = true;
+        // Actualizar si la interfaz Web está en 'manual' o 'auto'
+        int modeIdx = response.indexOf("\"mode\"");
+        if (modeIdx >= 0) {
+          int endMode = response.indexOf(",", modeIdx);
+          if (endMode < 0) endMode = response.indexOf("}", modeIdx);
+          String modeSub = response.substring(modeIdx, endMode);
+          if (modeSub.indexOf("\"manual\"") >= 0) {
+            modoManualWeb = true;
+          } else if (modeSub.indexOf("\"auto\"") >= 0) {
+            modoManualWeb = false;
+          }
+        }
+
+        // ===================================================================
+        // 1. SI LA WEB ESTÁ EN 'MODO MANUAL':
+        //    Los botones de la página Web tienen el control absoluto.
+        // ===================================================================
+        if (modoManualWeb) {
+          Serial.println("[ESTADO]: MODO MANUAL WEB ACTIVO (Manda la Web)");
+
+          // Relé 1 desde Flask
+          int r1Idx = response.indexOf("\"relay_command\"");
+          if (r1Idx >= 0) {
+            int endIdx = response.indexOf(",", r1Idx);
+            if (endIdx < 0) endIdx = response.indexOf("}", r1Idx);
+            String sub1 = response.substring(r1Idx, endIdx);
+            if (sub1.indexOf("\"ON\"") >= 0) {
+              digitalWrite(RELAY_1_PIN, RELAY_ON);
+              relay_1_activo = true;
+              Serial.println("[WEB FLASK] >>> RELE 1 ENCENDIDO (GPIO 4)");
+            } else if (sub1.indexOf("\"OFF\"") >= 0) {
+              digitalWrite(RELAY_1_PIN, RELAY_OFF);
+              relay_1_activo = false;
+              Serial.println("[WEB FLASK] >>> RELE 1 APAGADO (GPIO 4)");
             }
           }
 
-          if (manualMode) {
-            // Relé 1 desde Flask
-            int r1Idx = response.indexOf("\"relay_command\"");
-            if (r1Idx >= 0) {
-              int endIdx = response.indexOf(",", r1Idx);
-              if (endIdx < 0) endIdx = response.indexOf("}", r1Idx);
-              String sub1 = response.substring(r1Idx, endIdx);
-              if (sub1.indexOf("\"ON\"") >= 0) {
-                digitalWrite(RELAY_1_PIN, RELAY_ON);
-                relay_1_activo = true;
-              } else if (sub1.indexOf("\"OFF\"") >= 0) {
-                digitalWrite(RELAY_1_PIN, RELAY_OFF);
-                relay_1_activo = false;
-              }
+          // Relé 2 desde Flask
+          int r2Idx = response.indexOf("\"relay_2_command\"");
+          if (r2Idx >= 0) {
+            int endIdx2 = response.indexOf(",", r2Idx);
+            if (endIdx2 < 0) endIdx2 = response.indexOf("}", r2Idx);
+            String sub2 = response.substring(r2Idx, endIdx2);
+            if (sub2.indexOf("\"ON\"") >= 0) {
+              digitalWrite(RELAY_2_PIN, RELAY_ON);
+              relay_2_activo = true;
+              Serial.println("[WEB FLASK] >>> RELE 2 ENCENDIDO (GPIO 5)");
+            } else if (sub2.indexOf("\"OFF\"") >= 0) {
+              digitalWrite(RELAY_2_PIN, RELAY_OFF);
+              relay_2_activo = false;
+              Serial.println("[WEB FLASK] >>> RELE 2 APAGADO (GPIO 5)");
             }
+          }
 
-            // Relé 2 desde Flask
-            int r2Idx = response.indexOf("\"relay_2_command\"");
-            if (r2Idx >= 0) {
-              int endIdx2 = response.indexOf(",", r2Idx);
-              if (endIdx2 < 0) endIdx2 = response.indexOf("}", r2Idx);
-              String sub2 = response.substring(r2Idx, endIdx2);
-              if (sub2.indexOf("\"ON\"") >= 0) {
-                digitalWrite(RELAY_2_PIN, RELAY_ON);
-                relay_2_activo = true;
-              } else if (sub2.indexOf("\"OFF\"") >= 0) {
-                digitalWrite(RELAY_2_PIN, RELAY_OFF);
-                relay_2_activo = false;
-              }
-            }
+          // Actualizar LED
+          digitalWrite(LED_PIN, (relay_1_activo || relay_2_activo) ? HIGH : LOW);
+
+        } else {
+          // ===================================================================
+          // 2. SI LA WEB ESTÁ EN 'MODO AUTOMÁTICO':
+          //    Manda la Visión Artificial de la Jetson Nano.
+          //    Solo si la Jetson no está enviando nada, actúa el sensor de temp.
+          // ===================================================================
+          if (controlJetsonActivo) {
+            Serial.println("[ESTADO]: MODO AUTOMÁTICO (Gobernado por Visión Artificial de Jetson)");
           } else {
-            // Modo Automático local por temperatura
+            Serial.println("[ESTADO]: MODO AUTOMÁTICO (Sin Jetson -> Respaldo Local Temperatura)");
             controlAutonomoLocal(temperatura);
           }
         }
       } else {
         Serial.print("Error en POST HTTP: ");
         Serial.println(httpResponseCode);
-        if (!controlJetsonActivo) {
+        if (!modoManualWeb && !controlJetsonActivo) {
           controlAutonomoLocal(temperatura);
         }
       }
       http.end();
     } else {
-      if (!controlJetsonActivo) {
+      if (!modoManualWeb && !controlJetsonActivo) {
         controlAutonomoLocal(temperatura);
       }
     }
@@ -326,15 +374,21 @@ void loop() {
 // Función de control autónomo local por temperatura
 void controlAutonomoLocal(float temp) {
   if (temp >= 27.0) {
-    digitalWrite(RELAY_1_PIN, RELAY_ON);
-    relay_1_activo = true;
-    digitalWrite(RELAY_2_PIN, RELAY_ON);
-    relay_2_activo = true;
+    if (!relay_1_activo || !relay_2_activo) {
+      digitalWrite(RELAY_1_PIN, RELAY_ON);
+      relay_1_activo = true;
+      digitalWrite(RELAY_2_PIN, RELAY_ON);
+      relay_2_activo = true;
+      Serial.println("[AUTO TEMP >= 27C]: Activando relés por temperatura alta (" + String(temp, 1) + " °C)");
+    }
   } else {
-    digitalWrite(RELAY_1_PIN, RELAY_OFF);
-    relay_1_activo = false;
-    digitalWrite(RELAY_2_PIN, RELAY_OFF);
-    relay_2_activo = false;
+    if (relay_1_activo || relay_2_activo) {
+      digitalWrite(RELAY_1_PIN, RELAY_OFF);
+      relay_1_activo = false;
+      digitalWrite(RELAY_2_PIN, RELAY_OFF);
+      relay_2_activo = false;
+      Serial.println("[AUTO TEMP < 27C]: Apagando relés por temperatura normal (" + String(temp, 1) + " °C)");
+    }
   }
 }
 

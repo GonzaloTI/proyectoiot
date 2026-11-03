@@ -43,7 +43,8 @@ except ImportError:
     print("[SERIAL] Módulo 'pyserial' no instalado. Funcionando solo en modo visual.")
 
 PUNTAS_IDS = [4, 8, 12, 16, 20]  # Pulgar, Índice, Medio, Anular, Meñique
-PIP_IDS = [2, 6, 10, 14, 18]     # Articulaciones intermedias
+PIP_IDS = [2, 6, 10, 14, 18]     # Articulaciones intermedias (PIP)
+MCP_IDS = [0, 5, 9, 13, 17]      # Nudillos base de cada dedo (MCP)
 NOMBRES_DEDOS = ["Pulgar", "Indice", "Medio", "Anular", "Menique"]
 
 def distancia_euclidiana(p1, p2):
@@ -52,12 +53,30 @@ def distancia_euclidiana(p1, p2):
 def clasificar_dedos(puntos_px, mano_label, es_espejo=True):
     """Analiza los 21 landmarks de una mano para determinar qué dedos están extendidos."""
     estados = [0, 0, 0, 0, 0]
+    p_wrist = puntos_px[0]
 
-    # Dedos: Índice, Medio, Anular, Meñique (eje vertical Y)
+    # Dedos: Índice, Medio, Anular, Meñique
+    # Se combinan 2 métodos complementarios para que no falle al inclinar la mano:
+    # 1. Criterio vertical clásico (punta más arriba que articulación PIP)
+    # 2. Criterio radial 2D por distancia (punta más lejos de la muñeca y nudillo que PIP)
     for i in range(1, 5):
-        tip_y = puntos_px[PUNTAS_IDS[i]][1]
-        pip_y = puntos_px[PIP_IDS[i]][1]
-        if tip_y < pip_y:
+        p_tip = puntos_px[PUNTAS_IDS[i]]
+        p_pip = puntos_px[PIP_IDS[i]]
+        p_mcp = puntos_px[MCP_IDS[i]]
+
+        d_tip_wrist = distancia_euclidiana(p_tip, p_wrist)
+        d_pip_wrist = distancia_euclidiana(p_pip, p_wrist)
+        d_tip_mcp = distancia_euclidiana(p_tip, p_mcp)
+        d_pip_mcp = distancia_euclidiana(p_pip, p_mcp)
+
+        # Criterio vertical (apuntando hacia arriba)
+        es_vertical = p_tip[1] < p_pip[1]
+
+        # Criterio radial (dedo extendido hacia el frente, diagonal o inclinado hacia la cámara)
+        es_radial = (d_tip_wrist > d_pip_wrist * 1.08) and (d_tip_mcp > d_pip_mcp * 1.12)
+
+        # Confirmación de dedo extendido
+        if (es_vertical or es_radial) and (d_tip_wrist > d_pip_wrist * 0.95):
             estados[i] = 1
 
     # Detección precisa del Pulgar
@@ -334,7 +353,7 @@ def main():
         cv2.putText(frame, f"RELE 2 (Medio) : {relay_2_cmd}", (rele_panel_x + 10, h - 14),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.42, col_r2, 1)
 
-        # Enviar paquete JSON al ESP32 cada ~80ms por UART
+        # Enviar paquete JSON al ESP32 cada ~80ms por UART (con limpieza de buffer)
         if esp32_serial and (t_actual - ultimo_envio_serial > 0.08):
             ultimo_envio_serial = t_actual
             comando_payload = {
@@ -346,6 +365,9 @@ def main():
             }
             mensaje = json.dumps(comando_payload) + "\n"
             try:
+                # Drenar buffer de entrada para evitar que se llene y congele la cámara
+                if esp32_serial.in_waiting > 0:
+                    esp32_serial.reset_input_buffer()
                 esp32_serial.write(mensaje.encode('utf-8'))
             except Exception:
                 pass
