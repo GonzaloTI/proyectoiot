@@ -88,6 +88,15 @@ class Database:
             )
         ''')
 
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                endpoint TEXT UNIQUE NOT NULL,
+                p256dh TEXT NOT NULL,
+                auth TEXT NOT NULL
+            )
+        ''')
+
         # 5. Tabla de Lecturas
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS readings (
@@ -587,5 +596,28 @@ class Database:
         conn.commit()
         conn.close()
         return True, None
+
+    # Métodos de Notificaciones Push
+    def save_push_subscription(self, endpoint, p256dh, auth):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT OR REPLACE INTO subscriptions (endpoint, p256dh, auth)
+            VALUES (?, ?, ?)
+        """, (endpoint, p256dh, auth))
+        conn.commit()
+        cursor.execute("SELECT COUNT(*) FROM subscriptions")
+        total = cursor.fetchone()[0]
+        conn.close()
+        return total
+
+    def get_push_subscriptions(self):
+        conn = sqlite3.connect(self.db_name)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM subscriptions")
+        rows = cursor.fetchall()
+        conn.close()
+        return rows
 
 

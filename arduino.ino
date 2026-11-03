@@ -13,7 +13,8 @@
 const int SOIL_DRY_VAL = 4095; // Sensor en el aire (seco)
 const int SOIL_WET_VAL = 1000; // Sensor sumergido en agua/tierra húmeda
 
-#define RELAY_PIN 4 // Pin GPIO al que se conecta el pin 'IN' del relé
+#define RELAY_1_PIN 4 // Pin GPIO al que se conecta el pin 'IN' del Relé 1
+#define RELAY_2_PIN 5 // Pin GPIO al que se conecta el pin 'IN' del Relé 2 (puedes cambiarlo según tus conexiones)
 #define MQ135_PIN 34 // Pin analógico (GPIO 34) al que se conecta el pin 'AO' del MQ-135
 
 // NOTA: La mayoría de módulos de relé comerciales para Arduino son de lógica inversa (se activan con LOW).
@@ -29,15 +30,20 @@ const char* password = "1234567899";
 const char* serverName = "http://10.86.129.92:5000/api/datos";
 
 Adafruit_BMP280 bmp;
-bool relay_activo = false;
+bool relay_1_activo = false;
+bool relay_2_activo = false;
 
 void setup() {
   Serial.begin(115200);
 
-  // Configuración del pin del relé
-  pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, RELAY_OFF); // Inicialmente apagado
-  relay_activo = false;
+  // Configuración de los pines de los relés
+  pinMode(RELAY_1_PIN, OUTPUT);
+  digitalWrite(RELAY_1_PIN, RELAY_OFF); // Inicialmente apagado
+  relay_1_activo = false;
+
+  pinMode(RELAY_2_PIN, OUTPUT);
+  digitalWrite(RELAY_2_PIN, RELAY_OFF); // Inicialmente apagado
+  relay_2_activo = false;
 
   // Configuración de los pines analógicos
   pinMode(MQ135_PIN, INPUT);
@@ -130,11 +136,12 @@ void loop() {
     http.begin(serverName);
     http.addHeader("Content-Type", "application/json");
 
-    // Construimos el payload JSON directamente como String con CO2, Humo y Humedad de suelo
+    // Construimos el payload JSON directamente como String con CO2, Humo, Humedad de suelo y ambos relés
     String jsonPayload = "{\"temperatura\":" + String(temperatura, 2) + 
                          ",\"presion\":" + String(presion, 2) + 
                          ",\"altitud\":" + String(altitud, 2) + 
-                         ",\"relay_activo\":" + (relay_activo ? "true" : "false") + 
+                         ",\"relay_activo\":" + (relay_1_activo ? "true" : "false") + 
+                         ",\"relay_2_activo\":" + (relay_2_activo ? "true" : "false") + 
                          ",\"co2\":" + String(co2_ppm, 1) + 
                          ",\"humo\":" + String(humo_ppm, 1) + 
                          ",\"humedad_suelo\":" + String(humedad_suelo, 1) + "}";
@@ -160,18 +167,38 @@ void loop() {
       }
 
       if (manualMode) {
-        // MODO MANUAL: El servidor decide el estado
-        int relayCmdIdx = response.indexOf("\"relay_command\"");
-        if (relayCmdIdx >= 0) {
-          String sub = response.substring(relayCmdIdx);
-          if (sub.indexOf("\"ON\"") >= 0) {
-            digitalWrite(RELAY_PIN, RELAY_ON);
-            relay_activo = true;
-            Serial.println("Modo: MANUAL | Comando Servidor: ENCENDER");
-          } else if (sub.indexOf("\"OFF\"") >= 0) {
-            digitalWrite(RELAY_PIN, RELAY_OFF);
-            relay_activo = false;
-            Serial.println("Modo: MANUAL | Comando Servidor: APAGAR");
+        // MODO MANUAL: El servidor decide el estado de cada relé
+        // Control Relé 1
+        int relay1CmdIdx = response.indexOf("\"relay_command\"");
+        if (relay1CmdIdx >= 0) {
+          int endIdx = response.indexOf(",", relay1CmdIdx);
+          if (endIdx < 0) endIdx = response.indexOf("}", relay1CmdIdx);
+          String sub1 = response.substring(relay1CmdIdx, endIdx);
+          if (sub1.indexOf("\"ON\"") >= 0) {
+            digitalWrite(RELAY_1_PIN, RELAY_ON);
+            relay_1_activo = true;
+            Serial.println("Modo: MANUAL | Relé 1: ENCENDER");
+          } else if (sub1.indexOf("\"OFF\"") >= 0) {
+            digitalWrite(RELAY_1_PIN, RELAY_OFF);
+            relay_1_activo = false;
+            Serial.println("Modo: MANUAL | Relé 1: APAGAR");
+          }
+        }
+
+        // Control Relé 2
+        int relay2CmdIdx = response.indexOf("\"relay_2_command\"");
+        if (relay2CmdIdx >= 0) {
+          int endIdx2 = response.indexOf(",", relay2CmdIdx);
+          if (endIdx2 < 0) endIdx2 = response.indexOf("}", relay2CmdIdx);
+          String sub2 = response.substring(relay2CmdIdx, endIdx2);
+          if (sub2.indexOf("\"ON\"") >= 0) {
+            digitalWrite(RELAY_2_PIN, RELAY_ON);
+            relay_2_activo = true;
+            Serial.println("Modo: MANUAL | Relé 2: ENCENDER");
+          } else if (sub2.indexOf("\"OFF\"") >= 0) {
+            digitalWrite(RELAY_2_PIN, RELAY_OFF);
+            relay_2_activo = false;
+            Serial.println("Modo: MANUAL | Relé 2: APAGAR");
           }
         }
       } else {
@@ -194,20 +221,26 @@ void loop() {
     Serial.println("WiFi desconectado. Modo: AUTOMÁTICO (Respaldo Local)");
   }
 
-  Serial.print("Estado Relé : ");
-  Serial.println(relay_activo ? "ACTIVADO" : "DESACTIVADO");
+  Serial.print("Estado Relé 1: ");
+  Serial.println(relay_1_activo ? "ACTIVADO" : "DESACTIVADO");
+  Serial.print("Estado Relé 2: ");
+  Serial.println(relay_2_activo ? "ACTIVADO" : "DESACTIVADO");
   Serial.println("=================================\n");
 
   delay(2000); // Enviar datos cada 2 segundos
 }
 
-// Función de respaldo para control local autónomo
+// Función de respaldo para control local autónomo de ambos relés
 void controlAutonomoLocal(float temp) {
   if (temp >= 27.0) {
-    digitalWrite(RELAY_PIN, RELAY_ON);
-    relay_activo = true;
+    digitalWrite(RELAY_1_PIN, RELAY_ON);
+    relay_1_activo = true;
+    digitalWrite(RELAY_2_PIN, RELAY_ON);
+    relay_2_activo = true;
   } else {
-    digitalWrite(RELAY_PIN, RELAY_OFF);
-    relay_activo = false;
+    digitalWrite(RELAY_1_PIN, RELAY_OFF);
+    relay_1_activo = false;
+    digitalWrite(RELAY_2_PIN, RELAY_OFF);
+    relay_2_activo = false;
   }
 }

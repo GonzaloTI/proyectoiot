@@ -170,6 +170,62 @@
             box-shadow: 0 0 0 0 rgba(46, 196, 182, 0);
           }
         }
+
+        .bg-offline-glow {
+          background-color: rgba(108, 117, 125, 0.15) !important;
+          color: rgba(255, 255, 255, 0.6) !important;
+          border: 1px solid rgba(108, 117, 125, 0.3) !important;
+          font-weight: 500;
+        }
+
+        body.light-theme .bg-offline-glow {
+          background-color: rgba(108, 117, 125, 0.12) !important;
+          color: rgba(33, 37, 41, 0.65) !important;
+          border-color: rgba(108, 117, 125, 0.25) !important;
+        }
+
+        .status-offline-dot {
+          width: 8px;
+          height: 8px;
+          background-color: #6c757d;
+          border-radius: 50%;
+          display: inline-block;
+        }
+
+        /* Modal Adaptable al Tema (Claro / Oscuro) */
+        .modal-custom-content {
+          background-color: rgba(22, 28, 45, 0.95) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid var(--card-border) !important;
+          color: var(--text-color) !important;
+        }
+
+        body.light-theme .modal-custom-content {
+          background-color: rgba(255, 255, 255, 0.95) !important;
+          color: #2f3640 !important;
+          border-color: rgba(0, 0, 0, 0.12) !important;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        body.light-theme .modal-custom-content .btn-close {
+          filter: none !important;
+        }
+
+        body.light-theme .modal-custom-content .nav-pills {
+          background-color: rgba(0, 0, 0, 0.05) !important;
+        }
+
+        body.light-theme .modal-custom-content .form-control {
+          background-color: rgba(255, 255, 255, 0.9) !important;
+          color: #2f3640 !important;
+          border-color: rgba(0, 0, 0, 0.15) !important;
+        }
+
+        body.light-theme .modal-custom-content #pushEstado {
+          background-color: rgba(0, 0, 0, 0.05) !important;
+          color: #2f3640 !important;
+        }
     </style>
 </head>
 <body>
@@ -227,7 +283,11 @@
                     <span class="navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5" id="connection-status" style="width: fit-content;">
                         <span class="status-pulse-dot"></span> ESP32: Online
                     </span>
-                    <div class="dropdown ms-2">
+                    <!-- Icono de Notificaciones al lado del icono de Usuario -->
+                    <button class="btn btn-sm btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center ms-1" style="width: 34px; height: 34px;" data-bs-toggle="modal" data-bs-target="#notificationModal" title="Notificaciones Web Push">
+                        <i class="bi bi-bell-fill" style="font-size: 0.95rem;"></i>
+                    </button>
+                    <div class="dropdown ms-1">
                         <button class="btn btn-sm btn-outline-info rounded-pill px-3 dropdown-toggle d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> {{ session.get('usuario') }}
                         </button>
@@ -255,11 +315,107 @@
         {% block content %}{% endblock %}
     </div>
 
+    <!-- Modal de Notificaciones Web Push -->
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-custom-content glass-card border-0 shadow-lg">
+          <div class="modal-header border-secondary-subtle">
+            <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="notificationModalLabel">
+              <i class="bi bi-bell-fill text-warning"></i> Centro de Notificaciones Push
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body py-4 px-4">
+            <!-- Pestañas para Suscribirse y Enviar Notificación -->
+            <ul class="nav nav-pills nav-justified mb-4 border border-secondary-subtle rounded-pill p-1" id="notifTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill fw-semibold py-2" id="suscribir-tab" data-bs-toggle="tab" data-bs-target="#suscribir-pane" type="button" role="tab">
+                  <i class="bi bi-broadcast me-1"></i> 1. Activar Notificaciones
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill fw-semibold py-2 text-warning" id="enviar-tab" data-bs-toggle="tab" data-bs-target="#enviar-pane" type="button" role="tab">
+                  <i class="bi bi-send-fill me-1"></i> 2. Enviar a Todos
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="notifTabContent">
+              <!-- Panel 1: Suscribirse -->
+              <div class="tab-pane fade show active text-center" id="suscribir-pane" role="tabpanel">
+                <div class="mb-3">
+                  <i class="bi bi-bell-ring-fill text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h6 class="fw-bold mb-2">¡Recibe Alertas en Tiempo Real!</h6>
+                <p class="text-secondary small mb-4 px-3">
+                  Activa las notificaciones en tu navegador para recibir avisos de emergencia, alertas de temperatura crítica, humo y fallos del sistema directamente en este dispositivo.
+                </p>
+                <div class="d-flex justify-content-center">
+                  <button id="btnSuscribir" class="btn btn-primary rounded-pill px-5 fw-semibold d-flex align-items-center gap-2">
+                    <i class="bi bi-bell-fill"></i> Activar Notificaciones en este Navegador
+                  </button>
+                </div>
+              </div>
+
+              <!-- Panel 2: Enviar Notificación a Todos (Broadcast) -->
+              <div class="tab-pane fade" id="enviar-pane" role="tabpanel">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2 text-warning">
+                  <i class="bi bi-megaphone-fill"></i> Difundir Notificación a Todos los Dispositivos Registrados
+                </h6>
+                <form id="formSendPush" onsubmit="return false;">
+                  <div class="mb-3 text-start">
+                    <label class="form-label small fw-semibold text-secondary">Tipo de Notificación</label>
+                    <div class="d-flex gap-3">
+                      <div class="form-check form-check-inline border border-danger-subtle rounded-3 p-2 px-3 bg-danger bg-opacity-10 flex-fill">
+                        <input class="form-check-input" type="radio" name="notifTipo" id="tipoEmergencia" value="emergencia" checked>
+                        <label class="form-check-label text-danger fw-bold cursor-pointer" for="tipoEmergencia">
+                          🚨 Emergencia Crítica
+                        </label>
+                      </div>
+                      <div class="form-check form-check-inline border border-info-subtle rounded-3 p-2 px-3 bg-info bg-opacity-10 flex-fill">
+                        <input class="form-check-input" type="radio" name="notifTipo" id="tipoAviso" value="aviso">
+                        <label class="form-check-label text-info fw-bold cursor-pointer" for="tipoAviso">
+                          📢 Aviso Informativo
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mb-3 text-start">
+                    <label for="pushTitle" class="form-label small fw-semibold text-secondary">Título de la Notificación</label>
+                    <input type="text" class="form-control form-input-custom rounded-3" id="pushTitle" placeholder="Ej: Alerta por Humo / Mantenimiento Programado" maxlength="60">
+                  </div>
+
+                  <div class="mb-3 text-start">
+                    <label for="pushBody" class="form-label small fw-semibold text-secondary">Mensaje / Texto a Enviar</label>
+                    <textarea class="form-control form-input-custom rounded-3" id="pushBody" rows="3" placeholder="Escribe el mensaje detallado que recibirán todos los usuarios..." maxlength="200"></textarea>
+                  </div>
+
+                  <div class="d-flex justify-content-end">
+                    <button type="button" id="btnEnviarBroadcast" class="btn btn-warning rounded-pill px-4 fw-bold d-flex align-items-center gap-2">
+                      <i class="bi bi-send-fill"></i> Enviar Notificación a Todos
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div id="pushEstado" class="mt-4 p-2 rounded-3 text-center small border border-secondary-subtle">
+              Estado: esperando interacción...
+            </div>
+          </div>
+          <div class="modal-footer border-secondary-subtle justify-content-center">
+            <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts externos -->
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Control de Tema Claro / Oscuro y Enlaces Activos -->
+    <!-- Control de Tema Claro / Oscuro, Enlaces Activos y Lógica Web Push -->
     <script>
         // Lógica de Enlaces Activos
         const path = window.location.pathname;
@@ -296,6 +452,116 @@
             window.dispatchEvent(new CustomEvent('themeChanged', { 
                 detail: { theme: isLight ? 'light' : 'dark' } 
             }));
+        });
+
+        // ==================== LÓGICA WEB PUSH NOTIFICATIONS ====================
+        const publicKey = "{{ vapid_public_key }}";
+        const pushEstado = document.getElementById("pushEstado");
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = "=".repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+            const rawData = window.atob(base64);
+            return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+        }
+
+        async function suscribirse() {
+            if (!pushEstado) return;
+            if (!("serviceWorker" in navigator)) {
+                pushEstado.textContent = "❌ Tu navegador no soporta Service Workers.";
+                return;
+            }
+            if (!("PushManager" in window)) {
+                pushEstado.textContent = "❌ Tu navegador no soporta Push Manager.";
+                return;
+            }
+
+            try {
+                pushEstado.textContent = "⌛ Solicitando permiso de notificaciones...";
+                const permiso = await Notification.requestPermission();
+
+                if (permiso !== "granted") {
+                    pushEstado.textContent = "⚠️ Permiso de notificaciones denegado o rechazado.";
+                    return;
+                }
+
+                pushEstado.textContent = "⌛ Registrando Service Worker y creando suscripción...";
+                const registration = await navigator.serviceWorker.register("/static/sw.js");
+                await navigator.serviceWorker.ready;
+
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(publicKey)
+                    });
+                }
+
+                const response = await fetch("/subscribe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(subscription)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    pushEstado.textContent = "✅ ¡Suscripción guardada correctamente!";
+                    pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-success bg-opacity-25 text-success border border-success";
+                } else {
+                    pushEstado.textContent = "❌ Error al guardar suscripción: " + (data.message || "Error desconocido");
+                }
+            } catch (err) {
+                console.error("Error en suscripción:", err);
+                pushEstado.textContent = "❌ Error: " + err.message;
+            }
+        }
+
+        async function enviarNotificacionBroadcast() {
+            if (!pushEstado) return;
+            const tipo = document.querySelector('input[name="notifTipo"]:checked')?.value || 'aviso';
+            const title = document.getElementById("pushTitle")?.value.trim() || '';
+            const body = document.getElementById("pushBody")?.value.trim() || '';
+
+            try {
+                pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-dark bg-opacity-50 text-light border border-secondary-subtle";
+                pushEstado.textContent = "🚀 Enviando notificación a todos los usuarios registrados...";
+
+                const response = await fetch("/send-notification", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tipo, title, body })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    pushEstado.textContent = `✅ Notificación [${tipo.toUpperCase()}] enviada a ${data.enviados} dispositivo(s).`;
+                    pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-success bg-opacity-25 text-success border border-success fw-bold";
+                    if (document.getElementById("pushTitle")) document.getElementById("pushTitle").value = "";
+                    if (document.getElementById("pushBody")) document.getElementById("pushBody").value = "";
+                } else {
+                    pushEstado.textContent = "❌ Error enviando notificación: " + (data.message || "Fallo del servidor");
+                    pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
+                }
+            } catch (err) {
+                console.error("Error enviando broadcast:", err);
+                pushEstado.textContent = "❌ Error: " + err.message;
+                pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
+            }
+        }
+
+        document.getElementById("btnSuscribir")?.addEventListener("click", suscribirse);
+        document.getElementById("btnEnviarBroadcast")?.addEventListener("click", enviarNotificacionBroadcast);
+
+        // Auto-solicitud al ingresar al Dashboard (abrir modal automáticamente si no ha aceptado aún)
+        window.addEventListener("DOMContentLoaded", () => {
+            if (window.location.pathname === '/' || window.location.pathname === '') {
+                if ("Notification" in window && Notification.permission === "default") {
+                    setTimeout(() => {
+                        const notifModal = new bootstrap.Modal(document.getElementById('notificationModal'));
+                        notifModal.show();
+                    }, 1200);
+                }
+            }
         });
     </script>
 </body>

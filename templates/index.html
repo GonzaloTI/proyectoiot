@@ -198,35 +198,54 @@
   <div class="col-md-3 col-sm-6">
     <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
       <div>
-        <div class="card-title-icon icon-relay">
-          <i class="bi bi-toggle2-on"></i>
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="card-title-icon icon-relay mb-0">
+            <i class="bi bi-toggle2-on"></i>
+          </div>
+          {% if has_permission('CONTROL_RELE') %}
+          <!-- Selector de Modo Auto/Manual -->
+          <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+            <label class="form-check-label fw-medium text-secondary fs-8" for="mode-switch">Manual</label>
+            <input class="form-check-input m-0" type="checkbox" id="mode-switch">
+          </div>
+          {% endif %}
         </div>
-        <div class="d-flex align-items-center justify-content-between mb-1">
-          <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide">Estado Relé</span>
-          <span class="fs-7 fw-semibold text-info" id="relay-alias-container" style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="openRelayAliasModal()" title="Editar identificador">
-            <span id="relay-alias-text">Relé</span>
-            <i class="bi bi-pencil-square" style="font-size: 0.8rem; margin-top: -2px;"></i>
-          </span>
+        <span class="text-uppercase text-secondary fs-7 fw-semibold tracking-wide d-block mb-3">Control de Relés</span>
+
+        <!-- SECCIÓN RELÉ 1 -->
+        <div class="p-2 mb-2 rounded" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="fs-7 fw-semibold text-info" id="relay-alias-container" style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="openRelayAliasModal(1)" title="Editar identificador">
+              <span id="relay-alias-text">Relé 1</span>
+              <i class="bi bi-pencil-square" style="font-size: 0.75rem;"></i>
+            </span>
+            <span class="badge py-1 px-2 fs-8 rounded-pill" id="relay-status-badge">DESACTIVADO</span>
+          </div>
+          {% if has_permission('CONTROL_RELE') %}
+          <button class="btn btn-sm btn-custom w-100 mt-1 d-flex align-items-center justify-content-center gap-1" id="relay-toggle-btn" disabled>
+            <i class="bi bi-power"></i> <span id="btn-text">Encender</span>
+          </button>
+          {% endif %}
         </div>
-        <div class="mt-2 d-flex align-items-center justify-content-between">
-          <span class="badge py-2 px-3 fs-6 rounded-pill" id="relay-status-badge">DESACTIVADO</span>
+
+        <!-- SECCIÓN RELÉ 2 -->
+        <div class="p-2 rounded" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="fs-7 fw-semibold text-info" id="relay2-alias-container" style="cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="openRelayAliasModal(2)" title="Editar identificador">
+              <span id="relay2-alias-text">Relé 2</span>
+              <i class="bi bi-pencil-square" style="font-size: 0.75rem;"></i>
+            </span>
+            <span class="badge py-1 px-2 fs-8 rounded-pill" id="relay2-status-badge">DESACTIVADO</span>
+          </div>
+          {% if has_permission('CONTROL_RELE') %}
+          <button class="btn btn-sm btn-custom w-100 mt-1 d-flex align-items-center justify-content-center gap-1" id="relay2-toggle-btn" disabled>
+            <i class="bi bi-power"></i> <span id="btn2-text">Encender</span>
+          </button>
+          {% endif %}
         </div>
       </div>
       
-      {% if has_permission('CONTROL_RELE') %}
-      <div class="mt-3 pt-2 border-top border-secondary-subtle">
-        <!-- Selector de Modo Auto/Manual -->
-        <div class="form-check form-switch d-flex justify-content-between align-items-center px-0 mb-3">
-          <label class="form-check-label fw-medium text-secondary" for="mode-switch">Modo Manual</label>
-          <input class="form-check-input" type="checkbox" id="mode-switch">
-        </div>
-        
-        <!-- Botón de Control Manual -->
-        <button class="btn btn-custom w-100 d-flex align-items-center justify-content-center gap-2" id="relay-toggle-btn" disabled>
-          <i class="bi bi-power"></i> <span id="btn-text">Encender</span>
-        </button>
-      </div>
-      {% else %}
+      {% if not has_permission('CONTROL_RELE') %}
       <div class="mt-3 pt-2 border-top border-secondary-subtle text-center">
         <span class="badge bg-warning text-dark py-2 px-3 w-100 rounded-3 fs-7 fw-semibold">
           <i class="bi bi-lock-fill me-1"></i> Sin permiso de control manual
@@ -403,7 +422,7 @@
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label for="relay-alias-input" class="form-label text-secondary fs-7">Nombre / Alias (ej: Agua, Bomba, Luz):</label>
+          <label for="relay-alias-input" class="form-label text-secondary fs-7" id="relay-alias-label">Nombre / Alias (ej: Agua, Bomba, Luz):</label>
           <input type="text" class="form-control form-input-custom" id="relay-alias-input" placeholder="Escribe el nombre del relé..." maxlength="20">
         </div>
       </div>
@@ -585,6 +604,9 @@
   const relayBtn = document.getElementById('relay-toggle-btn');
   const btnText = document.getElementById('btn-text');
   const relayStatusBadge = document.getElementById('relay-status-badge');
+  const relay2Btn = document.getElementById('relay2-toggle-btn');
+  const btn2Text = document.getElementById('btn2-text');
+  const relay2StatusBadge = document.getElementById('relay2-status-badge');
   const connectionBadge = document.getElementById('connection-status');
   const tempAlertBadge = document.getElementById('temp-alert-badge');
   const tempCard = document.getElementById('temp-card');
@@ -596,8 +618,22 @@
   const humedadSueloCard = document.getElementById('humedad-suelo-card');
 
   let currentRelayState = false;
+  let currentRelay2State = false;
   let isManualMode = false;
-  let lastDataTime = null;
+  let ultimoTimestampVisto = null;
+  let ciclosSinDatosNuevos = 0;
+  const MAX_CICLOS_INACTIVO = 5; // 5 consultas consecutivas x 2 seg = 10 segundos de inactividad
+
+  function updateConnectionBadge(isOnline) {
+    if (!connectionBadge) return;
+    if (isOnline) {
+      connectionBadge.className = 'navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5';
+      connectionBadge.innerHTML = '<span class="status-pulse-dot"></span> ESP32: Online';
+    } else {
+      connectionBadge.className = 'navbar-text badge bg-offline-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5';
+      connectionBadge.innerHTML = '<span class="status-offline-dot"></span> ESP32: Offline';
+    }
+  }
 
   // Función para obtener y renderizar los datos
   async function updateDashboard() {
@@ -609,6 +645,22 @@
       const history = data.history;
       if (history.length > 0) {
         const lastReading = history[history.length - 1];
+
+        // Detección reactiva del ESP32: verificar si llegó un dato nuevo en esta consulta
+        if (ultimoTimestampVisto !== null && lastReading.timestamp !== ultimoTimestampVisto) {
+          ciclosSinDatosNuevos = 0;
+          ultimoTimestampVisto = lastReading.timestamp;
+          updateConnectionBadge(true);
+        } else if (ultimoTimestampVisto === null) {
+          ultimoTimestampVisto = lastReading.timestamp;
+          ciclosSinDatosNuevos = 0;
+          updateConnectionBadge(true);
+        } else {
+          ciclosSinDatosNuevos++;
+          if (ciclosSinDatosNuevos >= MAX_CICLOS_INACTIVO) {
+            updateConnectionBadge(false);
+          }
+        }
         
         // Actualizar valores en tarjetas
         document.getElementById('current-temp').innerText = lastReading.temperatura.toFixed(1);
@@ -689,89 +741,141 @@
         humedadSueloChart.data.labels = labels;
         humedadSueloChart.data.datasets[0].data = history.map(item => item.humedad_suelo !== undefined ? item.humedad_suelo : 0.0);
         humedadSueloChart.update('none');
-        
-        lastDataTime = new Date();
+      } else {
+        // No hay registros en la base de datos
+        updateConnectionBadge(false);
       }
 
       // Estados de Control
       const state = data.relay_state;
       isManualMode = state.manual_mode;
       currentRelayState = isManualMode ? state.manual_state : state.last_esp32_relay_status;
+      currentRelay2State = isManualMode ? state.manual_state_2 : state.last_esp32_relay_2_status;
 
-      // Badge del Relé
-      if (state.last_esp32_relay_status) {
-        relayStatusBadge.innerText = 'ACTIVADO';
-        relayStatusBadge.className = 'badge py-2 px-3 fs-6 rounded-pill relay-badge-active';
-      } else {
-        relayStatusBadge.innerText = 'DESACTIVADO';
-        relayStatusBadge.className = 'badge py-2 px-3 fs-6 rounded-pill relay-badge-inactive';
-      }
-
-      modeSwitch.checked = isManualMode;
-      
-      if (isManualMode) {
-        relayBtn.removeAttribute('disabled');
-        if (state.manual_state) {
-          btnText.innerText = 'Apagar Relé';
-          relayBtn.className = 'btn btn-custom btn-custom-outline-danger w-100 d-flex align-items-center justify-content-center gap-2';
+      // Badge Relé 1
+      if (relayStatusBadge) {
+        if (state.last_esp32_relay_status) {
+          relayStatusBadge.innerText = 'ACTIVADO';
+          relayStatusBadge.className = 'badge py-1 px-2 fs-8 rounded-pill relay-badge-active';
         } else {
-          btnText.innerText = 'Encender Relé';
-          relayBtn.className = 'btn btn-custom btn-custom-outline-success w-100 d-flex align-items-center justify-content-center gap-2';
+          relayStatusBadge.innerText = 'DESACTIVADO';
+          relayStatusBadge.className = 'badge py-1 px-2 fs-8 rounded-pill relay-badge-inactive';
         }
-      } else {
-        relayBtn.setAttribute('disabled', 'true');
-        btnText.innerText = 'Encender';
-        relayBtn.className = 'btn btn-custom btn-custom-primary w-100 d-flex align-items-center justify-content-center gap-2';
       }
 
-      // Estado del ESP32 Online/Offline
-      if (lastDataTime && (new Date() - lastDataTime) > 7000) {
-        connectionBadge.className = 'badge bg-secondary px-3 py-2 rounded-pill d-flex align-items-center gap-1.5';
-        connectionBadge.innerHTML = '<span class="bg-light" style="width:8px;height:8px;border-radius:50%;display:inline-block"></span> ESP32: Offline';
-      } else {
-        connectionBadge.className = 'badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5';
-        connectionBadge.innerHTML = '<span class="status-pulse-dot"></span> ESP32: Online';
+      // Badge Relé 2
+      if (relay2StatusBadge) {
+        if (state.last_esp32_relay_2_status) {
+          relay2StatusBadge.innerText = 'ACTIVADO';
+          relay2StatusBadge.className = 'badge py-1 px-2 fs-8 rounded-pill relay-badge-active';
+        } else {
+          relay2StatusBadge.innerText = 'DESACTIVADO';
+          relay2StatusBadge.className = 'badge py-1 px-2 fs-8 rounded-pill relay-badge-inactive';
+        }
+      }
+
+      if (modeSwitch) modeSwitch.checked = isManualMode;
+      
+      // Control de Botón Relé 1
+      if (relayBtn) {
+        if (isManualMode) {
+          relayBtn.removeAttribute('disabled');
+          if (state.manual_state) {
+            if (btnText) btnText.innerText = 'Apagar';
+            relayBtn.className = 'btn btn-sm btn-custom btn-custom-outline-danger w-100 mt-1 d-flex align-items-center justify-content-center gap-1';
+          } else {
+            if (btnText) btnText.innerText = 'Encender';
+            relayBtn.className = 'btn btn-sm btn-custom btn-custom-outline-success w-100 mt-1 d-flex align-items-center justify-content-center gap-1';
+          }
+        } else {
+          relayBtn.setAttribute('disabled', 'true');
+          if (btnText) btnText.innerText = 'Encender';
+          relayBtn.className = 'btn btn-sm btn-custom btn-custom-primary w-100 mt-1 d-flex align-items-center justify-content-center gap-1';
+        }
+      }
+
+      // Control de Botón Relé 2
+      if (relay2Btn) {
+        if (isManualMode) {
+          relay2Btn.removeAttribute('disabled');
+          if (state.manual_state_2) {
+            if (btn2Text) btn2Text.innerText = 'Apagar';
+            relay2Btn.className = 'btn btn-sm btn-custom btn-custom-outline-danger w-100 mt-1 d-flex align-items-center justify-content-center gap-1';
+          } else {
+            if (btn2Text) btn2Text.innerText = 'Encender';
+            relay2Btn.className = 'btn btn-sm btn-custom btn-custom-outline-success w-100 mt-1 d-flex align-items-center justify-content-center gap-1';
+          }
+        } else {
+          relay2Btn.setAttribute('disabled', 'true');
+          if (btn2Text) btn2Text.innerText = 'Encender';
+          relay2Btn.className = 'btn btn-sm btn-custom btn-custom-primary w-100 mt-1 d-flex align-items-center justify-content-center gap-1';
+        }
       }
 
     } catch (err) {
       console.error(err);
+      updateConnectionBadge(false);
     }
   }
 
   // Toggle de Modo
-  modeSwitch.addEventListener('change', async () => {
-    const mode = modeSwitch.checked;
-    try {
-      const response = await fetch('/api/relay/toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ manual_mode: mode })
-      });
-      if (response.ok) {
-        updateDashboard();
+  if (modeSwitch) {
+    modeSwitch.addEventListener('change', async () => {
+      const mode = modeSwitch.checked;
+      try {
+        const response = await fetch('/api/relay/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ manual_mode: mode })
+        });
+        if (response.ok) {
+          updateDashboard();
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  });
+    });
+  }
 
-  // Toggle del Relé en modo manual
-  relayBtn.addEventListener('click', async () => {
-    if (!isManualMode) return;
-    const targetState = !currentRelayState;
-    try {
-      const response = await fetch('/api/relay/toggle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ manual_state: targetState })
-      });
-      if (response.ok) {
-        updateDashboard();
+  // Toggle del Relé 1 en modo manual
+  if (relayBtn) {
+    relayBtn.addEventListener('click', async () => {
+      if (!isManualMode) return;
+      const targetState = !currentRelayState;
+      try {
+        const response = await fetch('/api/relay/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ manual_state: targetState })
+        });
+        if (response.ok) {
+          updateDashboard();
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  });
+    });
+  }
+
+  // Toggle del Relé 2 en modo manual
+  if (relay2Btn) {
+    relay2Btn.addEventListener('click', async () => {
+      if (!isManualMode) return;
+      const targetState = !currentRelay2State;
+      try {
+        const response = await fetch('/api/relay/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ manual_state_2: targetState })
+        });
+        if (response.ok) {
+          updateDashboard();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  }
 
   // Escuchar cambios de tema en tiempo real para actualizar los gráficos
   window.addEventListener('themeChanged', (e) => {
@@ -791,27 +895,42 @@
     });
   });
 
-  // Lógica del Alias del Relé
+  // Lógica de Alias para los Relés
   const relayAliasText = document.getElementById('relay-alias-text');
+  const relay2AliasText = document.getElementById('relay2-alias-text');
   const relayAliasInput = document.getElementById('relay-alias-input');
+  let currentEditingRelay = 1;
   let aliasModalInstance = null;
 
-  // Cargar alias guardado desde localStorage
-  const savedAlias = localStorage.getItem('relayAlias') || 'Relé';
-  relayAliasText.innerText = savedAlias;
+  // Cargar alias guardados desde localStorage
+  const savedAlias1 = localStorage.getItem('relayAlias') || 'Relé 1';
+  const savedAlias2 = localStorage.getItem('relay2Alias') || 'Relé 2';
+  if (relayAliasText) relayAliasText.innerText = savedAlias1;
+  if (relay2AliasText) relay2AliasText.innerText = savedAlias2;
 
-  function openRelayAliasModal() {
+  function openRelayAliasModal(relayNum = 1) {
+    currentEditingRelay = relayNum;
     if (!aliasModalInstance) {
       aliasModalInstance = new bootstrap.Modal(document.getElementById('relayAliasModal'));
     }
-    relayAliasInput.value = relayAliasText.innerText;
+    const label = document.getElementById('relay-alias-label');
+    if (label) {
+      label.innerText = `Nombre / Alias para Relé ${relayNum} (ej: Bomba, Luz):`;
+    }
+    const currentVal = (relayNum === 1) ? (relayAliasText ? relayAliasText.innerText : 'Relé 1') : (relay2AliasText ? relay2AliasText.innerText : 'Relé 2');
+    relayAliasInput.value = currentVal;
     aliasModalInstance.show();
   }
 
   function saveRelayAlias() {
-    const value = relayAliasInput.value.trim() || 'Relé';
-    localStorage.setItem('relayAlias', value);
-    relayAliasText.innerText = value;
+    const value = relayAliasInput.value.trim() || `Relé ${currentEditingRelay}`;
+    if (currentEditingRelay === 1) {
+      localStorage.setItem('relayAlias', value);
+      if (relayAliasText) relayAliasText.innerText = value;
+    } else {
+      localStorage.setItem('relay2Alias', value);
+      if (relay2AliasText) relay2AliasText.innerText = value;
+    }
     if (aliasModalInstance) {
       aliasModalInstance.hide();
     }
