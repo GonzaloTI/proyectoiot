@@ -15,10 +15,21 @@
     border-left: 4px solid var(--card-border);
   }
 
-  .stat-card-health-ok { border-left-color: #2ed573; }
-  .stat-card-health-warn { border-left-color: #ff4757; }
-  .stat-card-info { border-left-color: var(--accent-color); }
-  .stat-card-total { border-left-color: #ffa502; }
+  .stat-card-health-ok {
+    border-left-color: #2ed573;
+  }
+
+  .stat-card-health-warn {
+    border-left-color: #ff4757;
+  }
+
+  .stat-card-info {
+    border-left-color: var(--accent-color);
+  }
+
+  .stat-card-total {
+    border-left-color: #ffa502;
+  }
 
   .stat-val {
     font-size: 1.8rem;
@@ -107,15 +118,37 @@
   }
 
   @keyframes pulse-green {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(46, 213, 115, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7);
+    }
+
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 8px rgba(46, 213, 115, 0);
+    }
+
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(46, 213, 115, 0);
+    }
   }
 
   @keyframes pulse-red {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(255, 71, 87, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+    }
+
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 8px rgba(255, 71, 87, 0);
+    }
+
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+    }
   }
 
   .table-responsive-scroll {
@@ -153,6 +186,7 @@
     cursor: pointer;
     transition: transform 0.2s;
   }
+
   .img-thumbnail-table:hover {
     transform: scale(1.15);
   }
@@ -161,7 +195,7 @@
 <div class="row mb-4 align-items-center">
   <div class="col-md-7">
     <h2 class="fw-bold mb-1 tracking-tight" style="font-family: 'Outfit', sans-serif;">
-      🍓 Visión Artificial: Detección Fragaria
+      Visión Artificial: Detección Fragaria
     </h2>
     <p class="text-secondary mb-0">
       Supervisión en tiempo real con NVIDIA Jetson Nano, TensorRT y modelo de diagnóstico foliar y de frutos.
@@ -173,7 +207,8 @@
       <label for="selectRefreshInterval" class="small fw-semibold text-secondary mb-0 text-nowrap d-none d-sm-inline">
         <i class="bi bi-clock me-1 text-info"></i> En vivo:
       </label>
-      <select class="form-select form-select-sm bg-transparent border-0 text-white fw-bold py-0 ps-1 pe-4" id="selectRefreshInterval" style="cursor: pointer; width: auto; font-size: 0.88rem;">
+      <select class="form-select form-select-sm bg-transparent border-0 text-white fw-bold py-0 ps-1 pe-4"
+        id="selectRefreshInterval" style="cursor: pointer; width: auto; font-size: 0.88rem;">
         <option value="1000" class="text-dark">1.0s (Rápido)</option>
         <option value="1500" class="text-dark" selected>1.5s (Recomendado)</option>
         <option value="2000" class="text-dark">2.0s</option>
@@ -182,7 +217,8 @@
         <option value="0" class="text-dark">⏸️ Pausado</option>
       </select>
     </div>
-    <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2" id="btnManualRefresh" onclick="actualizarDeteccionManual()" title="Refrescar fotograma e historial manualmente">
+    <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2" id="btnManualRefresh"
+      onclick="actualizarDeteccionManual()" title="Refrescar fotograma e historial manualmente">
       <i class="bi bi-arrow-repeat me-1"></i> Actualizar
     </button>
   </div>
@@ -197,7 +233,8 @@
         <h5 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
           <i class="bi bi-camera-video-fill text-info"></i> Transmisión en Vivo
         </h5>
-        <span class="badge bg-danger bg-opacity-10 border border-danger text-danger px-3 py-2 rounded-pill shadow-sm" id="badgeLiveStatus">
+        <span class="badge bg-danger bg-opacity-10 border border-danger text-danger px-3 py-2 rounded-pill shadow-sm"
+          id="badgeLiveStatus">
           <span class="dot-offline"></span> DESCONECTADO
         </span>
       </div>
@@ -205,10 +242,12 @@
       <!-- Contenedor del fotograma -->
       <div class="camera-view-container flex-grow-1 mb-3 position-relative" id="containerCamara">
         <div class="camera-overlay-badge d-flex gap-2">
-          <span class="badge bg-dark bg-opacity-75 border border-secondary px-3 py-1.5 rounded-pill" id="overlayClaseBadge">
+          <span class="badge bg-dark bg-opacity-75 border border-secondary px-3 py-1.5 rounded-pill"
+            id="overlayClaseBadge">
             Modelo Fragaria
           </span>
-          <span class="badge bg-dark bg-opacity-75 border border-success text-success px-3 py-1.5 rounded-pill" id="overlayStorageBadge">
+          <span class="badge bg-dark bg-opacity-75 border border-success text-success px-3 py-1.5 rounded-pill"
+            id="overlayStorageBadge">
             <i class="bi bi-disc-fill text-danger me-1"></i> Guardado en BD
           </span>
         </div>
@@ -219,7 +258,8 @@
         <div id="imgPlaceholder" class="text-center p-5 text-secondary">
           <i class="bi bi-cpu fs-1 text-info mb-3 d-block"></i>
           <h6 class="fw-bold text-white">Esperando fotogramas de la Jetson Nano...</h6>
-          <p class="small mb-0">Inicia el script <code>deteccion_fragaria_jetson.py</code> para comenzar a recibir detecciones.</p>
+          <p class="small mb-0">Inicia el script <code>deteccion_fragaria_jetson.py</code> para comenzar a recibir
+            detecciones.</p>
         </div>
 
         <div class="camera-timestamp-badge" id="overlayTimestamp">
@@ -237,7 +277,7 @@
   <!-- Columna derecha: Tarjetas de Telemetría de Diagnóstico -->
   <div class="col-lg-5">
     <div class="row g-3 h-100">
-      
+
       <!-- Estado Sanitario Principal -->
       <div class="col-12">
         <div class="glass-card stat-card stat-card-health-ok p-4 shadow-sm" id="cardEstadoSanitario">
@@ -249,9 +289,7 @@
               <h3 class="fw-bold mb-0" id="valEstadoSanitario">Sin Diagnóstico</h3>
               <p class="text-secondary small mb-0" id="descEstadoSanitario">Monitoreando cámara...</p>
             </div>
-            <div class="display-5" id="iconoEstadoSanitario">
-              🌿
-            </div>
+
           </div>
         </div>
       </div>
@@ -352,7 +390,8 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body text-center p-3">
-        <img id="modalImgSrc" src="" class="img-fluid rounded mb-3 border border-secondary" alt="Detalle Detección" style="max-height: 550px;">
+        <img id="modalImgSrc" src="" class="img-fluid rounded mb-3 border border-secondary" alt="Detalle Detección"
+          style="max-height: 550px;">
         <div class="row g-2 text-start bg-dark bg-opacity-50 p-3 rounded">
           <div class="col-sm-6">
             <span class="text-secondary small d-block">Diagnóstico:</span>
@@ -459,7 +498,7 @@
 
         if (data.deteccion) {
           renderDeteccionEnVivo(data.deteccion);
-          
+
           // Recargar historial únicamente si es un registro guardado en BD y su ID cambió
           if (data.deteccion.guardado_en_historial && data.deteccion.id !== ultimoIdDeteccion) {
             ultimoIdDeteccion = data.deteccion.id;
@@ -507,7 +546,7 @@
     const confPorcentaje = Math.round((det.conf || 0) * 100);
     document.getElementById('valClaseDeteccion').textContent = det.clase || 'Ninguna';
     document.getElementById('valConfianza').textContent = `${confPorcentaje}%`;
-    
+
     const barConfianza = document.getElementById('barConfianza');
     barConfianza.style.width = `${confPorcentaje}%`;
 
@@ -660,4 +699,3 @@
   aplicarIntervalo(1500);
 </script>
 {% endblock %}
-
