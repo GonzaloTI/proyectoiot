@@ -28,7 +28,14 @@ from negocio.Nusuarios import (
     procesar_edicion_usuario,
     verificar_permiso_usuario
 )
+# pyrefly: ignore [missing-import]
+from negocio.Ndetecciones import (
+    procesar_subida_deteccion,
+    obtener_ultima_deteccion,
+    obtener_historial_detecciones
+)
 import os
+import json
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'iot_secret_key_antigravity_2026')
@@ -101,8 +108,8 @@ def inject_permissions():
 
 @app.before_request
 def check_authentication():
-    # Excluir rutas públicas: login, archivos estáticos, ingesta de datos y suscripción a notificaciones
-    if request.endpoint in ['login', 'logout', 'static', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions']:
+    # Excluir rutas públicas: login, archivos estáticos, ingesta de datos, subida de detecciones y suscripción a notificaciones
+    if request.endpoint in ['login', 'logout', 'static', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'subir_deteccion', 'api_obtener_ultima_deteccion']:
         return None
     
     # Si el usuario no ha iniciado sesión
@@ -253,6 +260,53 @@ def editar_usuario():
     exito, mensaje, categoria = procesar_edicion_usuario(user_id, new_password, role_ids)
     flash(mensaje, categoria)
     return redirect(url_for('usuarios_page'))
+
+# ==================== RUTAS DE DETECCIONES (VISIÓN ARTIFICIAL) ====================
+
+@app.route('/api/detecciones/subir', methods=['POST'])
+def subir_deteccion():
+    """
+    Endpoint público para que la Jetson Nano suba imágenes detectadas y metadatos JSON.
+    """
+    file = request.files.get('imagen') or request.files.get('file')
+    if not file:
+        return jsonify({"status": "error", "message": "No se recibió archivo en el campo 'imagen' o 'file'"}), 400
+
+    # Los metadatos pueden venir como campos de formulario individuales o como JSON string en 'datos'
+    if 'datos' in request.form:
+        try:
+            datos = json.loads(request.form.get('datos'))
+        except Exception:
+            datos = request.form.to_dict()
+    else:
+        datos = request.form.to_dict()
+
+    resultado, status_code = procesar_subida_deteccion(file, datos)
+    return jsonify(resultado), status_code
+
+@app.route('/api/detecciones/ultima', methods=['GET'])
+def api_obtener_ultima_deteccion():
+    """
+    Retorna la última detección registrada en formato JSON para el panel en vivo.
+    """
+    resultado = obtener_ultima_deteccion()
+    return jsonify(resultado)
+
+@app.route('/api/detecciones/historial', methods=['GET'])
+def api_obtener_historial_detecciones():
+    """
+    Retorna los últimos registros de detección en formato JSON.
+    """
+    limit = request.args.get('limit', default=50, type=int)
+    resultado = obtener_historial_detecciones(limit=limit)
+    return jsonify(resultado)
+
+@app.route('/detecciones')
+def detecciones_page():
+    """
+    Página web de monitoreo de Visión Artificial: Detección en vivo e Historial.
+    """
+    return render_template('detecciones.html')
 
 if __name__ == '__main__':
     # Escucha en todas las interfaces de red en el puerto 5000

@@ -4,6 +4,7 @@ from .Dusuarios import Dusuarios
 from .Droles import Droles
 from .Dpermisos import Dpermisos
 from .Dnotificaciones import Dnotificaciones, Dsuscripciones
+from .Ddetecciones import Ddetecciones
 
 __all__ = [
     'Ddatos',
@@ -11,5 +12,6 @@ __all__ = [
     'Droles',
     'Dpermisos',
     'Dnotificaciones',
-    'Dsuscripciones'
+    'Dsuscripciones',
+    'Ddetecciones'
 ]

@@ -75,3 +75,14 @@ CREATE TABLE IF NOT EXISTS readings (
     humedad_suelo REAL,
     FOREIGN KEY (id_dispositivo) REFERENCES dispositivo(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS detecciones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT NOT NULL,
+    modelo TEXT NOT NULL,
+    total INTEGER NOT NULL,
+    clase TEXT NOT NULL,
+    conf REAL NOT NULL,
+    enfermedad INTEGER NOT NULL,
+    fecha_hora DATETIME DEFAULT (datetime('now', 'localtime'))
+);

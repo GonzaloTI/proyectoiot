@@ -1,0 +1,555 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+
+  .stat-card {
+    border-left: 4px solid var(--card-border);
+  }
+
+  .stat-card-health-ok { border-left-color: #2ed573; }
+  .stat-card-health-warn { border-left-color: #ff4757; }
+  .stat-card-info { border-left-color: var(--accent-color); }
+  .stat-card-total { border-left-color: #ffa502; }
+
+  .stat-val {
+    font-size: 1.8rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+  }
+
+  /* Contenedor de la cámara en vivo */
+  .camera-view-container {
+    position: relative;
+    width: 100%;
+    min-height: 380px;
+    background: #000;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .camera-view-container img {
+    width: 100%;
+    height: auto;
+    max-height: 520px;
+    object-fit: contain;
+    display: block;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .camera-overlay-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 10;
+  }
+
+  .camera-timestamp-badge {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-family: monospace;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .live-pulse {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: #2ed573;
+    border-radius: 50%;
+    margin-right: 6px;
+    box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7);
+    animation: pulse-green 1.5s infinite;
+  }
+
+  .live-pulse.danger {
+    background-color: #ff4757;
+    box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+    animation: pulse-red 1.5s infinite;
+  }
+
+  @keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(46, 213, 115, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+  }
+
+  @keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(255, 71, 87, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+  }
+
+  .table-responsive-scroll {
+    max-height: 480px;
+    overflow-y: auto;
+  }
+
+  .table-custom {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .table-custom th {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+  }
+
+  .table-custom td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+
+  .img-thumbnail-table {
+    width: 60px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .img-thumbnail-table:hover {
+    transform: scale(1.15);
+  }
+</style>
+
+<div class="row mb-4 align-items-center">
+  <div class="col-md-7">
+    <h2 class="fw-bold mb-1 tracking-tight" style="font-family: 'Outfit', sans-serif;">
+      🍓 Visión Artificial: Detección Fragaria
+    </h2>
+    <p class="text-secondary mb-0">
+      Supervisión en tiempo real con NVIDIA Jetson Nano, TensorRT y modelo de diagnóstico foliar y de frutos.
+    </p>
+  </div>
+  <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end align-items-center gap-2">
+    <div class="form-check form-switch mb-0 d-flex align-items-center gap-2 p-2 px-3 rounded-pill glass-card">
+      <input class="form-check-input ms-0" type="checkbox" id="toggleAutoRefresh" checked style="cursor: pointer;">
+      <label class="form-check-label text-nowrap fw-semibold small" for="toggleAutoRefresh" style="cursor: pointer;">
+        En vivo (1.5s)
+      </label>
+    </div>
+    <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2" id="btnManualRefresh" onclick="actualizarDeteccionManual()">
+      <i class="bi bi-arrow-repeat me-1"></i> Actualizar
+    </button>
+  </div>
+</div>
+
+<!-- ==================== SECCIÓN 1: DETECCIÓN EN VIVO ==================== -->
+<div class="row g-4 mb-4">
+  <!-- Columna izquierda: Imagen de cámara en vivo -->
+  <div class="col-lg-7">
+    <div class="glass-card p-3 p-md-4 h-100 shadow-sm d-flex flex-column">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
+          <i class="bi bi-camera-video-fill text-info"></i> Transmisión en Vivo
+        </h5>
+        <span class="badge bg-dark border border-secondary px-3 py-2 rounded-pill" id="badgeLiveStatus">
+          <span class="live-pulse"></span> CONECTADO
+        </span>
+      </div>
+
+      <!-- Contenedor del fotograma -->
+      <div class="camera-view-container flex-grow-1 mb-3 position-relative" id="containerCamara">
+        <div class="camera-overlay-badge">
+          <span class="badge bg-dark bg-opacity-75 border border-secondary px-3 py-1.5 rounded-pill" id="overlayClaseBadge">
+            Modelo Fragaria
+          </span>
+        </div>
+
+        <img id="imgLiveStream" src="" alt="Captura Jetson Nano" style="display: none;" onerror="onImgError()">
+
+        <!-- Placeholder cuando no hay imágenes aún -->
+        <div id="imgPlaceholder" class="text-center p-5 text-secondary">
+          <i class="bi bi-cpu fs-1 text-info mb-3 d-block"></i>
+          <h6 class="fw-bold text-white">Esperando fotogramas de la Jetson Nano...</h6>
+          <p class="small mb-0">Inicia el script <code>deteccion_fragaria_jetson.py</code> para comenzar a recibir detecciones.</p>
+        </div>
+
+        <div class="camera-timestamp-badge" id="overlayTimestamp">
+          --:--:--
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center text-secondary small px-1">
+        <span><i class="bi bi-hdd-network me-1"></i> Origen: Jetson Nano (UART + HTTP)</span>
+        <span id="txtUltimoUpdate">Última sync: Hace instantes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna derecha: Tarjetas de Telemetría de Diagnóstico -->
+  <div class="col-lg-5">
+    <div class="row g-3 h-100">
+      
+      <!-- Estado Sanitario Principal -->
+      <div class="col-12">
+        <div class="glass-card stat-card stat-card-health-ok p-4 shadow-sm" id="cardEstadoSanitario">
+          <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.78rem; letter-spacing: 0.5px;">
+            Estado Fitosanitario Actual
+          </span>
+          <div class="d-flex align-items-center justify-content-between mt-2">
+            <div>
+              <h3 class="fw-bold mb-0" id="valEstadoSanitario">Sin Diagnóstico</h3>
+              <p class="text-secondary small mb-0" id="descEstadoSanitario">Monitoreando cámara...</p>
+            </div>
+            <div class="display-5" id="iconoEstadoSanitario">
+              🌿
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagnóstico Específico / Clase -->
+      <div class="col-12">
+        <div class="glass-card stat-card stat-card-info p-4 shadow-sm">
+          <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.78rem; letter-spacing: 0.5px;">
+            Diagnóstico / Clase Detectada
+          </span>
+          <div class="mt-2">
+            <h4 class="fw-bold text-white mb-1" id="valClaseDeteccion">Esperando...</h4>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <span class="text-secondary small">Nivel de Confianza:</span>
+              <span class="fw-bold text-info" id="valConfianza">0%</span>
+            </div>
+            <div class="progress mt-1" style="height: 8px; background: rgba(255,255,255,0.08);">
+              <div class="progress-bar bg-info" id="barConfianza" role="progressbar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total de Objetos Detectados y Reloj -->
+      <div class="col-sm-6">
+        <div class="glass-card stat-card stat-card-total p-3 shadow-sm h-100">
+          <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">
+            Total Objetos
+          </span>
+          <div class="stat-val text-warning mt-1" id="valTotalObjetos">0</div>
+          <span class="text-secondary small">Frutos / Hojas marcados</span>
+        </div>
+      </div>
+
+      <div class="col-sm-6">
+        <div class="glass-card stat-card stat-card-info p-3 shadow-sm h-100">
+          <span class="text-secondary text-uppercase fw-semibold" style="font-size: 0.75rem;">
+            Modelo Activo
+          </span>
+          <div class="stat-val text-white mt-1" style="font-size: 1.4rem;">YOLOv8 TRT</div>
+          <span class="text-secondary small" id="valModeloNombre">Fragaria-TensorRT</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SECCIÓN 2: HISTORIAL DE DETECCIONES ==================== -->
+<div class="glass-card p-4 shadow-sm mb-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+      <h5 class="fw-bold mb-1 text-white d-flex align-items-center gap-2">
+        <i class="bi bi-clock-history text-warning"></i> Historial Reciente de Capturas Guardadas
+      </h5>
+      <p class="text-secondary small mb-0">
+        Registro fotográfico y diagnóstico persistido en la base de datos (tabla <code>detecciones</code>).
+      </p>
+    </div>
+    <div>
+      <span class="badge bg-secondary px-3 py-2 rounded-pill" id="badgeTotalHistorial">0 registros</span>
+    </div>
+  </div>
+
+  <div class="table-responsive table-responsive-scroll">
+    <table class="table table-custom table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Miniatura</th>
+          <th>Fecha y Hora</th>
+          <th>Modelo</th>
+          <th>Diagnóstico / Clase</th>
+          <th>Confianza</th>
+          <th>Condición Sanitaria</th>
+          <th class="text-center">Acción</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyHistorialDetecciones">
+        <tr>
+          <td colspan="7" class="text-center text-secondary py-4">
+            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+            No se han registrado capturas aún.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal para ver imagen en alta resolución -->
+<div class="modal fade" id="modalImagenDeteccion" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content modal-custom-content">
+      <div class="modal-header border-bottom border-secondary border-opacity-25">
+        <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+          <i class="bi bi-image text-info"></i> Captura de Detección
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center p-3">
+        <img id="modalImgSrc" src="" class="img-fluid rounded mb-3 border border-secondary" alt="Detalle Detección" style="max-height: 550px;">
+        <div class="row g-2 text-start bg-dark bg-opacity-50 p-3 rounded">
+          <div class="col-sm-6">
+            <span class="text-secondary small d-block">Diagnóstico:</span>
+            <strong class="text-white" id="modalDetClase">--</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-secondary small d-block">Confianza:</span>
+            <strong class="text-info" id="modalDetConf">--</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-secondary small d-block">Total Objetos:</span>
+            <strong class="text-warning" id="modalDetTotal">--</strong>
+          </div>
+          <div class="col-sm-6">
+            <span class="text-secondary small d-block">Fecha y Hora:</span>
+            <strong class="text-secondary" id="modalDetFecha">--</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Marcar enlace activo en Navbar
+  document.addEventListener("DOMContentLoaded", () => {
+    const navDetecciones = document.getElementById("nav-detecciones");
+    if (navDetecciones) navDetecciones.classList.add("active");
+  });
+
+  let ultimoIdDeteccion = null;
+  let timerAutoRefresh = null;
+
+  async function obtenerUltimaDeteccion() {
+    try {
+      const resp = await fetch('/api/detecciones/ultima');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.status === 'ok' && data.deteccion) {
+        renderDeteccionEnVivo(data.deteccion);
+        
+        // Si el ID cambió, recargar historial
+        if (ultimoIdDeteccion !== data.deteccion.id) {
+          ultimoIdDeteccion = data.deteccion.id;
+          cargarHistorial();
+        }
+      }
+    } catch (err) {
+      console.warn("Error consultando última detección:", err);
+    }
+  }
+
+  function renderDeteccionEnVivo(det) {
+    const imgEl = document.getElementById('imgLiveStream');
+    const placeholderEl = document.getElementById('imgPlaceholder');
+    const overlayTimestamp = document.getElementById('overlayTimestamp');
+    const overlayClaseBadge = document.getElementById('overlayClaseBadge');
+    const txtUltimoUpdate = document.getElementById('txtUltimoUpdate');
+
+    // Imagen
+    if (det.image_url) {
+      imgEl.src = det.image_url;
+      imgEl.style.display = 'block';
+      placeholderEl.style.display = 'none';
+    }
+
+    // Timestamps
+    overlayTimestamp.textContent = det.fecha_hora || '--:--:--';
+    txtUltimoUpdate.textContent = `Última sync: ${det.fecha_hora}`;
+
+    // Diagnóstico y Confianza
+    const confPorcentaje = Math.round((det.conf || 0) * 100);
+    document.getElementById('valClaseDeteccion').textContent = det.clase || 'Ninguna';
+    document.getElementById('valConfianza').textContent = `${confPorcentaje}%`;
+    
+    const barConfianza = document.getElementById('barConfianza');
+    barConfianza.style.width = `${confPorcentaje}%`;
+
+    // Total Objetos
+    document.getElementById('valTotalObjetos').textContent = det.total || 0;
+    overlayClaseBadge.textContent = `${det.clase} (${confPorcentaje}%)`;
+
+    // Tarjeta Estado Sanitario
+    const cardSanitario = document.getElementById('cardEstadoSanitario');
+    const valSanitario = document.getElementById('valEstadoSanitario');
+    const descSanitario = document.getElementById('descEstadoSanitario');
+    const iconoSanitario = document.getElementById('iconoEstadoSanitario');
+
+    if (det.total === 0) {
+      cardSanitario.className = 'glass-card stat-card stat-card-info p-4 shadow-sm';
+      valSanitario.textContent = 'Sin Objetos';
+      valSanitario.className = 'fw-bold mb-0 text-white';
+      descSanitario.textContent = 'La cámara no detecta frutos ni hojas actualmente.';
+      iconoSanitario.textContent = '🔍';
+      barConfianza.className = 'progress-bar bg-secondary';
+    } else if (det.enfermedad) {
+      cardSanitario.className = 'glass-card stat-card stat-card-health-warn p-4 shadow-sm';
+      valSanitario.textContent = 'Patología Detectada';
+      valSanitario.className = 'fw-bold mb-0 text-danger';
+      descSanitario.textContent = `Alerta: Síntomas de ${det.clase}. Requiere atención.`;
+      iconoSanitario.textContent = '⚠️';
+      barConfianza.className = 'progress-bar bg-danger';
+    } else {
+      cardSanitario.className = 'glass-card stat-card stat-card-health-ok p-4 shadow-sm';
+      valSanitario.textContent = 'Planta / Fruta Sana';
+      valSanitario.className = 'fw-bold mb-0 text-success';
+      descSanitario.textContent = 'Estado óptimo sin presencia de anomalías fitosanitarias.';
+      iconoSanitario.textContent = '🍓';
+      barConfianza.className = 'progress-bar bg-success';
+    }
+  }
+
+  function onImgError() {
+    const imgEl = document.getElementById('imgLiveStream');
+    const placeholderEl = document.getElementById('imgPlaceholder');
+    imgEl.style.display = 'none';
+    placeholderEl.style.display = 'block';
+  }
+
+  async function cargarHistorial() {
+    try {
+      const resp = await fetch('/api/detecciones/historial?limit=30');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.status === 'ok') {
+        renderTablaHistorial(data.detecciones || []);
+      }
+    } catch (err) {
+      console.warn("Error cargando historial de detecciones:", err);
+    }
+  }
+
+  function renderTablaHistorial(lista) {
+    const tbody = document.getElementById('tbodyHistorialDetecciones');
+    const badgeTotal = document.getElementById('badgeTotalHistorial');
+    badgeTotal.textContent = `${lista.length} capturas`;
+
+    if (lista.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center text-secondary py-4">
+            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+            No se han registrado capturas aún.
+          </td>
+        </tr>`;
+      return;
+    }
+
+    tbody.innerHTML = lista.map(item => {
+      const confPct = Math.round((item.conf || 0) * 100);
+      const isEnf = item.enfermedad;
+      const badgeClass = isEnf ? 'bg-danger text-white' : (item.total > 0 ? 'bg-success text-white' : 'bg-secondary text-white');
+      const badgeText = isEnf ? '⚠️ Patología' : (item.total > 0 ? '✅ Sana' : '🔍 Sin Detección');
+
+      return `
+        <tr>
+          <td>
+            <img src="${item.image_url}" class="img-thumbnail-table" alt="Thumb" onclick="abrirModalImagen('${item.image_url}', '${item.clase}', '${confPct}%', '${item.total}', '${item.fecha_hora}')">
+          </td>
+          <td><span class="text-secondary font-monospace small">${item.fecha_hora}</span></td>
+          <td><span class="badge bg-dark border border-secondary text-info">${item.modelo}</span></td>
+          <td><strong class="text-white">${item.clase}</strong></td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <span class="fw-bold small">${confPct}%</span>
+              <div class="progress flex-grow-1" style="height: 5px; width: 60px; background: rgba(255,255,255,0.1);">
+                <div class="progress-bar ${isEnf ? 'bg-danger' : 'bg-success'}" style="width: ${confPct}%;"></div>
+              </div>
+            </div>
+          </td>
+          <td><span class="badge ${badgeClass} px-2.5 py-1.5 rounded-pill">${badgeText}</span></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1" onclick="abrirModalImagen('${item.image_url}', '${item.clase}', '${confPct}%', '${item.total}', '${item.fecha_hora}')" title="Ver imagen completa">
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function abrirModalImagen(url, clase, conf, total, fecha) {
+    document.getElementById('modalImgSrc').src = url;
+    document.getElementById('modalDetClase').textContent = clase;
+    document.getElementById('modalDetConf').textContent = conf;
+    document.getElementById('modalDetTotal').textContent = total;
+    document.getElementById('modalDetFecha').textContent = fecha;
+
+    const modal = new bootstrap.Modal(document.getElementById('modalImagenDeteccion'));
+    modal.show();
+  }
+
+  function actualizarDeteccionManual() {
+    obtenerUltimaDeteccion();
+    cargarHistorial();
+  }
+
+  // Manejo de Auto-refresh
+  const toggleSwitch = document.getElementById('toggleAutoRefresh');
+  function startPolling() {
+    if (timerAutoRefresh) clearInterval(timerAutoRefresh);
+    timerAutoRefresh = setInterval(obtenerUltimaDeteccion, 1500);
+  }
+  function stopPolling() {
+    if (timerAutoRefresh) {
+      clearInterval(timerAutoRefresh);
+      timerAutoRefresh = null;
+    }
+  }
+
+  toggleSwitch.addEventListener('change', (e) => {
+    const badgeStatus = document.getElementById('badgeLiveStatus');
+    if (e.target.checked) {
+      startPolling();
+      badgeStatus.innerHTML = '<span class="live-pulse"></span> CONECTADO';
+      badgeStatus.className = 'badge bg-dark border border-secondary px-3 py-2 rounded-pill';
+    } else {
+      stopPolling();
+      badgeStatus.innerHTML = 'PAUSADO';
+      badgeStatus.className = 'badge bg-secondary border border-secondary px-3 py-2 rounded-pill';
+    }
+  });
+
+  // Inicio automático
+  obtenerUltimaDeteccion();
+  cargarHistorial();
+  startPolling();
+</script>
+{% endblock %}
+

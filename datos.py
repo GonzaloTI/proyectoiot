@@ -113,6 +113,20 @@ class Database:
                 FOREIGN KEY (id_dispositivo) REFERENCES dispositivo(id) ON DELETE CASCADE
             )
         ''')
+
+        # 6. Tabla de Detecciones (Visión Artificial Fragaria)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS detecciones (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                path TEXT NOT NULL,
+                modelo TEXT NOT NULL,
+                total INTEGER NOT NULL,
+                clase TEXT NOT NULL,
+                conf REAL NOT NULL,
+                enfermedad INTEGER NOT NULL,
+                fecha_hora DATETIME DEFAULT (datetime('now', 'localtime'))
+            )
+        ''')
         
         # Verificar e incorporar las nuevas columnas si la tabla ya existía
         cursor.execute("PRAGMA table_info(readings)")
@@ -619,5 +633,52 @@ class Database:
         rows = cursor.fetchall()
         conn.close()
         return rows
+
+    # =========================================================================
+    # Métodos de Detecciones (Visión Artificial Fragaria)
+    # =========================================================================
+    def save_detection(self, path, modelo, total, clase, conf, enfermedad):
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO detecciones (path, modelo, total, clase, conf, enfermedad, fecha_hora)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
+        ''', (path, modelo, int(total), clase, float(conf), 1 if enfermedad else 0))
+        new_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return new_id
+
+    def get_latest_detection(self):
+        conn = sqlite3.connect(self.db_name)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM detecciones ORDER BY id DESC LIMIT 1
+        ''')
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            res = dict(row)
+            res['enfermedad'] = bool(res['enfermedad'])
+            return res
+        return None
+
+    def get_detections_history(self, limit=50):
+        conn = sqlite3.connect(self.db_name)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM detecciones ORDER BY id DESC LIMIT ?
+        ''', (limit,))
+        rows = cursor.fetchall()
+        conn.close()
+        result = []
+        for r in rows:
+            d = dict(r)
+            d['enfermedad'] = bool(d['enfermedad'])
+            result.append(d)
+        return result
+
 
 
