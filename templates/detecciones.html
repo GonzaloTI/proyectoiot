@@ -87,6 +87,25 @@
     animation: pulse-red 1.5s infinite;
   }
 
+  .dot-offline {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background-color: #ff4757;
+    border-radius: 50%;
+    margin-right: 6px;
+    box-shadow: 0 0 6px rgba(255, 71, 87, 0.6);
+  }
+
+  .dot-paused {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    background-color: #ffa502;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+
   @keyframes pulse-green {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7); }
     70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(46, 213, 115, 0); }
@@ -150,7 +169,7 @@
   </div>
   <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end align-items-center gap-2">
     <div class="d-flex align-items-center gap-2 py-1.5 px-3 rounded-pill glass-card border">
-      <span class="live-pulse" id="liveIndicatorDot"></span>
+      <span class="dot-offline" id="liveIndicatorDot" title="Verificando conexión con Jetson Nano..."></span>
       <label for="selectRefreshInterval" class="small fw-semibold text-secondary mb-0 text-nowrap d-none d-sm-inline">
         <i class="bi bi-clock me-1 text-info"></i> En vivo:
       </label>
@@ -178,8 +197,8 @@
         <h5 class="fw-bold mb-0 text-white d-flex align-items-center gap-2">
           <i class="bi bi-camera-video-fill text-info"></i> Transmisión en Vivo
         </h5>
-        <span class="badge bg-dark border border-secondary px-3 py-2 rounded-pill" id="badgeLiveStatus">
-          <span class="live-pulse"></span> CONECTADO
+        <span class="badge bg-danger bg-opacity-10 border border-danger text-danger px-3 py-2 rounded-pill shadow-sm" id="badgeLiveStatus">
+          <span class="dot-offline"></span> DESCONECTADO
         </span>
       </div>
 
@@ -366,23 +385,91 @@
 
   let ultimoIdDeteccion = null;
   let timerAutoRefresh = null;
+  let currentInterval = 1500;
+
+  function actualizarEstadoConexionVisual(isOnline, segundosInactivo, isPaused = false) {
+    const badgeStatus = document.getElementById('badgeLiveStatus');
+    const dot = document.getElementById('liveIndicatorDot');
+    const txtSync = document.getElementById('txtUltimoUpdate');
+    const navbarBadge = document.getElementById('jetson-status-navbar');
+    const navbarDot = document.getElementById('jetson-dot-navbar');
+    const navbarText = document.getElementById('jetson-text-navbar');
+
+    if (isPaused) {
+      if (badgeStatus) {
+        badgeStatus.className = 'badge bg-secondary border border-secondary px-3 py-2 rounded-pill text-white';
+        badgeStatus.innerHTML = '<span class="dot-paused"></span> PAUSADO';
+      }
+      if (dot) {
+        dot.className = 'dot-paused';
+        dot.title = 'Actualización en vivo pausada por el usuario';
+      }
+      return;
+    }
+
+    if (isOnline) {
+      if (badgeStatus) {
+        badgeStatus.className = 'badge bg-dark border border-success text-success px-3 py-2 rounded-pill shadow-sm';
+        badgeStatus.innerHTML = '<span class="live-pulse"></span> CONECTADO';
+      }
+      if (dot) {
+        dot.className = 'live-pulse';
+        dot.title = 'Jetson Nano transmitiendo activamente';
+      }
+      if (txtSync && segundosInactivo !== null && segundosInactivo !== undefined) {
+        txtSync.innerHTML = `<i class="bi bi-broadcast text-success me-1"></i> Jetson Nano: Online (hace ${segundosInactivo}s)`;
+      }
+      if (navbarBadge) {
+        navbarBadge.className = 'navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5';
+        if (navbarDot) navbarDot.className = 'status-pulse-dot';
+        if (navbarText) navbarText.textContent = 'Jetson: Online';
+      }
+    } else {
+      if (badgeStatus) {
+        badgeStatus.className = 'badge bg-danger bg-opacity-10 border border-danger text-danger px-3 py-2 rounded-pill shadow-sm';
+        badgeStatus.innerHTML = '<span class="dot-offline"></span> DESCONECTADO';
+      }
+      if (dot) {
+        dot.className = 'dot-offline';
+        dot.title = 'Jetson Nano sin señal de datos';
+      }
+      if (txtSync) {
+        const tiempoTxt = (segundosInactivo !== null && segundosInactivo !== undefined) ? `hace ${Math.round(segundosInactivo)}s` : 'sin señal';
+        txtSync.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> Jetson Nano: Desconectada (${tiempoTxt})`;
+      }
+      if (navbarBadge) {
+        navbarBadge.className = 'navbar-text badge bg-offline-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5';
+        if (navbarDot) navbarDot.className = 'status-offline-dot';
+        if (navbarText) navbarText.textContent = 'Jetson: Offline';
+      }
+    }
+  }
 
   async function obtenerUltimaDeteccion() {
     try {
       const resp = await fetch('/api/detecciones/ultima');
-      if (!resp.ok) return;
+      if (!resp.ok) {
+        actualizarEstadoConexionVisual(false, null, currentInterval === 0);
+        return;
+      }
       const data = await resp.json();
-      if (data.status === 'ok' && data.deteccion) {
-        renderDeteccionEnVivo(data.deteccion);
-        
-        // Recargar historial únicamente si es un registro guardado en BD y su ID cambió
-        if (data.deteccion.guardado_en_historial && data.deteccion.id !== ultimoIdDeteccion) {
-          ultimoIdDeteccion = data.deteccion.id;
-          cargarHistorial();
+      if (data.status === 'ok') {
+        const isOnline = data.jetson_online === true;
+        actualizarEstadoConexionVisual(isOnline, data.segundos_desde_ultimo_envio, currentInterval === 0);
+
+        if (data.deteccion) {
+          renderDeteccionEnVivo(data.deteccion);
+          
+          // Recargar historial únicamente si es un registro guardado en BD y su ID cambió
+          if (data.deteccion.guardado_en_historial && data.deteccion.id !== ultimoIdDeteccion) {
+            ultimoIdDeteccion = data.deteccion.id;
+            cargarHistorial();
+          }
         }
       }
     } catch (err) {
       console.warn("Error consultando última detección:", err);
+      actualizarEstadoConexionVisual(false, null, currentInterval === 0);
     }
   }
 
@@ -545,7 +632,6 @@
 
   // Manejo de Auto-refresh con selector dinámico de tiempo
   const selectInterval = document.getElementById('selectRefreshInterval');
-  let currentInterval = 1500;
 
   function aplicarIntervalo(ms) {
     if (timerAutoRefresh) {
@@ -553,22 +639,12 @@
       timerAutoRefresh = null;
     }
     currentInterval = ms;
-    const dot = document.getElementById('liveIndicatorDot');
-    const badgeStatus = document.getElementById('badgeLiveStatus');
 
     if (ms > 0) {
       timerAutoRefresh = setInterval(obtenerUltimaDeteccion, ms);
-      if (dot) dot.style.display = 'inline-block';
-      if (badgeStatus) {
-        badgeStatus.innerHTML = '<span class="live-pulse"></span> CONECTADO';
-        badgeStatus.className = 'badge bg-dark border border-secondary px-3 py-2 rounded-pill';
-      }
+      obtenerUltimaDeteccion();
     } else {
-      if (dot) dot.style.display = 'none';
-      if (badgeStatus) {
-        badgeStatus.innerHTML = 'PAUSADO';
-        badgeStatus.className = 'badge bg-secondary border border-secondary px-3 py-2 rounded-pill';
-      }
+      actualizarEstadoConexionVisual(false, null, true);
     }
   }
 

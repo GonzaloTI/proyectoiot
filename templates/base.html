@@ -286,6 +286,9 @@
                     <span class="navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5" id="connection-status" style="width: fit-content;">
                         <span class="status-pulse-dot"></span> ESP32: Online
                     </span>
+                    <span class="navbar-text badge bg-offline-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5" id="jetson-status-navbar" style="width: fit-content;" title="Estado de conexión con NVIDIA Jetson Nano">
+                        <span class="status-offline-dot" id="jetson-dot-navbar"></span> <span id="jetson-text-navbar">Jetson: Offline</span>
+                    </span>
                     <!-- Icono de Notificaciones al lado del icono de Usuario -->
                     <button class="btn btn-sm btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center ms-1" style="width: 34px; height: 34px;" data-bs-toggle="modal" data-bs-target="#notificationModal" title="Notificaciones Web Push">
                         <i class="bi bi-bell-fill" style="font-size: 0.95rem;"></i>

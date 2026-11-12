@@ -1,5 +1,6 @@
 import os
 import uuid
+import time
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from modelos.Ddetecciones import Ddetecciones
@@ -15,6 +16,7 @@ d_detecciones = Ddetecciones()
 # Variables globales para control de persistencia inteligente y streaming en vivo
 consecutive_empty_count = 0
 live_stream_cache = None
+last_jetson_upload_time = None
 
 def procesar_subida_deteccion(file_storage, datos):
     """
@@ -27,7 +29,8 @@ def procesar_subida_deteccion(file_storage, datos):
         nuevos archivos en disco; únicamente sobrescribe 'live_latest.jpg' para que
         la transmisión en vivo en el navegador continúe sin consumir espacio de memoria.
     """
-    global consecutive_empty_count, live_stream_cache
+    global consecutive_empty_count, live_stream_cache, last_jetson_upload_time
+    last_jetson_upload_time = time.time()
 
     if not file_storage or file_storage.filename == '':
         return {"status": "error", "message": "No se recibió ningún archivo de imagen válido."}, 400
@@ -166,19 +169,48 @@ def procesar_subida_deteccion(file_storage, datos):
 def obtener_ultima_deteccion():
     """
     Obtiene la detección más reciente para el panel en vivo.
-    Prioriza el caché del streaming en tiempo real y recurre a la BD si aún no hay streaming.
+    Verifica activamente si la Jetson Nano se encuentra conectada y enviando datos
+    en los últimos 5 segundos.
     """
-    global live_stream_cache
+    global live_stream_cache, last_jetson_upload_time
+
+    # Evaluar si la Jetson Nano está transmitiendo activamente (umbral de 5.0s)
+    jetson_online = False
+    segundos_desde_ultimo = None
+    if last_jetson_upload_time is not None:
+        segundos_desde_ultimo = round(time.time() - last_jetson_upload_time, 1)
+        jetson_online = (segundos_desde_ultimo <= 5.0)
+
     if live_stream_cache:
-        return {"status": "ok", "deteccion": live_stream_cache}
+        det = dict(live_stream_cache)
+        det['jetson_online'] = jetson_online
+        det['segundos_inactivo'] = segundos_desde_ultimo
+        return {
+            "status": "ok",
+            "jetson_online": jetson_online,
+            "segundos_desde_ultimo_envio": segundos_desde_ultimo,
+            "deteccion": det
+        }
 
     row = d_detecciones.obtener_ultima_deteccion()
     if not row:
-        return {"status": "ok", "deteccion": None}
+        return {
+            "status": "ok",
+            "jetson_online": False,
+            "segundos_desde_ultimo_envio": None,
+            "deteccion": None
+        }
     
     row['image_url'] = f"/static/{row['path']}"
     row['guardado_en_historial'] = True
-    return {"status": "ok", "deteccion": row}
+    row['jetson_online'] = jetson_online
+    row['segundos_inactivo'] = segundos_desde_ultimo
+    return {
+        "status": "ok",
+        "jetson_online": jetson_online,
+        "segundos_desde_ultimo_envio": segundos_desde_ultimo,
+        "deteccion": row
+    }
 
 
 def obtener_historial_detecciones(limit=50):
