@@ -149,13 +149,21 @@
     </p>
   </div>
   <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex justify-content-md-end align-items-center gap-2">
-    <div class="form-check form-switch mb-0 d-flex align-items-center gap-2 p-2 px-3 rounded-pill glass-card">
-      <input class="form-check-input ms-0" type="checkbox" id="toggleAutoRefresh" checked style="cursor: pointer;">
-      <label class="form-check-label text-nowrap fw-semibold small" for="toggleAutoRefresh" style="cursor: pointer;">
-        En vivo (1.5s)
+    <div class="d-flex align-items-center gap-2 py-1.5 px-3 rounded-pill glass-card border">
+      <span class="live-pulse" id="liveIndicatorDot"></span>
+      <label for="selectRefreshInterval" class="small fw-semibold text-secondary mb-0 text-nowrap d-none d-sm-inline">
+        <i class="bi bi-clock me-1 text-info"></i> En vivo:
       </label>
+      <select class="form-select form-select-sm bg-transparent border-0 text-white fw-bold py-0 ps-1 pe-4" id="selectRefreshInterval" style="cursor: pointer; width: auto; font-size: 0.88rem;">
+        <option value="1000" class="text-dark">1.0s (Rápido)</option>
+        <option value="1500" class="text-dark" selected>1.5s (Recomendado)</option>
+        <option value="2000" class="text-dark">2.0s</option>
+        <option value="3000" class="text-dark">3.0s</option>
+        <option value="5000" class="text-dark">5.0s (Ahorro)</option>
+        <option value="0" class="text-dark">⏸️ Pausado</option>
+      </select>
     </div>
-    <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2" id="btnManualRefresh" onclick="actualizarDeteccionManual()">
+    <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2" id="btnManualRefresh" onclick="actualizarDeteccionManual()" title="Refrescar fotograma e historial manualmente">
       <i class="bi bi-arrow-repeat me-1"></i> Actualizar
     </button>
   </div>
@@ -177,9 +185,12 @@
 
       <!-- Contenedor del fotograma -->
       <div class="camera-view-container flex-grow-1 mb-3 position-relative" id="containerCamara">
-        <div class="camera-overlay-badge">
+        <div class="camera-overlay-badge d-flex gap-2">
           <span class="badge bg-dark bg-opacity-75 border border-secondary px-3 py-1.5 rounded-pill" id="overlayClaseBadge">
             Modelo Fragaria
+          </span>
+          <span class="badge bg-dark bg-opacity-75 border border-success text-success px-3 py-1.5 rounded-pill" id="overlayStorageBadge">
+            <i class="bi bi-disc-fill text-danger me-1"></i> Guardado en BD
           </span>
         </div>
 
@@ -364,8 +375,8 @@
       if (data.status === 'ok' && data.deteccion) {
         renderDeteccionEnVivo(data.deteccion);
         
-        // Si el ID cambió, recargar historial
-        if (ultimoIdDeteccion !== data.deteccion.id) {
+        // Recargar historial únicamente si es un registro guardado en BD y su ID cambió
+        if (data.deteccion.guardado_en_historial && data.deteccion.id !== ultimoIdDeteccion) {
           ultimoIdDeteccion = data.deteccion.id;
           cargarHistorial();
         }
@@ -380,6 +391,7 @@
     const placeholderEl = document.getElementById('imgPlaceholder');
     const overlayTimestamp = document.getElementById('overlayTimestamp');
     const overlayClaseBadge = document.getElementById('overlayClaseBadge');
+    const overlayStorageBadge = document.getElementById('overlayStorageBadge');
     const txtUltimoUpdate = document.getElementById('txtUltimoUpdate');
 
     // Imagen
@@ -387,6 +399,17 @@
       imgEl.src = det.image_url;
       imgEl.style.display = 'block';
       placeholderEl.style.display = 'none';
+    }
+
+    // Indicador de modo de almacenamiento / en vivo
+    if (overlayStorageBadge) {
+      if (det.guardado_en_historial) {
+        overlayStorageBadge.innerHTML = '<i class="bi bi-disc-fill text-danger me-1"></i> Guardado en BD';
+        overlayStorageBadge.className = 'badge bg-dark bg-opacity-75 border border-success text-success px-3 py-1.5 rounded-pill';
+      } else {
+        overlayStorageBadge.innerHTML = '<i class="bi bi-broadcast text-info me-1"></i> Solo En Vivo (Sin Guardar)';
+        overlayStorageBadge.className = 'badge bg-dark bg-opacity-75 border border-secondary text-secondary px-3 py-1.5 rounded-pill';
+      }
     }
 
     // Timestamps
@@ -520,36 +543,45 @@
     cargarHistorial();
   }
 
-  // Manejo de Auto-refresh
-  const toggleSwitch = document.getElementById('toggleAutoRefresh');
-  function startPolling() {
-    if (timerAutoRefresh) clearInterval(timerAutoRefresh);
-    timerAutoRefresh = setInterval(obtenerUltimaDeteccion, 1500);
-  }
-  function stopPolling() {
+  // Manejo de Auto-refresh con selector dinámico de tiempo
+  const selectInterval = document.getElementById('selectRefreshInterval');
+  let currentInterval = 1500;
+
+  function aplicarIntervalo(ms) {
     if (timerAutoRefresh) {
       clearInterval(timerAutoRefresh);
       timerAutoRefresh = null;
     }
+    currentInterval = ms;
+    const dot = document.getElementById('liveIndicatorDot');
+    const badgeStatus = document.getElementById('badgeLiveStatus');
+
+    if (ms > 0) {
+      timerAutoRefresh = setInterval(obtenerUltimaDeteccion, ms);
+      if (dot) dot.style.display = 'inline-block';
+      if (badgeStatus) {
+        badgeStatus.innerHTML = '<span class="live-pulse"></span> CONECTADO';
+        badgeStatus.className = 'badge bg-dark border border-secondary px-3 py-2 rounded-pill';
+      }
+    } else {
+      if (dot) dot.style.display = 'none';
+      if (badgeStatus) {
+        badgeStatus.innerHTML = 'PAUSADO';
+        badgeStatus.className = 'badge bg-secondary border border-secondary px-3 py-2 rounded-pill';
+      }
+    }
   }
 
-  toggleSwitch.addEventListener('change', (e) => {
-    const badgeStatus = document.getElementById('badgeLiveStatus');
-    if (e.target.checked) {
-      startPolling();
-      badgeStatus.innerHTML = '<span class="live-pulse"></span> CONECTADO';
-      badgeStatus.className = 'badge bg-dark border border-secondary px-3 py-2 rounded-pill';
-    } else {
-      stopPolling();
-      badgeStatus.innerHTML = 'PAUSADO';
-      badgeStatus.className = 'badge bg-secondary border border-secondary px-3 py-2 rounded-pill';
-    }
-  });
+  if (selectInterval) {
+    selectInterval.addEventListener('change', (e) => {
+      aplicarIntervalo(parseInt(e.target.value));
+    });
+  }
 
-  // Inicio automático
+  // Inicio automático con intervalo recomendado de 1.5s
   obtenerUltimaDeteccion();
   cargarHistorial();
-  startPolling();
+  aplicarIntervalo(1500);
 </script>
 {% endblock %}
 

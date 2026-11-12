@@ -12,17 +12,23 @@ os.makedirs(UPLOADS_DIR, exist_ok=True)
 # Instancia del modelo de datos Ddetecciones
 d_detecciones = Ddetecciones()
 
+# Variables globales para control de persistencia inteligente y streaming en vivo
+consecutive_empty_count = 0
+live_stream_cache = None
+
 def procesar_subida_deteccion(file_storage, datos):
     """
     Procesa y guarda la imagen y metadatos de detección enviados por la Jetson Nano.
     
-    Parámetros:
-      file_storage: Objeto FileStorage de werkzeug (request.files['imagen'] o request.files['file'])
-      datos: Diccionario con { "modelo": ..., "total": ..., "clase": ..., "conf": ..., "enfermedad": ... }
-    
-    Retorna:
-      dict: Respuesta estructurada {"status": "ok", "id": ..., "path": ...} o error.
+    Lógica inteligente de almacenamiento:
+      - Si detecta objetos (total > 0): Siempre guarda la imagen en disco y en la BD.
+      - Si no detecta objetos (total == 0): Guarda un máximo de 4 fotogramas consecutivos.
+      - A partir del 5to fotograma consecutivo sin detección: No guarda en BD ni genera
+        nuevos archivos en disco; únicamente sobrescribe 'live_latest.jpg' para que
+        la transmisión en vivo en el navegador continúe sin consumir espacio de memoria.
     """
+    global consecutive_empty_count, live_stream_cache
+
     if not file_storage or file_storage.filename == '':
         return {"status": "error", "message": "No se recibió ningún archivo de imagen válido."}, 400
 
@@ -46,60 +52,134 @@ def procesar_subida_deteccion(file_storage, datos):
     else:
         enfermedad = bool(raw_enf)
 
-    # Generar un nombre único para la imagen
+    # Evaluación de la regla de persistencia
+    if total > 0:
+        consecutive_empty_count = 0
+        debe_guardar_historial = True
+    else:
+        consecutive_empty_count += 1
+        debe_guardar_historial = (consecutive_empty_count <= 4)
+
     timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
-    random_suffix = uuid.uuid4().hex[:6]
-    orig_ext = os.path.splitext(secure_filename(file_storage.filename))[1]
-    if not orig_ext or orig_ext.lower() not in ['.jpg', '.jpeg', '.png']:
-        orig_ext = '.jpg'
+    fecha_hora_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    filename = f"{modelo}_{timestamp_str}_{random_suffix}{orig_ext}"
-    file_path = os.path.join(UPLOADS_DIR, filename)
+    if debe_guardar_historial:
+        # Modo Persistencia: Crear archivo único y registrar en BD
+        random_suffix = uuid.uuid4().hex[:6]
+        orig_ext = os.path.splitext(secure_filename(file_storage.filename))[1]
+        if not orig_ext or orig_ext.lower() not in ['.jpg', '.jpeg', '.png']:
+            orig_ext = '.jpg'
 
-    try:
-        file_storage.save(file_path)
-    except Exception as e:
-        return {"status": "error", "message": f"Error al guardar imagen en disco: {str(e)}"}, 500
+        filename = f"{modelo}_{timestamp_str}_{random_suffix}{orig_ext}"
+        file_path = os.path.join(UPLOADS_DIR, filename)
 
-    # Ruta relativa dentro de la carpeta static para ser accesible web
-    relative_path = f"uploads/detecciones/{filename}"
+        try:
+            file_storage.save(file_path)
+        except Exception as e:
+            return {"status": "error", "message": f"Error al guardar imagen en disco: {str(e)}"}, 500
 
-    # Guardar registro en la base de datos
-    try:
-        new_id = d_detecciones.guardar_deteccion(
-            path=relative_path,
-            modelo=modelo,
-            total=total,
-            clase=clase,
-            conf=conf,
-            enfermedad=enfermedad
-        )
-    except Exception as e:
-        return {"status": "error", "message": f"Error al insertar en la base de datos: {str(e)}"}, 500
+        relative_path = f"uploads/detecciones/{filename}"
 
-    return {
-        "status": "ok",
-        "id": new_id,
-        "path": relative_path,
-        "image_url": f"/static/{relative_path}",
-        "modelo": modelo,
-        "total": total,
-        "clase": clase,
-        "conf": conf,
-        "enfermedad": enfermedad
-    }, 201
+        try:
+            new_id = d_detecciones.guardar_deteccion(
+                path=relative_path,
+                modelo=modelo,
+                total=total,
+                clase=clase,
+                conf=conf,
+                enfermedad=enfermedad
+            )
+        except Exception as e:
+            return {"status": "error", "message": f"Error al insertar en la base de datos: {str(e)}"}, 500
+
+        # Actualizar caché de visualización en vivo
+        live_stream_cache = {
+            "id": new_id,
+            "path": relative_path,
+            "image_url": f"/static/{relative_path}",
+            "modelo": modelo,
+            "total": total,
+            "clase": clase,
+            "conf": conf,
+            "enfermedad": enfermedad,
+            "fecha_hora": fecha_hora_str,
+            "guardado_en_historial": True,
+            "consecutive_empty": consecutive_empty_count
+        }
+
+        return {
+            "status": "ok",
+            "id": new_id,
+            "path": relative_path,
+            "image_url": f"/static/{relative_path}",
+            "modelo": modelo,
+            "total": total,
+            "clase": clase,
+            "conf": conf,
+            "enfermedad": enfermedad,
+            "guardado_en_historial": True
+        }, 201
+
+    else:
+        # Modo En Vivo (Ahorro de Memoria):
+        # Sobrescribe un único archivo temporal 'live_latest.jpg' sin ocupar espacio adicional
+        live_filename = "live_latest.jpg"
+        live_file_path = os.path.join(UPLOADS_DIR, live_filename)
+
+        try:
+            file_storage.save(live_file_path)
+        except Exception as e:
+            return {"status": "error", "message": f"Error al guardar fotograma en vivo: {str(e)}"}, 500
+
+        relative_path = f"uploads/detecciones/{live_filename}"
+        epoch_ts = int(datetime.now().timestamp() * 1000)
+        image_url = f"/static/{relative_path}?t={epoch_ts}"
+
+        live_stream_cache = {
+            "id": "live_stream",
+            "path": relative_path,
+            "image_url": image_url,
+            "modelo": modelo,
+            "total": total,
+            "clase": clase,
+            "conf": conf,
+            "enfermedad": enfermedad,
+            "fecha_hora": fecha_hora_str,
+            "guardado_en_historial": False,
+            "consecutive_empty": consecutive_empty_count
+        }
+
+        return {
+            "status": "ok",
+            "id": None,
+            "path": relative_path,
+            "image_url": image_url,
+            "modelo": modelo,
+            "total": total,
+            "clase": clase,
+            "conf": conf,
+            "enfermedad": enfermedad,
+            "guardado_en_historial": False,
+            "mensaje": f"En vivo activo: Sin guardar en disco ({consecutive_empty_count} envíos consecutivos sin detección)."
+        }, 200
 
 def obtener_ultima_deteccion():
     """
-    Obtiene la detección más reciente registrada en el sistema.
+    Obtiene la detección más reciente para el panel en vivo.
+    Prioriza el caché del streaming en tiempo real y recurre a la BD si aún no hay streaming.
     """
+    global live_stream_cache
+    if live_stream_cache:
+        return {"status": "ok", "deteccion": live_stream_cache}
+
     row = d_detecciones.obtener_ultima_deteccion()
     if not row:
         return {"status": "ok", "deteccion": None}
     
-    # Agregar URL accesible para la plantilla HTML o llamada AJAX
     row['image_url'] = f"/static/{row['path']}"
+    row['guardado_en_historial'] = True
     return {"status": "ok", "deteccion": row}
+
 
 def obtener_historial_detecciones(limit=50):
     """
