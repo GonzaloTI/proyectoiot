@@ -174,12 +174,12 @@ def obtener_ultima_deteccion():
     """
     global live_stream_cache, last_jetson_upload_time
 
-    # Evaluar si la Jetson Nano está transmitiendo activamente (umbral de 5.0s)
+    # Evaluar si la Jetson Nano está transmitiendo activamente (umbral de 8.0s)
     jetson_online = False
     segundos_desde_ultimo = None
     if last_jetson_upload_time is not None:
         segundos_desde_ultimo = round(time.time() - last_jetson_upload_time, 1)
-        jetson_online = (segundos_desde_ultimo <= 5.0)
+        jetson_online = (segundos_desde_ultimo <= 8.0)
 
     if live_stream_cache:
         det = dict(live_stream_cache)

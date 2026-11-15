@@ -569,6 +569,38 @@
                 }
             }
         });
+
+        // Monitor global del estado de NVIDIA Jetson Nano en el Navbar
+        async function actualizarStatusNavbarJetson() {
+            const navbarBadge = document.getElementById('jetson-status-navbar');
+            if (!navbarBadge) return;
+            const navbarDot = document.getElementById('jetson-dot-navbar');
+            const navbarText = document.getElementById('jetson-text-navbar');
+
+            try {
+                const resp = await fetch('/api/detecciones/ultima');
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (data && data.status === 'ok') {
+                    if (data.jetson_online === true) {
+                        navbarBadge.className = 'navbar-text badge bg-success-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5';
+                        if (navbarDot) navbarDot.className = 'status-pulse-dot';
+                        if (navbarText) navbarText.textContent = 'Jetson: Online';
+                    } else {
+                        navbarBadge.className = 'navbar-text badge bg-offline-glow px-3 py-2 rounded-pill d-flex align-items-center gap-1.5';
+                        if (navbarDot) navbarDot.className = 'status-offline-dot';
+                        if (navbarText) navbarText.textContent = 'Jetson: Offline';
+                    }
+                }
+            } catch (e) {
+                // Silencioso
+            }
+        }
+
+        if (window.location.pathname !== '/detecciones') {
+            actualizarStatusNavbarJetson();
+            setInterval(actualizarStatusNavbarJetson, 6000);
+        }
     </script>
 </body>
 </html>

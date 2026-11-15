@@ -289,7 +289,7 @@
               <h3 class="fw-bold mb-0" id="valEstadoSanitario">Sin Diagnóstico</h3>
               <p class="text-secondary small mb-0" id="descEstadoSanitario">Monitoreando cámara...</p>
             </div>
-
+            <div class="fs-1" id="iconoEstadoSanitario">🍓</div>
           </div>
         </div>
       </div>
@@ -492,12 +492,16 @@
         return;
       }
       const data = await resp.json();
-      if (data.status === 'ok') {
+      if (data && data.status === 'ok') {
         const isOnline = data.jetson_online === true;
         actualizarEstadoConexionVisual(isOnline, data.segundos_desde_ultimo_envio, currentInterval === 0);
 
         if (data.deteccion) {
-          renderDeteccionEnVivo(data.deteccion);
+          try {
+            renderDeteccionEnVivo(data.deteccion);
+          } catch (renderError) {
+            console.error("Error al renderizar fotograma de detección:", renderError);
+          }
 
           // Recargar historial únicamente si es un registro guardado en BD y su ID cambió
           if (data.deteccion.guardado_en_historial && data.deteccion.id !== ultimoIdDeteccion) {
@@ -507,12 +511,15 @@
         }
       }
     } catch (err) {
-      console.warn("Error consultando última detección:", err);
+      console.warn("Error en la solicitud de última detección:", err);
+      // Solo en caso de error de conexión a la API se actualiza a desconectado
       actualizarEstadoConexionVisual(false, null, currentInterval === 0);
     }
   }
 
   function renderDeteccionEnVivo(det) {
+    if (!det) return;
+
     const imgEl = document.getElementById('imgLiveStream');
     const placeholderEl = document.getElementById('imgPlaceholder');
     const overlayTimestamp = document.getElementById('overlayTimestamp');
@@ -520,11 +527,18 @@
     const overlayStorageBadge = document.getElementById('overlayStorageBadge');
     const txtUltimoUpdate = document.getElementById('txtUltimoUpdate');
 
-    // Imagen
+    // Imagen en vivo con parámetro anti-caché
     if (det.image_url) {
-      imgEl.src = det.image_url;
-      imgEl.style.display = 'block';
-      placeholderEl.style.display = 'none';
+      if (imgEl) {
+        const cacheBuster = det.image_url.includes('?') 
+          ? `${det.image_url}&_t=${Date.now()}` 
+          : `${det.image_url}?_t=${Date.now()}`;
+        imgEl.src = cacheBuster;
+        imgEl.style.display = 'block';
+      }
+      if (placeholderEl) {
+        placeholderEl.style.display = 'none';
+      }
     }
 
     // Indicador de modo de almacenamiento / en vivo
@@ -539,20 +553,39 @@
     }
 
     // Timestamps
-    overlayTimestamp.textContent = det.fecha_hora || '--:--:--';
-    txtUltimoUpdate.textContent = `Última sync: ${det.fecha_hora}`;
+    if (overlayTimestamp) {
+      overlayTimestamp.textContent = det.fecha_hora || '--:--:--';
+    }
+    if (txtUltimoUpdate) {
+      txtUltimoUpdate.textContent = `Última sync: ${det.fecha_hora || 'reciente'}`;
+    }
 
     // Diagnóstico y Confianza
     const confPorcentaje = Math.round((det.conf || 0) * 100);
-    document.getElementById('valClaseDeteccion').textContent = det.clase || 'Ninguna';
-    document.getElementById('valConfianza').textContent = `${confPorcentaje}%`;
+    const valClase = document.getElementById('valClaseDeteccion');
+    if (valClase) {
+      valClase.textContent = det.clase || 'Ninguna';
+    }
+
+    const valConf = document.getElementById('valConfianza');
+    if (valConf) {
+      valConf.textContent = `${confPorcentaje}%`;
+    }
 
     const barConfianza = document.getElementById('barConfianza');
-    barConfianza.style.width = `${confPorcentaje}%`;
+    if (barConfianza) {
+      barConfianza.style.width = `${confPorcentaje}%`;
+    }
 
     // Total Objetos
-    document.getElementById('valTotalObjetos').textContent = det.total || 0;
-    overlayClaseBadge.textContent = `${det.clase} (${confPorcentaje}%)`;
+    const valTotal = document.getElementById('valTotalObjetos');
+    if (valTotal) {
+      valTotal.textContent = det.total !== undefined ? det.total : 0;
+    }
+
+    if (overlayClaseBadge) {
+      overlayClaseBadge.textContent = `${det.clase || 'Fragaria'} (${confPorcentaje}%)`;
+    }
 
     // Tarjeta Estado Sanitario
     const cardSanitario = document.getElementById('cardEstadoSanitario');
@@ -561,26 +594,32 @@
     const iconoSanitario = document.getElementById('iconoEstadoSanitario');
 
     if (det.total === 0) {
-      cardSanitario.className = 'glass-card stat-card stat-card-info p-4 shadow-sm';
-      valSanitario.textContent = 'Sin Objetos';
-      valSanitario.className = 'fw-bold mb-0 text-white';
-      descSanitario.textContent = 'La cámara no detecta frutos ni hojas actualmente.';
-      iconoSanitario.textContent = '🔍';
-      barConfianza.className = 'progress-bar bg-secondary';
+      if (cardSanitario) cardSanitario.className = 'glass-card stat-card stat-card-info p-4 shadow-sm';
+      if (valSanitario) {
+        valSanitario.textContent = 'Sin Objetos';
+        valSanitario.className = 'fw-bold mb-0 text-white';
+      }
+      if (descSanitario) descSanitario.textContent = 'La cámara no detecta frutos ni hojas actualmente.';
+      if (iconoSanitario) iconoSanitario.textContent = '🔍';
+      if (barConfianza) barConfianza.className = 'progress-bar bg-secondary';
     } else if (det.enfermedad) {
-      cardSanitario.className = 'glass-card stat-card stat-card-health-warn p-4 shadow-sm';
-      valSanitario.textContent = 'Patología Detectada';
-      valSanitario.className = 'fw-bold mb-0 text-danger';
-      descSanitario.textContent = `Alerta: Síntomas de ${det.clase}. Requiere atención.`;
-      iconoSanitario.textContent = '⚠️';
-      barConfianza.className = 'progress-bar bg-danger';
+      if (cardSanitario) cardSanitario.className = 'glass-card stat-card stat-card-health-warn p-4 shadow-sm';
+      if (valSanitario) {
+        valSanitario.textContent = 'Patología Detectada';
+        valSanitario.className = 'fw-bold mb-0 text-danger';
+      }
+      if (descSanitario) descSanitario.textContent = `Alerta: Síntomas de ${det.clase}. Requiere atención.`;
+      if (iconoSanitario) iconoSanitario.textContent = '⚠️';
+      if (barConfianza) barConfianza.className = 'progress-bar bg-danger';
     } else {
-      cardSanitario.className = 'glass-card stat-card stat-card-health-ok p-4 shadow-sm';
-      valSanitario.textContent = 'Planta / Fruta Sana';
-      valSanitario.className = 'fw-bold mb-0 text-success';
-      descSanitario.textContent = 'Estado óptimo sin presencia de anomalías fitosanitarias.';
-      iconoSanitario.textContent = '🍓';
-      barConfianza.className = 'progress-bar bg-success';
+      if (cardSanitario) cardSanitario.className = 'glass-card stat-card stat-card-health-ok p-4 shadow-sm';
+      if (valSanitario) {
+        valSanitario.textContent = 'Planta / Fruta Sana';
+        valSanitario.className = 'fw-bold mb-0 text-success';
+      }
+      if (descSanitario) descSanitario.textContent = 'Estado óptimo sin presencia de anomalías fitosanitarias.';
+      if (iconoSanitario) iconoSanitario.textContent = '🍓';
+      if (barConfianza) barConfianza.className = 'progress-bar bg-success';
     }
   }
 
