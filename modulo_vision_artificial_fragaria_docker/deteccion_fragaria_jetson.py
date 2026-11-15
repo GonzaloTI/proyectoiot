@@ -9,6 +9,15 @@ import queue
 import signal
 from threading import Thread
 
+# Asegurar codificación robusta en stdout para Docker
+try:
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
+
 try:
     import requests
 except ImportError:
@@ -38,7 +47,7 @@ ejecutando = True
 
 def handle_signal(sig, frame):
     global ejecutando
-    print(f"\n[INFO] Señal de apagado recibida ({sig}). Finalizando detector de forma ordenada...")
+    print(f"\n[INFO] Senal de apagado recibida ({sig}). Finalizando detector de forma ordenada...")
     ejecutando = False
 
 signal.signal(signal.SIGINT, handle_signal)
@@ -66,7 +75,7 @@ try:
     if not esp32_serial:
         print(f"[SERIAL] Advertencia: No se pudo abrir {SERIAL_PORT}. Funcionando en modo local.")
 except ImportError:
-    print("[SERIAL] Advertencia: Módulo 'pyserial' no instalado. Comunicación UART desactivada.")
+    print("[SERIAL] Advertencia: Modulo 'pyserial' no instalado. Comunicacion UART desactivada.")
 
 # ==============================================================================
 # CLASES Y COLORES DEL MODELO FRAGARIA
@@ -104,10 +113,10 @@ class SubidorDeteccionesWeb:
         if self.enabled:
             self.hilo = Thread(target=self._worker, daemon=True)
             self.hilo.start()
-            print(f"[WEB] Transmisión asíncrona hacia {self.server_url} activada.")
+            print(f"[WEB] Transmision asincrona hacia {self.server_url} activada.")
         else:
             if requests is None:
-                print("[WEB] Advertencia: Módulo 'requests' no disponible. Subida web desactivada.")
+                print("[WEB] Advertencia: Modulo 'requests' no disponible. Subida web desactivada.")
 
     def encolar(self, jpeg_bytes, payload):
         if not self.enabled or not self.activo:
@@ -424,11 +433,11 @@ class TensorRTInference:
 def main():
     global ejecutando
     print("=" * 65)
-    print("🍓 INICIANDO MÓDULO FRAGARIA EN JETSON NANO (DOCKER / TENSORRT)")
+    print("[INICIO] INICIANDO MODULO FRAGARIA EN JETSON NANO (DOCKER / TENSORRT)")
     print(f"   - Motor TensorRT : {ENGINE_PATH}")
     print(f"   - Servidor Flask : {SERVER_URL}")
     print(f"   - Puerto Serial  : {SERIAL_PORT}")
-    print(f"   - Cámara         : {'CSI' if USE_CSI_CAMERA else f'USB Index {CAMERA_INDEX}'}")
+    print(f"   - Camara         : {'CSI' if USE_CSI_CAMERA else f'USB Index {CAMERA_INDEX}'}")
     print(f"   - Modo Headless  : {'ACTIVADO (Sin ventana GUI)' if HEADLESS else 'DESACTIVADO (Ventana X11)'}")
     print(f"   - Umbral Conf    : {CONF_THRES * 100:.0f}%")
     print("=" * 65)
@@ -437,13 +446,13 @@ def main():
     print("[INFO] Cargando motor TensorRT en GPU...")
     try:
         model = TensorRTInference(ENGINE_PATH, imgsz=IMGSZ)
-        print("[INFO] ¡Motor TensorRT listo y buffers asignados en GPU!")
+        print("[INFO] Motor TensorRT listo y buffers asignados en GPU!")
     except Exception as e:
-        print(f"[ERROR CRÍTICO] No se pudo inicializar TensorRT: {e}")
+        print(f"[ERROR CRITICO] No se pudo inicializar TensorRT: {e}")
         return
 
     # 2. Inicializar cámara en hilo asíncrono
-    print("[INFO] Iniciando lector asíncrono de cámara...")
+    print("[INFO] Iniciando lector asincrono de camara...")
     camara = CamaraAsincrona(
         src=CAMERA_INDEX,
         is_csi=USE_CSI_CAMERA,
@@ -461,7 +470,7 @@ def main():
     ultimo_log_consola = 0
 
     subidor_web = SubidorDeteccionesWeb(SERVER_URL, enabled=TRANSMITIR_A_SERVIDOR)
-    print("[INFO] Detector en ejecución activa. Esperando fotogramas...\n")
+    print("[INFO] Detector en ejecucion activa. Esperando fotogramas...\n")
 
     while ejecutando:
         frame = camara.read()
@@ -550,7 +559,7 @@ def main():
         cv2.destroyAllWindows()
     if esp32_serial:
         esp32_serial.close()
-    print("[INFO] Módulo detenido correctamente.")
+    print("[INFO] Modulo detenido correctamente.")
 
 if __name__ == "__main__":
     main()

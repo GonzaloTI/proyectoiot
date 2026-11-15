@@ -11,6 +11,10 @@ services:
     runtime: nvidia
     network_mode: host
     environment:
+      # Codificación de terminal
+      - PYTHONIOENCODING=utf-8
+      - LC_ALL=C.UTF-8
+      - LANG=C.UTF-8
       # URL del Servidor Flask (Render o IP Local)
       - SERVER_URL=https://proyectoiot-l4mo.onrender.com
       # Puerto UART conectado al ESP32 (Pines 8 y 10: /dev/ttyTHS1 | Cable USB: /dev/ttyUSB0)
@@ -36,8 +40,9 @@ services:
       # Descomentar si se conecta el ESP32 por cable USB en vez de pines GPIO:
       # - /dev/ttyUSB0:/dev/ttyUSB0
     volumes:
-      # Montaje del motor TensorRT local sin necesidad de reconstruir la imagen Docker
+      # Montaje del motor TensorRT local y del script
       - ./best_fragaria2.engine:/app/best_fragaria2.engine
+      - ./deteccion_fragaria_jetson.py:/app/deteccion_fragaria_jetson.py
       # Descomentar si se utiliza cámara CSI Ribbon (Raspberry Pi Camera / IMX219):
       # - /tmp/argus_socket:/tmp/argus_socket
 

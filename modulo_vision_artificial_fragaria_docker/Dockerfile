@@ -7,9 +7,11 @@
 ARG L4T_VERSION=r32.7.1
 FROM nvcr.io/nvidia/l4t-base:${L4T_VERSION}
 
-# Evitar diálogos interactivos en la instalación de paquetes
+# Evitar diálogos interactivos en la instalación de paquetes y fijar codificación UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
 
 # Instalar dependencias esenciales de Python, OpenCV y GStreamer
 RUN apt-get update && apt-get install -y --no-install-recommends \

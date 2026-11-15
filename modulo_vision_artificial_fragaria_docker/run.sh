@@ -48,6 +48,10 @@ docker run -d \
     --restart unless-stopped \
     $DEVICE_FLAGS \
     -v "$ENGINE_FILE":/app/best_fragaria2.engine \
+    -v "$(pwd)/deteccion_fragaria_jetson.py":/app/deteccion_fragaria_jetson.py \
+    -e PYTHONIOENCODING="utf-8" \
+    -e LC_ALL="C.UTF-8" \
+    -e LANG="C.UTF-8" \
     -e SERVER_URL="https://proyectoiot-l4mo.onrender.com" \
     -e SERIAL_PORT="$SERIAL_DEV" \
     -e HEADLESS="true" \
