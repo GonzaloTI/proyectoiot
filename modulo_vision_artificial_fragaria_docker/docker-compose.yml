@@ -1,0 +1,43 @@
+version: '2.3'
+
+services:
+  fragaria-detector:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fragaria-detector:latest
+    container_name: fragaria_detector
+    restart: unless-stopped
+    runtime: nvidia
+    network_mode: host
+    environment:
+      # URL del Servidor Flask (Render o IP Local)
+      - SERVER_URL=https://proyectoiot-l4mo.onrender.com
+      # Puerto UART conectado al ESP32 (Pines 8 y 10: /dev/ttyTHS1 | Cable USB: /dev/ttyUSB0)
+      - SERIAL_PORT=/dev/ttyTHS1
+      - SERIAL_BAUD=115200
+      # Configuración de Cámara (0 = USB /dev/video0)
+      - CAMERA_INDEX=0
+      - USE_CSI_CAMERA=false
+      # Umbrales del modelo
+      - CONF_THRES=0.50
+      - IOU_THRES=0.45
+      # Intervalo de subida a la Web en segundos
+      - INTERVALO_SUBIDA_SEG=1.5
+      # Modo sin ventana gráfica (Headless) para ahorrar recursos de GPU/RAM
+      - HEADLESS=true
+      # Ruta del archivo .engine compilado con TensorRT
+      - ENGINE_PATH=/app/best_fragaria2.engine
+    devices:
+      # Dispositivo de cámara USB
+      - /dev/video0:/dev/video0
+      # Puerto UART hacia el ESP32
+      - /dev/ttyTHS1:/dev/ttyTHS1
+      # Descomentar si se conecta el ESP32 por cable USB en vez de pines GPIO:
+      # - /dev/ttyUSB0:/dev/ttyUSB0
+    volumes:
+      # Montaje del motor TensorRT local sin necesidad de reconstruir la imagen Docker
+      - ./best_fragaria2.engine:/app/best_fragaria2.engine
+      # Descomentar si se utiliza cámara CSI Ribbon (Raspberry Pi Camera / IMX219):
+      # - /tmp/argus_socket:/tmp/argus_socket
+

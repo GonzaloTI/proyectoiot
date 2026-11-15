@@ -1,0 +1,4 @@
+# Dependencias de Python para Módulo de Visión Artificial Fragaria en Jetson Nano
+pyserial>=3.5
+requests>=2.25.1
+
