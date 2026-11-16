@@ -113,7 +113,7 @@ def inject_permissions():
 @app.before_request
 def check_authentication():
     # Excluir rutas públicas: login, archivos estáticos, ingesta de datos, subida de detecciones y suscripción a notificaciones
-    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'subir_deteccion', 'api_obtener_ultima_deteccion']:
+    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'favicon', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'subir_deteccion', 'api_obtener_ultima_deteccion']:
         return None
     
     # Si el usuario no ha iniciado sesión
@@ -153,6 +153,13 @@ def service_worker():
     response.headers['Content-Type'] = 'application/javascript'
     response.headers['Service-Worker-Allowed'] = '/'
     return response
+
+@app.route('/favicon.ico')
+def favicon():
+    """
+    Entrega el icono de la aplicación para navegadores que solicitan /favicon.ico por defecto.
+    """
+    return send_from_directory('static', 'icono.jpg', mimetype='image/jpeg')
 
 @app.route('/')
 def index():
