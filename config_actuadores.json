@@ -1,0 +1,58 @@
+{
+  "version": "1.0",
+  "rele1": {
+    "alias": "Bomba de Riego",
+    "pin": 4,
+    "enabled": true,
+    "mode": "hibrido",
+    "schedule": {
+      "startTime": "06:30",
+      "endTime": "08:00",
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "maxRuntimeMinutes": 15
+    },
+    "sensorRules": {
+      "useSoil": true,
+      "soilMinTrigger": 35.0,
+      "soilMaxCut": 75.0,
+      "useTemp": true,
+      "tempMinAllowed": 14.0,
+      "tempMaxAllowed": 30.0
+    }
+  },
+  "rele2": {
+    "alias": "Extractor de Ventilación",
+    "pin": 5,
+    "enabled": true,
+    "mode": "hibrido",
+    "schedule": {
+      "startTime": "11:00",
+      "endTime": "18:00",
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "sensorRules": {
+      "useTemp": true,
+      "tempTrigger": 27.0,
+      "tempCut": 25.0,
+      "useAir": true,
+      "airPpmTrigger": 400.0
+    }
+  },
+  "ultima_modificacion": "2026-11-16T11:42:03.815767"
+}

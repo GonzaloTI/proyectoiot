@@ -1,6 +1,7 @@
 from datetime import datetime
 from negocio.Nnotificaciones import verificar_alertas_sensores
 from modelos.Ddatos import Ddatos
+from negocio.Nactuadores import evaluar_automatizacion_inteligente
 
 # Instancia del modelo de datos Ddatos para la capa de negocio
 d_datos = Ddatos()
@@ -43,16 +44,21 @@ def procesar_y_guardar_datos(data, relay_state):
         mode_str = "manual"
         comando_1 = "ON" if relay_state.get("manual_state", False) else "OFF"
         comando_2 = "ON" if relay_state.get("manual_state_2", False) else "OFF"
+        evaluacion_smart = None
     else:
-        mode_str = "auto"
-        comando_1 = "OFF"  # No relevante en modo automático
-        comando_2 = "OFF"
+        # Modo Automatización Inteligente gobernado por reglas (Horarios + Sensores)
+        mode_str = "smart"
+        evaluacion_smart = evaluar_automatizacion_inteligente(data)
+        comando_1 = evaluacion_smart["rele1"]["command"]
+        comando_2 = evaluacion_smart["rele2"]["command"]
+        relay_state["smart_eval"] = evaluacion_smart
 
     return {
         "status": "ok",
         "mode": mode_str,
         "relay_command": comando_1,
         "relay_2_command": comando_2,
+        "smart_eval": evaluacion_smart,
         "alertas": alertas
     }
 

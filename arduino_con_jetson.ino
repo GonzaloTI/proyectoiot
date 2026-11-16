@@ -288,7 +288,7 @@ void loop() {
           int endMode = response.indexOf(",", modeIdx);
           if (endMode < 0) endMode = response.indexOf("}", modeIdx);
           String modeSub = response.substring(modeIdx, endMode);
-          if (modeSub.indexOf("\"manual\"") >= 0) {
+          if (modeSub.indexOf("\"manual\"") >= 0 || modeSub.indexOf("\"smart\"") >= 0) {
             modoManualWeb = true;
           } else if (modeSub.indexOf("\"auto\"") >= 0) {
             modoManualWeb = false;
@@ -296,11 +296,16 @@ void loop() {
         }
 
         // ===================================================================
-        // 1. SI LA WEB ESTÁ EN 'MODO MANUAL':
-        //    Los botones de la página Web tienen el control absoluto.
+        // 1. SI LA WEB ESTÁ EN 'MODO MANUAL' O 'AUTOMATIZACIÓN INTELIGENTE':
+        //    Los comandos del Servidor Web (Horarios + Sensores) tienen el control.
         // ===================================================================
         if (modoManualWeb) {
-          Serial.println("[ESTADO]: MODO MANUAL WEB ACTIVO (Manda la Web)");
+          int modeIdxPrint = response.indexOf("\"mode\"");
+          if (modeIdxPrint >= 0 && response.substring(modeIdxPrint, modeIdxPrint + 20).indexOf("\"smart\"") >= 0) {
+            Serial.println("[ESTADO]: AUTOMATIZACIÓN INTELIGENTE ACTIVA (Horario + Sensores de Flask)");
+          } else {
+            Serial.println("[ESTADO]: MODO MANUAL WEB ACTIVO (Manda la Web)");
+          }
 
           // Relé 1 desde Flask
           int r1Idx = response.indexOf("\"relay_command\"");

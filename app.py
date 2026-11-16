@@ -39,6 +39,11 @@ from negocio.Ndetecciones import (
     obtener_historial_detecciones,
     obtener_historial_paginado
 )
+# pyrefly: ignore [missing-import]
+from negocio.Nactuadores import (
+    obtener_config_actuadores,
+    guardar_config_actuadores
+)
 import os
 import json
 
@@ -114,7 +119,7 @@ def inject_permissions():
 @app.before_request
 def check_authentication():
     # Excluir rutas públicas: login, archivos estáticos, ingesta de datos, subida de detecciones y suscripción a notificaciones
-    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'favicon', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'api_destinatarios_notificaciones', 'subir_deteccion', 'api_obtener_ultima_deteccion']:
+    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'favicon', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'api_destinatarios_notificaciones', 'subir_deteccion', 'api_obtener_ultima_deteccion', 'actuadores_page', 'api_actuadores_config', 'api_actuadores_estado']:
         return None
     
     # Si el usuario no ha iniciado sesión
@@ -368,6 +373,44 @@ def detecciones_page():
     Página web de monitoreo de Visión Artificial: Detección en vivo e Historial.
     """
     return render_template('detecciones.html')
+
+@app.route('/actuadores')
+@app.route('/control-actuadores')
+def actuadores_page():
+    """
+    Página web oficial de Automatización Inteligente y Control de Actuadores (Relé 1 y Relé 2).
+    """
+    config = obtener_config_actuadores()
+    return render_template('actuadores.html', config=config)
+
+@app.route('/api/actuadores/config', methods=['GET', 'POST'])
+def api_actuadores_config():
+    """
+    Obtiene o actualiza la configuración de Automatización Inteligente de los relés.
+    """
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        if not data:
+            return jsonify({"status": "error", "message": "Payload JSON inválido"}), 400
+        exito, msg = guardar_config_actuadores(data)
+        if exito:
+            return jsonify({"status": "ok", "message": msg, "config": obtener_config_actuadores()})
+        return jsonify({"status": "error", "message": msg}), 500
+    
+    # GET
+    return jsonify({"status": "ok", "config": obtener_config_actuadores()})
+
+@app.route('/api/actuadores/estado', methods=['GET'])
+def api_actuadores_estado():
+    """
+    Retorna el estado en tiempo real de los relés y la última evaluación de la Automatización Inteligente.
+    """
+    return jsonify({
+        "status": "ok",
+        "relay_state": relay_state,
+        "smart_eval": relay_state.get("smart_eval"),
+        "config": obtener_config_actuadores()
+    })
 
 if __name__ == '__main__':
     # Escucha en todas las interfaces de red en el puerto 5000

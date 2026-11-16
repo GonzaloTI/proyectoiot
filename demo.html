@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Actuadores - Demo Independiente</title>
+  
+  <!-- Bootstrap 5.3.0 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: rgba(22, 28, 45, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-color: #00f2fe;
+      --temp-color: #ff4757;
+      --pres-color: #2ed573;
+      --alt-color: #ffa502;
+      --text-color: #f1f2f6;
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --text-secondary: rgba(255, 255, 255, 0.65);
+      --nav-bg: rgba(18, 22, 33, 0.85);
+      --nav-border: rgba(255, 255, 255, 0.08);
+      --logo-gradient: linear-gradient(135deg, #0d6efd, #00f2fe);
+      --body-bg-gradient: radial-gradient(at 10% 20%, rgba(13, 110, 253, 0.12) 0px, transparent 50%),
+                          radial-gradient(at 90% 80%, rgba(0, 242, 254, 0.08) 0px, transparent 50%);
+    }
+
+    body.light-theme {
+      --bg-color: #f5f6fa;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(0, 0, 0, 0.08);
+      --text-color: #2f3640;
+      --text-muted: rgba(0, 0, 0, 0.5);
+      --text-secondary: rgba(0, 0, 0, 0.65);
+      --nav-bg: rgba(255, 255, 255, 0.95);
+      --nav-border: rgba(0, 0, 0, 0.08);
+      --logo-gradient: linear-gradient(135deg, #0d6efd, #05c46b);
+      --body-bg-gradient: radial-gradient(at 10% 20%, rgba(13, 110, 253, 0.06) 0px, transparent 50%),
+                          radial-gradient(at 90% 80%, rgba(16, 172, 132, 0.04) 0px, transparent 50%);
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background-image: var(--body-bg-gradient);
+      background-attachment: fixed;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .navbar-custom {
+      background: var(--nav-bg) !important;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--nav-border);
+    }
+
+    .text-primary-gradient {
+      background: var(--logo-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .relay-card {
+      position: relative;
+      border-top: 4px solid var(--accent-color);
+    }
+    .relay-card-1 { border-top-color: #00f2fe; }
+    .relay-card-2 { border-top-color: #2ed573; }
+
+    .led-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    .led-on {
+      background-color: #2ed573;
+      box-shadow: 0 0 12px #2ed573, 0 0 20px rgba(46, 213, 115, 0.6);
+      animation: ledPulse 1.8s infinite ease-in-out;
+    }
+    .led-off {
+      background-color: #6c757d;
+      box-shadow: none;
+    }
+    @keyframes ledPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.75; transform: scale(1.15); }
+    }
+
+    .form-input-custom, .form-select-custom {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-color);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+    .form-input-custom:focus, .form-select-custom:focus {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent-color);
+      color: var(--text-color);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+    }
+    body.light-theme .form-input-custom, 
+    body.light-theme .form-select-custom {
+      background-color: #ffffff;
+      border-color: rgba(0, 0, 0, 0.15);
+      color: #2f3640;
+    }
+
+    /* Selector de Días */
+    .day-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .day-btn.active {
+      background: linear-gradient(135deg, #0d6efd, #00f2fe);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+    }
+    body.light-theme .day-btn {
+      background: rgba(0, 0, 0, 0.05);
+      color: #636e72;
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+    body.light-theme .day-btn.active {
+      background: linear-gradient(135deg, #0d6efd, #05c46b);
+      color: #fff;
+    }
+
+    /* Range Sliders */
+    .custom-range::-webkit-slider-thumb {
+      background: var(--accent-color);
+      box-shadow: 0 0 8px var(--accent-color);
+      cursor: pointer;
+    }
+
+    /* Terminal de Logs */
+    .sim-terminal {
+      background-color: #0d1117;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.82rem;
+      color: #38ef7d;
+      max-height: 160px;
+      overflow-y: auto;
+      padding: 0.75rem 1rem;
+    }
+    body.light-theme .sim-terminal {
+      background-color: #1e272e;
+      color: #2ed573;
+    }
+
+    .nav-pills-custom .nav-link {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      border-radius: 20px;
+      padding: 0.35rem 0.85rem;
+      transition: all 0.2s;
+    }
+    .nav-pills-custom .nav-link.active {
+      background: var(--accent-color);
+      color: #0b0f19;
+      font-weight: 600;
+    }
+    body.light-theme .nav-pills-custom .nav-link.active {
+      background: #0d6efd;
+      color: #fff;
+    }
+
+    /* Modales */
+    .modal-custom-content {
+      background-color: rgba(22, 28, 45, 0.96) !important;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border) !important;
+      color: var(--text-color) !important;
+    }
+    body.light-theme .modal-custom-content {
+      background-color: rgba(255, 255, 255, 0.98) !important;
+      color: #2f3640 !important;
+      border-color: rgba(0, 0, 0, 0.12) !important;
+    }
+    body.light-theme .modal-custom-content .btn-close {
+      filter: none !important;
+    }
+
+    .fs-7 { font-size: 0.88rem; }
+    .fs-8 { font-size: 0.78rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar Independiente -->
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+        <div style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #0d6efd, #00f2fe); display: flex; align-items: center; justify-content: center; color: white;">
+          <i class="bi bi-cpu-fill fs-6"></i>
+        </div>
+        <span class="fw-bold text-uppercase tracking-wide" style="font-family: 'Outfit', sans-serif; letter-spacing: 1px;">
+          <span class="text-primary-gradient">Monitor</span> IoT
+        </span>
+      </a>
+
+      <div class="d-flex align-items-center gap-3 ms-auto">
+        <!-- Badges de Estado Simulado -->
+        <div class="d-none d-md-flex align-items-center gap-2">
+          <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-2.5 py-1 rounded-pill fs-8">
+            <span class="led-indicator led-on me-1" style="width: 8px; height: 8px;"></span> ESP32: Simulado
+          </span>
+          <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25 px-2.5 py-1 rounded-pill fs-8">
+            <span class="led-indicator led-on me-1" style="width: 8px; height: 8px; background-color: #00f2fe; box-shadow: 0 0 6px #00f2fe;"></span> Jetson: Simulado
+          </span>
+        </div>
+
+        <!-- Selector de Tema Claro / Oscuro -->
+        <div class="form-check form-switch mb-0 d-flex align-items-center gap-2 ps-0 pe-1">
+          <i class="bi bi-moon-stars-fill text-secondary" style="font-size: 0.9rem;"></i>
+          <input class="form-check-input m-0" type="checkbox" id="theme-switch" style="cursor: pointer;" onchange="toggleTheme(this.checked)">
+          <i class="bi bi-brightness-high-fill text-warning" style="font-size: 1rem;"></i>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenedor Principal de la Demo -->
+  <div class="container py-4">
+
+    <!-- Cabecera de la Sección -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-2 border-bottom border-secondary border-opacity-10">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-info-subtle text-info border border-info border-opacity-25 px-2.5 py-1 rounded-pill fs-8 fw-semibold">
+            <i class="bi bi-file-earmark-code me-1"></i> DEMO AISLADA / STANDALONE
+          </span>
+          <span class="badge bg-secondary bg-opacity-25 text-secondary px-2 py-1 rounded-pill fs-8">HTML Independiente</span>
+        </div>
+        <h2 class="fw-bold mb-1 d-flex align-items-center gap-2" style="font-family: 'Outfit', sans-serif;">
+          <i class="bi bi-sliders2-vertical text-info"></i> Control Actuadores
+        </h2>
+        <p class="text-secondary small mb-0">
+          Programación de horarios (de qué hora a qué hora) y definición de rangos bioclimáticos (temperatura y humedad) para automatizar el <strong>Relé 1</strong> y <strong>Relé 2</strong>.
+        </p>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-flex align-items-center gap-1.5" onclick="resetDefaultConfigs()">
+          <i class="bi bi-arrow-counterclockwise"></i> Defaults
+        </button>
+        <button class="btn btn-sm btn-outline-info rounded-pill px-3 d-flex align-items-center gap-1.5" onclick="exportarJSONConfig()" data-bs-toggle="modal" data-bs-target="#jsonModal">
+          <i class="bi bi-code-slash"></i> Ver JSON
+        </button>
+        <button class="btn btn-sm btn-primary rounded-pill px-3 d-flex align-items-center gap-1.5 shadow-sm" onclick="guardarTodo()">
+          <i class="bi bi-floppy-fill"></i> Guardar Ajustes
+        </button>
+      </div>
+    </div>
+
+    <!-- Banner Informativo -->
+    <div class="alert alert-dark glass-card border-0 d-flex align-items-center gap-3 py-2.5 px-3 mb-4 text-secondary small">
+      <i class="bi bi-info-circle-fill text-info fs-5 flex-shrink-0"></i>
+      <div class="flex-grow-1">
+        <strong>Demo 100% aislada:</strong> No requiere levantar Flask ni Python. Puedes editar y guardar los horarios y umbrales directamente. Abajo encontrarás el <strong>Simulador en Vivo</strong> para probar las reglas cambiando la hora y los valores de los sensores.
+      </div>
+      <a href="#seccion-simulador" class="btn btn-sm btn-outline-info rounded-pill px-3 text-nowrap">
+        <i class="bi bi-lightning-charge-fill me-1"></i> Ir al Simulador
+      </a>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- FILA DE CONFIGURACIÓN DE LOS 2 RELÉS           -->
+    <!-- ============================================== -->
+    <div class="row g-4 mb-5">
+
+      <!-- ========================================== -->
+      <!-- TARJETA 1: RELÉ 1 (GPIO 4 - BOMBA DE AGUA) -->
+      <!-- ========================================== -->
+      <div class="col-lg-6">
+        <div class="card glass-card relay-card relay-card-1 h-100 shadow-sm">
+          <div class="card-body p-4">
+            
+            <!-- Encabezado de la Tarjeta Relé 1 -->
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="d-flex align-items-center gap-2.5">
+                <div class="rounded-3 p-2 bg-info bg-opacity-10 text-info">
+                  <i class="bi bi-droplet-half fs-4"></i>
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="text" class="form-control form-control-sm form-input-custom fw-bold fs-6 p-1 border-0" id="r1-alias" value="Bomba de Riego" style="max-width: 170px;" onchange="evaluarReglas()">
+                    <span class="badge bg-info-subtle text-info border border-info border-opacity-25 px-2 py-0.5 rounded-pill fs-8">GPIO 4</span>
+                  </div>
+                  <small class="text-secondary">Actuador Primario (Riego / Agua)</small>
+                </div>
+              </div>
+
+              <!-- Estado en Vivo del Relé 1 -->
+              <div class="text-end">
+                <div class="d-flex align-items-center gap-2 justify-content-end mb-1">
+                  <span class="led-indicator led-off" id="r1-led"></span>
+                  <span class="fw-bold fs-7" id="r1-status-text">DESACTIVADO</span>
+                </div>
+                <span class="badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8" id="r1-eval-badge">En Espera</span>
+              </div>
+            </div>
+
+            <!-- Switch Maestro de Automatización Relé 1 -->
+            <div class="p-2.5 rounded-3 mb-3 d-flex align-items-center justify-content-between" style="background: rgba(0, 242, 254, 0.05); border: 1px dashed rgba(0, 242, 254, 0.2);">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-robot text-info"></i>
+                <label class="form-check-label fs-7 fw-semibold mb-0" for="r1-enabled">Automatización Inteligente</label>
+              </div>
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="r1-enabled" checked onchange="evaluarReglas()">
+              </div>
+            </div>
+
+            <!-- Pestañas de Modo de Operación Relé 1 -->
+            <div class="mb-3">
+              <label class="form-label text-secondary fs-8 text-uppercase fw-semibold mb-1.5">Modo de Activación:</label>
+              <ul class="nav nav-pills nav-pills-custom gap-1 bg-dark bg-opacity-25 p-1 rounded-pill" id="r1-mode-tabs">
+                <li class="nav-item">
+                  <button class="nav-link active" type="button" onclick="setRelayMode(1, 'hibrido', this)"><i class="bi bi-shuffle me-1"></i>Híbrido</button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" type="button" onclick="setRelayMode(1, 'horario', this)"><i class="bi bi-clock me-1"></i>Solo Horario</button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" type="button" onclick="setRelayMode(1, 'sensor', this)"><i class="bi bi-moisture me-1"></i>Solo Sensores</button>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Bloque: Programación de Horario (De qué hora a qué hora) -->
+            <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border);">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fs-7 fw-bold d-flex align-items-center gap-1.5 text-info">
+                  <i class="bi bi-clock-history"></i> Ventana Horaria de Activación
+                </span>
+                <span class="fs-8 text-secondary" id="r1-duracion-calc">06:30 ➔ 08:00</span>
+              </div>
+
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label fs-8 text-secondary mb-1">Hora Inicio (Desde):</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-alarm"></i></span>
+                    <input type="time" class="form-control form-input-custom border-start-0" id="r1-time-start" value="06:30" onchange="evaluarReglas()">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label fs-8 text-secondary mb-1">Hora Fin (Hasta):</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-alarm-fill"></i></span>
+                    <input type="time" class="form-control form-input-custom border-start-0" id="r1-time-end" value="08:00" onchange="evaluarReglas()">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selector de Días de la Semana -->
+              <label class="form-label fs-8 text-secondary mb-1.5 d-flex justify-content-between">
+                <span>Días Activos:</span>
+                <span class="text-info fs-8" style="cursor: pointer;" onclick="toggleAllDays(1)">Alternar Todos</span>
+              </label>
+              <div class="d-flex align-items-center justify-content-between gap-1 mb-2" id="r1-days-container">
+                <div class="day-btn active" data-day="1" onclick="toggleDay(this, 1)">L</div>
+                <div class="day-btn active" data-day="2" onclick="toggleDay(this, 1)">M</div>
+                <div class="day-btn active" data-day="3" onclick="toggleDay(this, 1)">M</div>
+                <div class="day-btn active" data-day="4" onclick="toggleDay(this, 1)">J</div>
+                <div class="day-btn active" data-day="5" onclick="toggleDay(this, 1)">V</div>
+                <div class="day-btn active" data-day="6" onclick="toggleDay(this, 1)">S</div>
+                <div class="day-btn active" data-day="0" onclick="toggleDay(this, 1)">D</div>
+              </div>
+
+              <!-- Duración Máxima Continua -->
+              <div class="d-flex align-items-center justify-content-between pt-2 border-top border-secondary border-opacity-10">
+                <span class="fs-8 text-secondary">Máximo continuo por ciclo:</span>
+                <div class="d-flex align-items-center gap-1.5" style="max-width: 130px;">
+                  <input type="number" class="form-control form-control-sm form-input-custom text-center p-1" id="r1-max-runtime" value="15" min="1" max="120" onchange="evaluarReglas()">
+                  <span class="fs-8 text-secondary">min</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bloque: Definición de Rangos Bioclimáticos (Humedad y Temperatura) -->
+            <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border);">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fs-7 fw-bold d-flex align-items-center gap-1.5 text-success">
+                  <i class="bi bi-speedometer"></i> Rangos de Sensores (Humedad y Temp)
+                </span>
+              </div>
+
+              <!-- Humedad del Suelo (FC-28) -->
+              <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="r1-check-soil" checked onchange="evaluarReglas()">
+                    <label class="form-check-label fs-8 fw-semibold" for="r1-check-soil">Humedad de Suelo (FC-28)</label>
+                  </div>
+                  <span class="fs-8 fw-bold text-success">&lt; 35% Activa</span>
+                </div>
+                <p class="fs-8 text-secondary mb-1">Enciende si el suelo está seco y corta al saturar:</p>
+                <div class="row g-2 align-items-center">
+                  <div class="col-6">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">Encender si &lt;</span>
+                      <input type="number" class="form-control form-input-custom text-center" id="r1-soil-min" value="35" min="0" max="100" onchange="evaluarReglas()">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">%</span>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">Cortar en &ge;</span>
+                      <input type="number" class="form-control form-input-custom text-center" id="r1-soil-max" value="75" min="0" max="100" onchange="evaluarReglas()">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Temperatura Ambiente (BMP280) -->
+              <div class="pt-2 border-top border-secondary border-opacity-10">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="r1-check-temp" checked onchange="evaluarReglas()">
+                    <label class="form-check-label fs-8 fw-semibold" for="r1-check-temp">Rango Seguro de Temperatura</label>
+                  </div>
+                  <span class="fs-8 fw-bold text-danger">14°C - 30°C</span>
+                </div>
+                <p class="fs-8 text-secondary mb-1">No regar durante heladas extremas o calor excesivo:</p>
+                <div class="row g-2 align-items-center">
+                  <div class="col-6">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">Mín:</span>
+                      <input type="number" class="form-control form-input-custom text-center" id="r1-temp-min" value="14" min="-10" max="40" onchange="evaluarReglas()">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">°C</span>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">Máx:</span>
+                      <input type="number" class="form-control form-input-custom text-center" id="r1-temp-max" value="30" min="15" max="50" onchange="evaluarReglas()">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">°C</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón de Control Manual Directo -->
+            <div class="d-flex align-items-center justify-content-between pt-2">
+              <span class="fs-8 text-secondary"><i class="bi bi-hand-index-thumb"></i> Control Manual Inmediato:</span>
+              <button class="btn btn-sm btn-outline-info rounded-pill px-3" id="r1-btn-manual-toggle" onclick="toggleManualRelay(1)">
+                <i class="bi bi-power me-1"></i> Alternar ON/OFF
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TARJETA 2: RELÉ 2 (GPIO 5 - EXTRACTOR / VENT.) -->
+      <!-- ============================================== -->
+      <div class="col-lg-6">
+        <div class="card glass-card relay-card relay-card-2 h-100 shadow-sm">
+          <div class="card-body p-4">
+            
+            <!-- Encabezado de la Tarjeta Relé 2 -->
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="d-flex align-items-center gap-2.5">
+                <div class="rounded-3 p-2 bg-success bg-opacity-10 text-success">
+                  <i class="bi bi-fan fs-4"></i>
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-2">
+                    <input type="text" class="form-control form-control-sm form-input-custom fw-bold fs-6 p-1 border-0" id="r2-alias" value="Extractor de Ventilación" style="max-width: 200px;" onchange="evaluarReglas()">
+                    <span class="badge bg-success-subtle text-success border border-success border-opacity-25 px-2 py-0.5 rounded-pill fs-8">GPIO 5</span>
+                  </div>
+                  <small class="text-secondary">Actuador Secundario (Ventilación / Clima)</small>
+                </div>
+              </div>
+
+              <!-- Estado en Vivo del Relé 2 -->
+              <div class="text-end">
+                <div class="d-flex align-items-center gap-2 justify-content-end mb-1">
+                  <span class="led-indicator led-off" id="r2-led"></span>
+                  <span class="fw-bold fs-7" id="r2-status-text">DESACTIVADO</span>
+                </div>
+                <span class="badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8" id="r2-eval-badge">En Espera</span>
+              </div>
+            </div>
+
+            <!-- Switch Maestro de Automatización Relé 2 -->
+            <div class="p-2.5 rounded-3 mb-3 d-flex align-items-center justify-content-between" style="background: rgba(46, 213, 115, 0.05); border: 1px dashed rgba(46, 213, 115, 0.2);">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-robot text-success"></i>
+                <label class="form-check-label fs-7 fw-semibold mb-0" for="r2-enabled">Automatización Inteligente</label>
+              </div>
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="r2-enabled" checked onchange="evaluarReglas()">
+              </div>
+            </div>
+
+            <!-- Pestañas de Modo de Operación Relé 2 -->
+            <div class="mb-3">
+              <label class="form-label text-secondary fs-8 text-uppercase fw-semibold mb-1.5">Modo de Activación:</label>
+              <ul class="nav nav-pills nav-pills-custom gap-1 bg-dark bg-opacity-25 p-1 rounded-pill" id="r2-mode-tabs">
+                <li class="nav-item">
+                  <button class="nav-link active" type="button" onclick="setRelayMode(2, 'hibrido', this)"><i class="bi bi-shuffle me-1"></i>Híbrido</button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" type="button" onclick="setRelayMode(2, 'sensor', this)"><i class="bi bi-thermometer-high me-1"></i>Solo Temperatura/Aire</button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" type="button" onclick="setRelayMode(2, 'horario', this)"><i class="bi bi-clock me-1"></i>Solo Horario</button>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Bloque: Programación de Horario (De qué hora a qué hora) -->
+            <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border);">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fs-7 fw-bold d-flex align-items-center gap-1.5 text-success">
+                  <i class="bi bi-clock-history"></i> Ventana Horaria de Extracción
+                </span>
+                <span class="fs-8 text-secondary" id="r2-duracion-calc">11:00 ➔ 18:00</span>
+              </div>
+
+              <div class="row g-2 mb-2">
+                <div class="col-6">
+                  <label class="form-label fs-8 text-secondary mb-1">Hora Inicio (Desde):</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-alarm"></i></span>
+                    <input type="time" class="form-control form-input-custom border-start-0" id="r2-time-start" value="11:00" onchange="evaluarReglas()">
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label fs-8 text-secondary mb-1">Hora Fin (Hasta):</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-alarm-fill"></i></span>
+                    <input type="time" class="form-control form-input-custom border-start-0" id="r2-time-end" value="18:00" onchange="evaluarReglas()">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selector de Días de la Semana -->
+              <label class="form-label fs-8 text-secondary mb-1.5 d-flex justify-content-between">
+                <span>Días Activos:</span>
+                <span class="text-success fs-8" style="cursor: pointer;" onclick="toggleAllDays(2)">Alternar Todos</span>
+              </label>
+              <div class="d-flex align-items-center justify-content-between gap-1 mb-2" id="r2-days-container">
+                <div class="day-btn active" data-day="1" onclick="toggleDay(this, 2)">L</div>
+                <div class="day-btn active" data-day="2" onclick="toggleDay(this, 2)">M</div>
+                <div class="day-btn active" data-day="3" onclick="toggleDay(this, 2)">M</div>
+                <div class="day-btn active" data-day="4" onclick="toggleDay(this, 2)">J</div>
+                <div class="day-btn active" data-day="5" onclick="toggleDay(this, 2)">V</div>
+                <div class="day-btn active" data-day="6" onclick="toggleDay(this, 2)">S</div>
+                <div class="day-btn active" data-day="0" onclick="toggleDay(this, 2)">D</div>
+              </div>
+
+              <div class="d-flex align-items-center justify-content-between pt-2 border-top border-secondary border-opacity-10">
+                <span class="fs-8 text-secondary">Prioridad por calor excesivo:</span>
+                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-0.5 rounded-pill fs-8">
+                  Sobreescribe Horario
+                </span>
+              </div>
+            </div>
+
+            <!-- Bloque: Definición de Rangos Bioclimáticos (Temperatura y Calidad de Aire) -->
+            <div class="p-3 rounded-3 mb-3" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--card-border);">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fs-7 fw-bold d-flex align-items-center gap-1.5 text-warning">
+                  <i class="bi bi-thermometer-sun"></i> Umbrales de Disparo Térmico y Aire
+                </span>
+              </div>
+
+              <!-- Temperatura (BMP280 - Disparo por calor excesivo) -->
+              <div class="mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="r2-check-temp" checked onchange="evaluarReglas()">
+                    <label class="form-check-label fs-8 fw-semibold" for="r2-check-temp">Protección Térmica (BMP280)</label>
+                  </div>
+                  <span class="fs-8 fw-bold text-danger">&ge; 27.0°C Activa</span>
+                </div>
+                <p class="fs-8 text-secondary mb-1">Enciende extractor para enfriamiento con corte por histéresis:</p>
+                <div class="row g-2 align-items-center">
+                  <div class="col-6">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">Encender en &ge;</span>
+                      <input type="number" step="0.5" class="form-control form-input-custom text-center" id="r2-temp-trigger" value="27.0" min="20" max="45" onchange="evaluarReglas()">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">°C</span>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">Apagar en &le;</span>
+                      <input type="number" step="0.5" class="form-control form-input-custom text-center" id="r2-temp-cut" value="25.0" min="15" max="40" onchange="evaluarReglas()">
+                      <span class="input-group-text bg-transparent text-secondary fs-8">°C</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Calidad de Aire / Gases (MQ-135) -->
+              <div class="pt-2 border-top border-secondary border-opacity-10">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="r2-check-air" checked onchange="evaluarReglas()">
+                    <label class="form-check-label fs-8 fw-semibold" for="r2-check-air">Purga por Humo/CO₂ (MQ-135)</label>
+                  </div>
+                  <span class="fs-8 fw-bold text-warning">&ge; 400 PPM</span>
+                </div>
+                <p class="fs-8 text-secondary mb-1">Fuerza extracción si se acumulan gases nocivos:</p>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-transparent text-secondary fs-8">Activar si CO₂ supera:</span>
+                  <input type="number" class="form-control form-input-custom text-center" id="r2-air-trigger" value="400" min="50" max="2000" onchange="evaluarReglas()">
+                  <span class="input-group-text bg-transparent text-secondary fs-8">PPM</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón de Control Manual Directo -->
+            <div class="d-flex align-items-center justify-content-between pt-2">
+              <span class="fs-8 text-secondary"><i class="bi bi-hand-index-thumb"></i> Control Manual Inmediato:</span>
+              <button class="btn btn-sm btn-outline-success rounded-pill px-3" id="r2-btn-manual-toggle" onclick="toggleManualRelay(2)">
+                <i class="bi bi-power me-1"></i> Alternar ON/OFF
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- ZONA DE SIMULACIÓN Y BANCO DE PRUEBAS EN VIVO (SANDBOX TESTER) -->
+    <!-- ============================================================== -->
+    <div class="card glass-card shadow-lg mb-5" id="seccion-simulador" style="border: 1px solid rgba(0, 242, 254, 0.25);">
+      <div class="card-header bg-transparent border-bottom border-secondary border-opacity-10 p-4 pb-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <span class="badge bg-warning-subtle text-warning border border-warning border-opacity-25 px-2 py-0.5 rounded-pill fs-8">
+                <i class="bi bi-flask-fill me-1"></i> BANCO DE PRUEBAS INTERACTIVO
+              </span>
+            </div>
+            <h4 class="fw-bold mb-0 text-white" style="font-family: 'Outfit', sans-serif;">
+              🧪 Simulador de Condiciones en Tiempo Real
+            </h4>
+            <p class="text-secondary small mb-0">
+              Mueve los controles de hora, temperatura y humedad para verificar al instante cómo responderán los relés sin tocar el hardware físico.
+            </p>
+          </div>
+
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="setVirtualTimeToNow()">
+              <i class="bi bi-clock me-1"></i> Hora Real
+            </button>
+            <button class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="presetClima('ola_calor')">
+              🔥 Ola de Calor
+            </button>
+            <button class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="presetClima('suelo_seco')">
+              🌵 Suelo Seco
+            </button>
+            <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="presetClima('clima_ideal')">
+              🌿 Clima Ideal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="row g-4">
+          
+          <!-- Controles Deslizantes Virtuales -->
+          <div class="col-lg-6">
+            <h6 class="text-info fw-bold mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-sliders"></i> Variables Ambientales y Temporales
+            </h6>
+
+            <!-- Slider 1: Reloj Virtual (Hora del Día) -->
+            <div class="mb-3 p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-8 fw-semibold text-secondary"><i class="bi bi-clock me-1"></i>Hora Virtual Simulada:</span>
+                <span class="badge bg-info text-dark fw-bold fs-7" id="sim-time-badge">07:15</span>
+              </div>
+              <input type="range" class="form-range custom-range" id="sim-slider-time" min="0" max="1439" value="435" oninput="onSimTimeChange(this.value)">
+              <div class="d-flex justify-content-between fs-8 text-secondary">
+                <span>00:00</span>
+                <span>06:00</span>
+                <span>12:00</span>
+                <span>18:00</span>
+                <span>23:59</span>
+              </div>
+            </div>
+
+            <!-- Slider 2: Temperatura Ambiente Virtual (°C) -->
+            <div class="mb-3 p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-8 fw-semibold text-secondary"><i class="bi bi-thermometer-half text-danger me-1"></i>Temperatura Simulada (BMP280):</span>
+                <span class="badge bg-danger text-white fw-bold fs-7" id="sim-temp-badge">23.5 °C</span>
+              </div>
+              <input type="range" class="form-range custom-range" id="sim-slider-temp" min="10" max="42" step="0.5" value="23.5" oninput="onSimTempChange(this.value)">
+              <div class="d-flex justify-content-between fs-8 text-secondary">
+                <span>10°C (Frío)</span>
+                <span>22°C (Templado)</span>
+                <span>27°C (Límite)</span>
+                <span>42°C (Calor)</span>
+              </div>
+            </div>
+
+            <!-- Slider 3: Humedad de Suelo Virtual (%) -->
+            <div class="mb-3 p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-8 fw-semibold text-secondary"><i class="bi bi-moisture text-success me-1"></i>Humedad Suelo Simulada (FC-28):</span>
+                <span class="badge bg-success text-white fw-bold fs-7" id="sim-soil-badge">25 %</span>
+              </div>
+              <input type="range" class="form-range custom-range" id="sim-slider-soil" min="0" max="100" value="25" oninput="onSimSoilChange(this.value)">
+              <div class="d-flex justify-content-between fs-8 text-secondary">
+                <span>0% (Muy Seco)</span>
+                <span>35% (Riego)</span>
+                <span>75% (Óptimo)</span>
+                <span>100% (Saturado)</span>
+              </div>
+            </div>
+
+            <!-- Slider 4: Calidad de Aire / Gases MQ-135 Virtual (PPM) -->
+            <div class="p-2.5 rounded-3" style="background: rgba(255, 255, 255, 0.03);">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-8 fw-semibold text-secondary"><i class="bi bi-cloud-haze2 text-warning me-1"></i>Calidad de Aire Simulada (MQ-135):</span>
+                <span class="badge bg-warning text-dark fw-bold fs-7" id="sim-air-badge">220 PPM</span>
+              </div>
+              <input type="range" class="form-range custom-range" id="sim-slider-air" min="50" max="800" step="10" value="220" oninput="onSimAirChange(this.value)">
+              <div class="d-flex justify-content-between fs-8 text-secondary">
+                <span>50 (Limpio)</span>
+                <span>400 (Alerta Ventilación)</span>
+                <span>800 (Peligro)</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Panel de Veredicto y Terminal de Decisiones -->
+          <div class="col-lg-6 d-flex flex-column justify-content-between">
+            <div>
+              <h6 class="text-success fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-cpu"></i> Respuestas en Vivo de los Actuadores
+              </h6>
+
+              <!-- Veredicto Relé 1 -->
+              <div class="p-3 rounded-3 mb-3 border" id="sim-r1-verdict-card" style="background: rgba(0, 242, 254, 0.05); border-color: rgba(0, 242, 254, 0.2) !important;">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="led-indicator led-off" id="sim-r1-led"></span>
+                    <strong class="fs-7 text-white" id="sim-r1-name-display">Relé 1 (Bomba de Riego)</strong>
+                  </div>
+                  <span class="badge bg-secondary px-2.5 py-1 rounded-pill fs-8" id="sim-r1-badge-state">APAGADO</span>
+                </div>
+                <div class="fs-8 text-secondary mt-1" id="sim-r1-reason-text">
+                  Evaluando reglas en tiempo real...
+                </div>
+              </div>
+
+              <!-- Veredicto Relé 2 -->
+              <div class="p-3 rounded-3 mb-3 border" id="sim-r2-verdict-card" style="background: rgba(46, 213, 115, 0.05); border-color: rgba(46, 213, 115, 0.2) !important;">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="led-indicator led-off" id="sim-r2-led"></span>
+                    <strong class="fs-7 text-white" id="sim-r2-name-display">Relé 2 (Extractor de Ventilación)</strong>
+                  </div>
+                  <span class="badge bg-secondary px-2.5 py-1 rounded-pill fs-8" id="sim-r2-badge-state">APAGADO</span>
+                </div>
+                <div class="fs-8 text-secondary mt-1" id="sim-r2-reason-text">
+                  Evaluando reglas en tiempo real...
+                </div>
+              </div>
+            </div>
+
+            <!-- Consola / Registro de Decisiones de la Demo -->
+            <div>
+              <div class="d-flex align-items-center justify-content-between mb-1.5">
+                <span class="fs-8 text-secondary fw-semibold"><i class="bi bi-terminal me-1"></i>Consola de Decisiones del Motor:</span>
+                <button class="btn btn-sm btn-link text-secondary p-0 text-decoration-none fs-8" onclick="clearConsole()">Limpiar</button>
+              </div>
+              <div class="sim-terminal" id="sim-console-output">
+                <div>[00:00:00] Motor de reglas iniciado. Listo para simular.</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal para Exportar JSON -->
+  <div class="modal fade" id="jsonModal" tabindex="-1" aria-labelledby="jsonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-custom-content glass-card border-0 shadow-lg">
+        <div class="modal-header border-secondary-subtle">
+          <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="jsonModalLabel">
+            <i class="bi bi-filetype-json text-info"></i> Configuración de Actuadores (Payload JSON)
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body py-3 px-4">
+          <p class="text-secondary small mb-2">
+            Este objeto JSON contiene todas las directivas de automatización, rangos y horarios listas para ser transferidas al backend o al firmware:
+          </p>
+          <pre class="sim-terminal p-3" id="json-code-view" style="max-height: 320px; font-size: 0.82rem;"></pre>
+        </div>
+        <div class="modal-footer border-secondary-subtle">
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cerrar</button>
+          <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 d-flex align-items-center gap-1.5" onclick="copiarJSON()">
+            <i class="bi bi-clipboard-check"></i> Copiar JSON al Portapapeles
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5.3 JS Bundle con Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Gestión del Tema Claro / Oscuro
+    function initTheme() {
+      const savedTheme = localStorage.getItem('demoTheme') || 'dark';
+      const switchEl = document.getElementById('theme-switch');
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        if (switchEl) switchEl.checked = true;
+      } else {
+        document.body.classList.remove('light-theme');
+        if (switchEl) switchEl.checked = false;
+      }
+    }
+
+    function toggleTheme(isLight) {
+      if (isLight) {
+        document.body.classList.add('light-theme');
+        localStorage.setItem('demoTheme', 'light');
+      } else {
+        document.body.classList.remove('light-theme');
+        localStorage.setItem('demoTheme', 'dark');
+      }
+    }
+
+    // Estado Global de Configuración de los 2 Relés
+    let configActuadores = {
+      rele1: {
+        alias: "Bomba de Riego",
+        pin: 4,
+        enabled: true,
+        mode: "hibrido", // "horario", "sensor", "hibrido"
+        schedule: {
+          startTime: "06:30",
+          endTime: "08:00",
+          days: [1, 2, 3, 4, 5, 6, 0],
+          maxRuntimeMinutes: 15
+        },
+        sensorRules: {
+          useSoil: true,
+          soilMinTrigger: 35,
+          soilMaxCut: 75,
+          useTemp: true,
+          tempMinAllowed: 14,
+          tempMaxAllowed: 30
+        },
+        manualOverride: false,
+        isCurrentlyActive: false
+      },
+      rele2: {
+        alias: "Extractor de Ventilación",
+        pin: 5,
+        enabled: true,
+        mode: "hibrido",
+        schedule: {
+          startTime: "11:00",
+          endTime: "18:00",
+          days: [1, 2, 3, 4, 5, 6, 0]
+        },
+        sensorRules: {
+          useTemp: true,
+          tempTrigger: 27.0,
+          tempCut: 25.0,
+          useAir: true,
+          airPpmTrigger: 400
+        },
+        manualOverride: false,
+        isCurrentlyActive: false
+      }
+    };
+
+    // Variables Virtuales de la Simulación
+    let simState = {
+      timeMinutes: 435, // 07:15 AM
+      temp: 23.5,
+      soil: 25,
+      airPpm: 220,
+      dayOfWeek: 1 // Lunes
+    };
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      cargarConfigStorage();
+      sincronizarInputsDesdeEstado();
+      evaluarReglas();
+      logConsole("Control Actuadores (Demo Standalone) iniciado correctamente.");
+    });
+
+    function guardarTodo() {
+      leerInputsHaciaEstado();
+      localStorage.setItem('configActuadoresStandalone', JSON.stringify(configActuadores));
+      logConsole("💾 Ajustes guardados en el almacenamiento local del navegador.");
+      alert("¡Ajustes guardados con éxito en tu navegador!");
+    }
+
+    function cargarConfigStorage() {
+      const guardado = localStorage.getItem('configActuadoresStandalone');
+      if (guardado) {
+        try {
+          const obj = JSON.parse(guardado);
+          configActuadores = Object.assign(configActuadores, obj);
+        } catch (e) {
+          console.error("Error parseando config guardada:", e);
+        }
+      }
+    }
+
+    function resetDefaultConfigs() {
+      if (confirm("¿Deseas restablecer todos los valores sugeridos por defecto?")) {
+        localStorage.removeItem('configActuadoresStandalone');
+        location.reload();
+      }
+    }
+
+    function leerInputsHaciaEstado() {
+      // Relé 1
+      configActuadores.rele1.alias = document.getElementById('r1-alias').value.trim() || "Relé 1";
+      configActuadores.rele1.enabled = document.getElementById('r1-enabled').checked;
+      configActuadores.rele1.schedule.startTime = document.getElementById('r1-time-start').value;
+      configActuadores.rele1.schedule.endTime = document.getElementById('r1-time-end').value;
+      configActuadores.rele1.schedule.maxRuntimeMinutes = parseInt(document.getElementById('r1-max-runtime').value) || 15;
+      configActuadores.rele1.sensorRules.useSoil = document.getElementById('r1-check-soil').checked;
+      configActuadores.rele1.sensorRules.soilMinTrigger = parseFloat(document.getElementById('r1-soil-min').value);
+      configActuadores.rele1.sensorRules.soilMaxCut = parseFloat(document.getElementById('r1-soil-max').value);
+      configActuadores.rele1.sensorRules.useTemp = document.getElementById('r1-check-temp').checked;
+      configActuadores.rele1.sensorRules.tempMinAllowed = parseFloat(document.getElementById('r1-temp-min').value);
+      configActuadores.rele1.sensorRules.tempMaxAllowed = parseFloat(document.getElementById('r1-temp-max').value);
+
+      // Relé 2
+      configActuadores.rele2.alias = document.getElementById('r2-alias').value.trim() || "Relé 2";
+      configActuadores.rele2.enabled = document.getElementById('r2-enabled').checked;
+      configActuadores.rele2.schedule.startTime = document.getElementById('r2-time-start').value;
+      configActuadores.rele2.schedule.endTime = document.getElementById('r2-time-end').value;
+      configActuadores.rele2.sensorRules.useTemp = document.getElementById('r2-check-temp').checked;
+      configActuadores.rele2.sensorRules.tempTrigger = parseFloat(document.getElementById('r2-temp-trigger').value);
+      configActuadores.rele2.sensorRules.tempCut = parseFloat(document.getElementById('r2-temp-cut').value);
+      configActuadores.rele2.sensorRules.useAir = document.getElementById('r2-check-air').checked;
+      configActuadores.rele2.sensorRules.airPpmTrigger = parseFloat(document.getElementById('r2-air-trigger').value);
+    }
+
+    function sincronizarInputsDesdeEstado() {
+      // Relé 1
+      document.getElementById('r1-alias').value = configActuadores.rele1.alias;
+      document.getElementById('r1-enabled').checked = configActuadores.rele1.enabled;
+      document.getElementById('r1-time-start').value = configActuadores.rele1.schedule.startTime;
+      document.getElementById('r1-time-end').value = configActuadores.rele1.schedule.endTime;
+      document.getElementById('r1-max-runtime').value = configActuadores.rele1.schedule.maxRuntimeMinutes;
+      document.getElementById('r1-check-soil').checked = configActuadores.rele1.sensorRules.useSoil;
+      document.getElementById('r1-soil-min').value = configActuadores.rele1.sensorRules.soilMinTrigger;
+      document.getElementById('r1-soil-max').value = configActuadores.rele1.sensorRules.soilMaxCut;
+      document.getElementById('r1-check-temp').checked = configActuadores.rele1.sensorRules.useTemp;
+      document.getElementById('r1-temp-min').value = configActuadores.rele1.sensorRules.tempMinAllowed;
+      document.getElementById('r1-temp-max').value = configActuadores.rele1.sensorRules.tempMaxAllowed;
+      actualizarBotonesDias(1);
+
+      // Relé 2
+      document.getElementById('r2-alias').value = configActuadores.rele2.alias;
+      document.getElementById('r2-enabled').checked = configActuadores.rele2.enabled;
+      document.getElementById('r2-time-start').value = configActuadores.rele2.schedule.startTime;
+      document.getElementById('r2-time-end').value = configActuadores.rele2.schedule.endTime;
+      document.getElementById('r2-check-temp').checked = configActuadores.rele2.sensorRules.useTemp;
+      document.getElementById('r2-temp-trigger').value = configActuadores.rele2.sensorRules.tempTrigger;
+      document.getElementById('r2-temp-cut').value = configActuadores.rele2.sensorRules.tempCut;
+      document.getElementById('r2-check-air').checked = configActuadores.rele2.sensorRules.useAir;
+      document.getElementById('r2-air-trigger').value = configActuadores.rele2.sensorRules.airPpmTrigger;
+      actualizarBotonesDias(2);
+    }
+
+    function toggleDay(el, relayNum) {
+      const day = parseInt(el.getAttribute('data-day'));
+      const targetArray = (relayNum === 1) ? configActuadores.rele1.schedule.days : configActuadores.rele2.schedule.days;
+      const index = targetArray.indexOf(day);
+      if (index > -1) {
+        targetArray.splice(index, 1);
+        el.classList.remove('active');
+      } else {
+        targetArray.push(day);
+        el.classList.add('active');
+      }
+      evaluarReglas();
+    }
+
+    function toggleAllDays(relayNum) {
+      const targetArray = (relayNum === 1) ? configActuadores.rele1.schedule.days : configActuadores.rele2.schedule.days;
+      const container = document.getElementById(`r${relayNum}-days-container`);
+      const buttons = container.querySelectorAll('.day-btn');
+      if (targetArray.length === 7) {
+        targetArray.length = 0;
+        buttons.forEach(b => b.classList.remove('active'));
+      } else {
+        targetArray.length = 0;
+        for (let i = 0; i <= 6; i++) targetArray.push(i);
+        buttons.forEach(b => b.classList.add('active'));
+      }
+      evaluarReglas();
+    }
+
+    function actualizarBotonesDias(relayNum) {
+      const targetArray = (relayNum === 1) ? configActuadores.rele1.schedule.days : configActuadores.rele2.schedule.days;
+      const container = document.getElementById(`r${relayNum}-days-container`);
+      const buttons = container.querySelectorAll('.day-btn');
+      buttons.forEach(btn => {
+        const d = parseInt(btn.getAttribute('data-day'));
+        if (targetArray.includes(d)) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    function setRelayMode(relayNum, mode, btnEl) {
+      if (relayNum === 1) configActuadores.rele1.mode = mode;
+      else configActuadores.rele2.mode = mode;
+
+      const nav = document.getElementById(`r${relayNum}-mode-tabs`);
+      const buttons = nav.querySelectorAll('.nav-link');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      evaluarReglas();
+    }
+
+    function toggleManualRelay(relayNum) {
+      if (relayNum === 1) {
+        configActuadores.rele1.manualOverride = !configActuadores.rele1.manualOverride;
+        logConsole(`Relé 1 manual override: ${configActuadores.rele1.manualOverride ? 'ON' : 'OFF'}`);
+      } else {
+        configActuadores.rele2.manualOverride = !configActuadores.rele2.manualOverride;
+        logConsole(`Relé 2 manual override: ${configActuadores.rele2.manualOverride ? 'ON' : 'OFF'}`);
+      }
+      evaluarReglas();
+    }
+
+    function timeStringToMinutes(timeStr) {
+      if (!timeStr) return 0;
+      const parts = timeStr.split(':');
+      return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+
+    function minutesToTimeString(minutes) {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    }
+
+    // ==========================================
+    // EVALUACIÓN DE REGLAS (LÓGICA EN VIVO)
+    // ==========================================
+    function evaluarReglas() {
+      leerInputsHaciaEstado();
+
+      const simTimeMin = simState.timeMinutes;
+      const simTemp = simState.temp;
+      const simSoil = simState.soil;
+      const simAir = simState.airPpm;
+      const simDay = simState.dayOfWeek;
+
+      // Actualizar nombres y duraciones
+      document.getElementById('sim-r1-name-display').innerText = `Relé 1: ${configActuadores.rele1.alias}`;
+      document.getElementById('sim-r2-name-display').innerText = `Relé 2: ${configActuadores.rele2.alias}`;
+      document.getElementById('r1-duracion-calc').innerText = `${configActuadores.rele1.schedule.startTime} ➔ ${configActuadores.rele1.schedule.endTime}`;
+      document.getElementById('r2-duracion-calc').innerText = `${configActuadores.rele2.schedule.startTime} ➔ ${configActuadores.rele2.schedule.endTime}`;
+
+      // ------------------------------------------
+      // EVALUACIÓN RELÉ 1 (Bomba de Riego)
+      // ------------------------------------------
+      const r1 = configActuadores.rele1;
+      let r1_active = false;
+      let r1_reason = "";
+
+      if (!r1.enabled) {
+        r1_active = false;
+        r1_reason = "⚠️ Automatización deshabilitada para este relé.";
+      } else if (r1.manualOverride) {
+        r1_active = true;
+        r1_reason = "⚡ Forzado Manual ACTIVADO por el operador.";
+      } else {
+        const startMin = timeStringToMinutes(r1.schedule.startTime);
+        const endMin = timeStringToMinutes(r1.schedule.endTime);
+        let inSchedule = (startMin <= endMin) 
+          ? (simTimeMin >= startMin && simTimeMin <= endMin)
+          : (simTimeMin >= startMin || simTimeMin <= endMin);
+        const dayMatches = r1.schedule.days.includes(simDay);
+        const scheduleValid = inSchedule && dayMatches;
+
+        let soilNeedsWater = true;
+        let soilReason = "";
+        if (r1.sensorRules.useSoil) {
+          soilNeedsWater = (simSoil < r1.sensorRules.soilMinTrigger);
+          soilReason = soilNeedsWater 
+            ? `Humedad de suelo (${simSoil}%) < ${r1.sensorRules.soilMinTrigger}% (SECO)` 
+            : `Humedad (${simSoil}%) adecuada (&ge; ${r1.sensorRules.soilMinTrigger}%)`;
+        }
+
+        let tempAllowed = true;
+        let tempReason = "";
+        if (r1.sensorRules.useTemp) {
+          tempAllowed = (simTemp >= r1.sensorRules.tempMinAllowed && simTemp <= r1.sensorRules.tempMaxAllowed);
+          tempReason = tempAllowed 
+            ? `Temp (${simTemp}°C) en rango seguro (${r1.sensorRules.tempMinAllowed}°C-${r1.sensorRules.tempMaxAllowed}°C)` 
+            : `Temp (${simTemp}°C) fuera de rango seguro`;
+        }
+
+        if (r1.mode === "horario") {
+          r1_active = scheduleValid;
+          r1_reason = scheduleValid 
+            ? `✅ Horario: ${minutesToTimeString(simTimeMin)} está entre ${r1.schedule.startTime} y ${r1.schedule.endTime}.`
+            : `⚪ Fuera de horario (${minutesToTimeString(simTimeMin)} no coincide con ${r1.schedule.startTime}-${r1.schedule.endTime}).`;
+        } else if (r1.mode === "sensor") {
+          r1_active = (soilNeedsWater && tempAllowed);
+          r1_reason = r1_active 
+            ? `✅ Disparo por Sensor: ${soilReason} y ${tempReason}.`
+            : `⚪ Sensores en estado seguro: ${soilReason}.`;
+        } else { // "hibrido"
+          if (scheduleValid && soilNeedsWater && tempAllowed) {
+            r1_active = true;
+            r1_reason = `✅ Modo Híbrido: Ventana horaria activa (${r1.schedule.startTime}-${r1.schedule.endTime}) Y suelo seco (${simSoil}% < ${r1.sensorRules.soilMinTrigger}%).`;
+          } else if (!scheduleValid) {
+            r1_active = false;
+            r1_reason = `⚪ En espera: Fuera de ventana horaria (${minutesToTimeString(simTimeMin)} vs ${r1.schedule.startTime}-${r1.schedule.endTime}).`;
+          } else if (!soilNeedsWater) {
+            r1_active = false;
+            r1_reason = `💧 En horario pero el suelo ya tiene humedad suficiente (${simSoil}% &ge; ${r1.sensorRules.soilMinTrigger}%). No se riega.`;
+          } else if (!tempAllowed) {
+            r1_active = false;
+            r1_reason = `❄️/🔥 En horario pero la temperatura (${simTemp}°C) no es apta para riego.`;
+          }
+        }
+      }
+
+      actualizarUIRelay(1, r1_active, r1_reason);
+
+      // ------------------------------------------
+      // EVALUACIÓN RELÉ 2 (Extractor de Ventilación)
+      // ------------------------------------------
+      const r2 = configActuadores.rele2;
+      let r2_active = false;
+      let r2_reason = "";
+
+      if (!r2.enabled) {
+        r2_active = false;
+        r2_reason = "⚠️ Automatización deshabilitada para este relé.";
+      } else if (r2.manualOverride) {
+        r2_active = true;
+        r2_reason = "⚡ Forzado Manual ACTIVADO por el operador.";
+      } else {
+        const isThermalEmergency = r2.sensorRules.useTemp && (simTemp >= r2.sensorRules.tempTrigger);
+        const isAirContaminated = r2.sensorRules.useAir && (simAir >= r2.sensorRules.airPpmTrigger);
+
+        const startMin2 = timeStringToMinutes(r2.schedule.startTime);
+        const endMin2 = timeStringToMinutes(r2.schedule.endTime);
+        let inSchedule2 = (startMin2 <= endMin2) 
+          ? (simTimeMin >= startMin2 && simTimeMin <= endMin2)
+          : (simTimeMin >= startMin2 || simTimeMin <= endMin2);
+        const dayMatches2 = r2.schedule.days.includes(simDay);
+        const scheduleValid2 = inSchedule2 && dayMatches2;
+
+        if (isThermalEmergency) {
+          r2_active = true;
+          r2_reason = `🔥 PRIORIDAD TÉRMICA: Temperatura simulada (${simTemp}°C) &ge; ${r2.sensorRules.tempTrigger}°C. Extractor encendido.`;
+        } else if (isAirContaminated) {
+          r2_active = true;
+          r2_reason = `🌫️ PURGA DE AIRE: Gases simulados (${simAir} PPM) &ge; ${r2.sensorRules.airPpmTrigger} PPM. Extractor encendido.`;
+        } else if (r2.mode === "horario") {
+          r2_active = scheduleValid2;
+          r2_reason = scheduleValid2 
+            ? `✅ Horario diurno: ${minutesToTimeString(simTimeMin)} está entre ${r2.schedule.startTime} y ${r2.schedule.endTime}.`
+            : `⚪ Fuera de horario (${minutesToTimeString(simTimeMin)}).`;
+        } else if (r2.mode === "sensor") {
+          r2_active = (isThermalEmergency || isAirContaminated);
+          r2_reason = `⚪ Temperatura (${simTemp}°C) y Calidad de aire (${simAir} PPM) en rangos seguros.`;
+        } else { // "hibrido"
+          if (scheduleValid2) {
+            r2_active = true;
+            r2_reason = `✅ Ventilación de rutina activa por horario (${r2.schedule.startTime} a ${r2.schedule.endTime}).`;
+          } else {
+            r2_active = false;
+            r2_reason = `⚪ Clima confortable (${simTemp}°C, ${simAir} PPM) y fuera de horario programado. Extractor apagado.`;
+          }
+        }
+      }
+
+      actualizarUIRelay(2, r2_active, r2_reason);
+    }
+
+    function actualizarUIRelay(relayNum, isActive, reason) {
+      const ledTop = document.getElementById(`r${relayNum}-led`);
+      const statusText = document.getElementById(`r${relayNum}-status-text`);
+      const evalBadge = document.getElementById(`r${relayNum}-eval-badge`);
+      const simLed = document.getElementById(`sim-r${relayNum}-led`);
+      const simBadge = document.getElementById(`sim-r${relayNum}-badge-state`);
+      const simReason = document.getElementById(`sim-r${relayNum}-reason-text`);
+      const card = document.getElementById(`sim-r${relayNum}-verdict-card`);
+
+      if (isActive) {
+        ledTop.className = 'led-indicator led-on';
+        statusText.innerText = 'ENCENDIDO';
+        statusText.className = 'fw-bold fs-7 text-success';
+        evalBadge.className = 'badge bg-success text-white px-2 py-0.5 rounded-pill fs-8';
+        evalBadge.innerText = 'Regla Cumplida';
+
+        simLed.className = 'led-indicator led-on';
+        simBadge.className = 'badge bg-success text-white px-2.5 py-1 rounded-pill fs-8';
+        simBadge.innerText = '🟢 ENCENDIDO';
+        card.style.borderColor = 'rgba(46, 213, 115, 0.5)';
+      } else {
+        ledTop.className = 'led-indicator led-off';
+        statusText.innerText = 'DESACTIVADO';
+        statusText.className = 'fw-bold fs-7 text-secondary';
+        evalBadge.className = 'badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8';
+        evalBadge.innerText = 'Condición No Cumplida';
+
+        simLed.className = 'led-indicator led-off';
+        simBadge.className = 'badge bg-secondary px-2.5 py-1 rounded-pill fs-8';
+        simBadge.innerText = '⚪ APAGADO';
+        card.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+      }
+
+      simReason.innerText = reason;
+    }
+
+    // Sliders del Simulador
+    function onSimTimeChange(val) {
+      simState.timeMinutes = parseInt(val);
+      document.getElementById('sim-time-badge').innerText = minutesToTimeString(simState.timeMinutes);
+      evaluarReglas();
+    }
+
+    function onSimTempChange(val) {
+      simState.temp = parseFloat(val);
+      document.getElementById('sim-temp-badge').innerText = `${simState.temp} °C`;
+      evaluarReglas();
+    }
+
+    function onSimSoilChange(val) {
+      simState.soil = parseInt(val);
+      document.getElementById('sim-soil-badge').innerText = `${simState.soil} %`;
+      evaluarReglas();
+    }
+
+    function onSimAirChange(val) {
+      simState.airPpm = parseInt(val);
+      document.getElementById('sim-air-badge').innerText = `${simState.airPpm} PPM`;
+      evaluarReglas();
+    }
+
+    function setVirtualTimeToNow() {
+      const now = new Date();
+      const min = now.getHours() * 60 + now.getMinutes();
+      document.getElementById('sim-slider-time').value = min;
+      onSimTimeChange(min);
+      simState.dayOfWeek = now.getDay();
+      logConsole(`Hora sincronizada con reloj real del sistema: ${now.toLocaleTimeString()}`);
+    }
+
+    // Presets Climáticos
+    function presetClima(tipo) {
+      if (tipo === 'ola_calor') {
+        document.getElementById('sim-slider-temp').value = 33.5;
+        onSimTempChange(33.5);
+        document.getElementById('sim-slider-soil').value = 18;
+        onSimSoilChange(18);
+        document.getElementById('sim-slider-air').value = 320;
+        onSimAirChange(320);
+        logConsole("🌡️ Preset: Ola de Calor Extrema (Temp: 33.5°C, Suelo: 18%)");
+      } else if (tipo === 'suelo_seco') {
+        document.getElementById('sim-slider-soil').value = 15;
+        onSimSoilChange(15);
+        document.getElementById('sim-slider-temp').value = 24.0;
+        onSimTempChange(24.0);
+        logConsole("🌵 Preset: Suelo Seco/Árido (Suelo: 15%)");
+      } else if (tipo === 'clima_ideal') {
+        document.getElementById('sim-slider-temp').value = 22.0;
+        onSimTempChange(22.0);
+        document.getElementById('sim-slider-soil').value = 65;
+        onSimSoilChange(65);
+        document.getElementById('sim-slider-air').value = 180;
+        onSimAirChange(180);
+        logConsole("🌿 Preset: Clima Ideal (Temp: 22.0°C, Suelo: 65%, Aire: 180 PPM)");
+      }
+    }
+
+    function logConsole(msg) {
+      const now = new Date().toLocaleTimeString();
+      const term = document.getElementById('sim-console-output');
+      if (!term) return;
+      const line = document.createElement('div');
+      line.innerText = `[${now}] ${msg}`;
+      term.appendChild(line);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function clearConsole() {
+      document.getElementById('sim-console-output').innerHTML = '<div>[Terminal reiniciado]</div>';
+    }
+
+    function exportarJSONConfig() {
+      leerInputsHaciaEstado();
+      const payload = {
+        version: "1.0",
+        generado_en: new Date().toISOString(),
+        dispositivos_actuadores: {
+          rele_1_bomba: {
+            alias: configActuadores.rele1.alias,
+            gpio_pin: 4,
+            modo: configActuadores.rele1.mode,
+            habilitado: configActuadores.rele1.enabled,
+            horario: configActuadores.rele1.schedule,
+            umbrales_sensores: configActuadores.rele1.sensorRules
+          },
+          rele_2_extractor: {
+            alias: configActuadores.rele2.alias,
+            gpio_pin: 5,
+            modo: configActuadores.rele2.mode,
+            habilitado: configActuadores.rele2.enabled,
+            horario: configActuadores.rele2.schedule,
+            umbrales_sensores: configActuadores.rele2.sensorRules
+          }
+        }
+      };
+
+      document.getElementById('json-code-view').innerText = JSON.stringify(payload, null, 2);
+    }
+
+    function copiarJSON() {
+      const code = document.getElementById('json-code-view').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert("¡JSON de configuración copiado al portapapeles!");
+      });
+    }
+  </script>
+</body>
+</html>
+
