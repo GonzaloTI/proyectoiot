@@ -9,5 +9,11 @@ __pycache__/
 *.db-shm
 *.db-wal
 
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+
+
 
 
