@@ -14,8 +14,8 @@ class Database:
         Inicializa la conexión hacia PostgreSQL / Supabase utilizando variables de entorno
         o los parámetros proporcionados por defecto.
         """
-        self.host = os.getenv("DB_HOST", "db.rgjsddiqrgpelenvxfdu.supabase.co")
-        self.port = int(os.getenv("DB_PORT", "5432"))
+        self.host = os.getenv("DB_HOST", "aws-0-ca-central-1.pooler.supabase.com")
+        self.port = int(os.getenv("DB_PORT", "6543"))
         
         # Si se pasa un nombre de archivo SQLite antiguo (.db), usar la base de datos postgres
         env_dbname = os.getenv("DB_NAME")
@@ -26,7 +26,7 @@ class Database:
         else:
             self.dbname = db_name
 
-        self.user = os.getenv("DB_USER", "postgres")
+        self.user = os.getenv("DB_USER", "postgres.rgjsddiqrgpelenvxfdu")
         self.password = os.getenv("DB_PASSWORD") or os.getenv("pass_varios", "")
         self.sslmode = os.getenv("DB_SSLMODE", "require")
         
