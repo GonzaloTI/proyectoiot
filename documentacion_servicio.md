@@ -69,7 +69,47 @@ Cuando se crea un "Web Service" en Render, se definen los siguientes parámetros
 
 ---
 
-## 4. Diagramas de Flujo del Servicio
+## 4. Diagramas de Arquitectura y Flujo del Servicio
+
+### 🗺️ Arquitectura General del Sistema (Hardware, Edge AI, Backend y Frontend)
+
+```mermaid
+---
+config:
+  layout: elk
+---
+flowchart TD
+    %% Capa de Adquisición de Datos (Sensores)
+    S1[Sensor BMP280] -->|Temperatura y Presión| ESP(Microcontrolador ESP32)
+    S2[Sensor MQ-135] -->|Calidad de Aire| ESP
+    S3[Higrómetro de Suelo FC-28] -->|Humedad del Suelo| ESP
+    
+    %% Capa de Procesamiento Inteligente (Edge AI / Visión Artificial)
+    CAM[Cámara Web / CSI] -->|Captura de Video en Vivo| JET(NVIDIA Jetson Nano)
+    JET <-->|Comandos y Telemetría UART RX2/TX2| ESP
+    
+    %% Capa de Procesamiento y Acción (Actuadores)
+    ESP -->|Señal de control GPIO 4| R1(Módulo Relé 1)
+    R1 -->|Activa/Desactiva| A1[Bomba de Agua / Electroválvula]
+
+    ESP -->|Señal de control GPIO 5| R2(Módulo Relé 2)
+    R2 -->|Activa/Desactiva| A2[Extractor de Aire / Ventilación]
+  
+    %% Capa de Comunicación
+    ESP <-->|Envía JSON vía Wi-Fi / HTTPS| RED[Router / Conexión a Internet]
+    JET <-->|Envío de Detecciones / Inferencia HTTP| RED
+    RED <-->|Peticiones API POST/GET| FLASK{Servidor Backend - Flask}
+    
+    %% Capa de Almacenamiento y Presentación
+    FLASK <-->|Almacena e invoca datos| DB[(Base de Datos PostgreSQL / SQLite)]
+    FLASK -->|Renderiza Vistas| WEB[Interfaz Web / Dashboard]
+    WEB -->|Envía comandos manuales| FLASK
+    
+    %% Capa de Usuarios
+    WEB -.->|Acceso y Monitoreo| USR((Usuario / Administrador))
+```
+
+---
 
 ### 🔄 Flujo 1: Recepción de Datos del ESP32 (`POST /api/datos`)
 Describe cómo interactúan el ESP32, el Servidor Flask y la Base de Datos cuando se envían las lecturas de los sensores.
