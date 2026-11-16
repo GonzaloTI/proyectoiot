@@ -32,7 +32,8 @@ from negocio.Nusuarios import (
 from negocio.Ndetecciones import (
     procesar_subida_deteccion,
     obtener_ultima_deteccion,
-    obtener_historial_detecciones
+    obtener_historial_detecciones,
+    obtener_historial_paginado
 )
 import os
 import json
@@ -295,10 +296,33 @@ def api_obtener_ultima_deteccion():
 @app.route('/api/detecciones/historial', methods=['GET'])
 def api_obtener_historial_detecciones():
     """
-    Retorna los últimos registros de detección en formato JSON.
+    Retorna el historial de detecciones con soporte de paginación, filtros y ordenamiento.
     """
-    limit = request.args.get('limit', default=50, type=int)
-    resultado = obtener_historial_detecciones(limit=limit)
+    # Si viene con parámetro 'limit' clásico y no especifica 'page', usamos la función legacy
+    if 'limit' in request.args and 'page' not in request.args:
+        limit = request.args.get('limit', default=50, type=int)
+        resultado = obtener_historial_detecciones(limit=limit)
+        return jsonify(resultado)
+
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
+    fecha_desde = request.args.get('fecha_desde', default=None, type=str)
+    fecha_hasta = request.args.get('fecha_hasta', default=None, type=str)
+    clase = request.args.get('clase', default=None, type=str)
+    busqueda = request.args.get('busqueda', default=None, type=str)
+    sort_col = request.args.get('sort_col', default=None, type=str)
+    sort_dir = request.args.get('sort_dir', default=None, type=str)
+
+    resultado = obtener_historial_paginado(
+        page=page,
+        per_page=per_page,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        clase=clase,
+        busqueda=busqueda,
+        sort_col=sort_col,
+        sort_dir=sort_dir
+    )
     return jsonify(resultado)
 
 @app.route('/detecciones')

@@ -152,29 +152,206 @@
   }
 
   .table-responsive-scroll {
-    max-height: 480px;
+    max-height: 520px;
     overflow-y: auto;
   }
 
+  /* Tabla Personalizada 100% Oscura y Transparente */
   .table-custom {
-    color: rgba(255, 255, 255, 0.85);
+    --bs-table-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.04) !important;
+    --bs-table-color: inherit !important;
+    background-color: transparent !important;
+    color: inherit;
+    margin-bottom: 0;
+  }
+
+  .table-custom > :not(caption) > * > * {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    color: inherit;
   }
 
   .table-custom th {
-    background-color: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.6);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.5px;
+    padding: 0.85rem;
+    vertical-align: middle;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  body.light-theme .table-custom th {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+    color: rgba(0, 0, 0, 0.7) !important;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1) !important;
   }
 
   .table-custom td {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    padding: 0.8rem;
     font-size: 0.9rem;
     vertical-align: middle;
+  }
+
+  body.light-theme .table-custom td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  }
+
+  .table-custom tbody tr:hover td {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  /* Encabezados ordenables */
+  .th-sortable {
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .th-sortable:hover {
+    background-color: rgba(0, 242, 254, 0.1) !important;
+    color: #00f2fe !important;
+  }
+
+  .th-sortable.sorted-desc, .th-sortable.sorted-asc {
+    background-color: rgba(0, 242, 254, 0.14) !important;
+    color: #00f2fe !important;
+    border-bottom: 2px solid #00f2fe !important;
+  }
+
+  .sort-icon {
+    font-size: 0.82rem;
+    margin-left: 6px;
+    opacity: 0.45;
+    display: inline-block;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .th-sortable:hover .sort-icon {
+    opacity: 0.9;
+  }
+
+  .sorted-desc .sort-icon, .sorted-asc .sort-icon {
+    opacity: 1;
+    color: #00f2fe;
+  }
+
+  /* Animación de fila recién guardada en vivo */
+  @keyframes liveGlow {
+    0% {
+      background-color: rgba(46, 213, 115, 0.4);
+      box-shadow: inset 0 0 16px rgba(46, 213, 115, 0.6);
+    }
+    100% {
+      background-color: transparent;
+      box-shadow: none;
+    }
+  }
+
+  .row-live-highlight {
+    animation: liveGlow 2.5s ease-out forwards;
+  }
+
+  /* Controles de formulario Dark */
+  .form-control-dark, .form-select-dark {
+    background-color: #121824 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #f1f2f6 !important;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    color-scheme: dark;
+  }
+
+  body.light-theme .form-control-dark, body.light-theme .form-select-dark {
+    background-color: #fff !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    color: #2f3640 !important;
+    color-scheme: light;
+  }
+
+  select.form-select-dark {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2300f2fe' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 0.75rem center !important;
+    background-size: 16px 12px !important;
+  }
+
+  .form-select-dark option {
+    background-color: #121824 !important;
+    color: #f1f2f6 !important;
+  }
+
+  body.light-theme .form-select-dark option {
+    background-color: #fff !important;
+    color: #2f3640 !important;
+  }
+
+  input[type="date"].form-control-dark {
+    color-scheme: dark !important;
+  }
+
+  body.light-theme input[type="date"].form-control-dark {
+    color-scheme: light !important;
+  }
+
+  .form-control-dark:focus, .form-select-dark:focus {
+    background-color: #162032 !important;
+    border-color: #00f2fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(0, 242, 254, 0.18) !important;
+    color: #fff !important;
+  }
+
+  .form-control-dark::placeholder {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
+  body.light-theme .form-control-dark::placeholder {
+    color: rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Paginación Dark */
+  .pagination-custom .page-link {
+    background-color: #121824;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.88rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 8px;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+  }
+
+  body.light-theme .pagination-custom .page-link {
+    background-color: #fff;
+    border-color: rgba(0, 0, 0, 0.15);
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .pagination-custom .page-link:hover {
+    background-color: rgba(0, 242, 254, 0.15);
+    color: #00f2fe;
+    border-color: rgba(0, 242, 254, 0.4);
+  }
+
+  .pagination-custom .page-item.active .page-link {
+    background: linear-gradient(135deg, #0d6efd, #00f2fe);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(0, 242, 254, 0.4);
+  }
+
+  .pagination-custom .page-item.disabled .page-link {
+    background-color: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.25);
   }
 
   .img-thumbnail-table {
@@ -350,32 +527,159 @@
       </p>
     </div>
     <div>
-      <span class="badge bg-secondary px-3 py-2 rounded-pill" id="badgeTotalHistorial">0 registros</span>
+      <span class="badge bg-secondary px-3 py-2 rounded-pill" id="badgeTotalHistorial">0 capturas</span>
     </div>
   </div>
 
-  <div class="table-responsive table-responsive-scroll">
-    <table class="table table-custom table-hover align-middle mb-0">
+  <!-- FILTROS SIMPLIFICADOS (SIN EMOJIS, COMPATIBLES CON TEMA OSCURO) -->
+  <div class="p-3 mb-4 rounded-3" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <span class="small fw-bold text-uppercase text-info tracking-wider d-flex align-items-center gap-2">
+        <i class="bi bi-funnel-fill"></i> Filtros de Consulta
+      </span>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" id="btnLimpiarFiltros">
+        <i class="bi bi-arrow-counterclockwise me-1"></i> Limpiar Filtros
+      </button>
+    </div>
+
+    <div class="row g-3">
+      <!-- 1. Fecha Desde -->
+      <div class="col-lg-3 col-sm-6">
+        <label class="form-label small text-secondary mb-1 fw-semibold">
+          <i class="bi bi-calendar3 me-1 text-info"></i> Fecha Desde:
+        </label>
+        <input type="date" class="form-control form-control-dark" id="filtroFechaDesde">
+      </div>
+
+      <!-- 2. Fecha Hasta -->
+      <div class="col-lg-3 col-sm-6">
+        <label class="form-label small text-secondary mb-1 fw-semibold">
+          <i class="bi bi-calendar3 me-1 text-info"></i> Fecha Hasta:
+        </label>
+        <input type="date" class="form-control form-control-dark" id="filtroFechaHasta">
+      </div>
+
+      <!-- 3. Diagnóstico / Clase (Sin Emojis) -->
+      <div class="col-lg-3 col-sm-6">
+        <label class="form-label small text-secondary mb-1 fw-semibold">
+          <i class="bi bi-tag-fill me-1 text-info"></i> Diagnóstico / Clase:
+        </label>
+        <select class="form-select form-select-dark" id="filtroClase">
+          <option value="TODAS">Todas las clases</option>
+          <option value="Fruto Maduro">Fruto Maduro</option>
+          <option value="Fruto Verde">Fruto Verde</option>
+          <option value="Flor">Flor</option>
+          <option value="Mancha Angular">Mancha Angular</option>
+          <option value="Oídio / Moho">Oídio / Moho</option>
+          <option value="Antracnosis">Antracnosis</option>
+          <option value="Hoja Sana">Hoja Sana</option>
+          <option value="Ninguna">Ninguna (Sin Objetos)</option>
+        </select>
+      </div>
+
+      <!-- 4. Búsqueda Rápida -->
+      <div class="col-lg-3 col-sm-6">
+        <label class="form-label small text-secondary mb-1 fw-semibold">
+          <i class="bi bi-search me-1 text-info"></i> Búsqueda Rápida:
+        </label>
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-secondary text-secondary"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control form-control-dark" id="filtroBusqueda" placeholder="Buscar por clase, ID, modelo...">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA INTERMEDIA: SELECTOR DE TAMAÑO, AVISO EN VIVO Y ESTADO DE ORDEN -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <label for="selectPerPage" class="small text-secondary mb-0">Mostrar:</label>
+      <select class="form-select form-select-sm form-select-dark" id="selectPerPage" style="width: auto;">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+      <span class="small text-secondary">registros por página</span>
+    </div>
+
+    <!-- Notificación de nueva detección si está en página > 1 -->
+    <div id="boxNotifNuevaDeteccion" style="display: none;">
+      <span class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-1.5 rounded-pill" style="cursor: pointer;" id="btnIrPrimeraPagina">
+        <span class="live-pulse"></span> <span id="txtNotifCount">1</span> nueva captura en vivo. <u>Ver inicio</u>
+      </span>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <span class="small text-secondary d-none d-md-inline" id="txtEstadoOrden">
+        <i class="bi bi-arrow-down-up me-1"></i> Orden: Natural (más recientes primero)
+      </span>
+    </div>
+  </div>
+
+  <!-- TABLA DE RESULTADOS CON ORDENAMIENTO POR ENCABEZADOS -->
+  <div class="table-responsive" style="min-height: 250px;">
+    <table class="table table-custom align-middle">
       <thead>
         <tr>
-          <th>Miniatura</th>
-          <th>Fecha y Hora</th>
-          <th>Modelo</th>
-          <th>Diagnóstico / Clase</th>
-          <th>Confianza</th>
-          <th>Condición Sanitaria</th>
-          <th class="text-center">Acción</th>
+          <!-- Miniatura (ordenable por ID) -->
+          <th class="th-sortable" onclick="toggleOrden('id')" title="Clic para ordenar por ID: Mayor a menor → Menor a mayor → Sin orden">
+            Miniatura <span class="sort-icon" id="icon-sort-id"><i class="bi bi-arrow-down-up"></i></span>
+          </th>
+          
+          <!-- Fecha y Hora -->
+          <th class="th-sortable" onclick="toggleOrden('fecha_hora')" title="Clic para ordenar por Fecha: Mayor a menor → Menor a mayor → Sin orden">
+            Fecha y Hora <span class="sort-icon" id="icon-sort-fecha_hora"><i class="bi bi-arrow-down-up"></i></span>
+          </th>
+
+          <!-- Modelo -->
+          <th class="th-sortable" onclick="toggleOrden('modelo')" title="Clic para ordenar por Modelo: A-Z → Z-A → Sin orden">
+            Modelo <span class="sort-icon" id="icon-sort-modelo"><i class="bi bi-arrow-down-up"></i></span>
+          </th>
+
+          <!-- Diagnóstico / Clase -->
+          <th class="th-sortable" onclick="toggleOrden('clase')" title="Clic para ordenar por Clase: A-Z → Z-A → Sin orden">
+            Diagnóstico / Clase <span class="sort-icon" id="icon-sort-clase"><i class="bi bi-arrow-down-up"></i></span>
+          </th>
+
+          <!-- Confianza -->
+          <th class="th-sortable" onclick="toggleOrden('conf')" title="Clic para ordenar por Confianza: Mayor a menor → Menor a mayor → Sin orden">
+            Confianza <span class="sort-icon" id="icon-sort-conf"><i class="bi bi-arrow-down-up"></i></span>
+          </th>
+
+          <!-- Condición Sanitaria -->
+          <th class="th-sortable" onclick="toggleOrden('condicion')" title="Clic para ordenar por Condición Sanitaria: Patologías primero → Menor severidad → Sin orden">
+            Condición Sanitaria <span class="sort-icon" id="icon-sort-condicion"><i class="bi bi-arrow-down-up"></i></span>
+          </th>
+
+          <!-- Acción -->
+          <th class="th-sortable text-center" onclick="toggleOrden('id')" title="Clic para ordenar: Mayor a menor → Menor a mayor → Sin orden">
+            Acción <span class="sort-icon" id="icon-sort-accion"><i class="bi bi-arrow-down-up"></i></span>
+          </th>
         </tr>
       </thead>
       <tbody id="tbodyHistorialDetecciones">
         <tr>
-          <td colspan="7" class="text-center text-secondary py-4">
+          <td colspan="7" class="text-center text-secondary py-5">
             <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-            No se han registrado capturas aún.
+            Cargando historial de capturas...
           </td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- PIE: INFORMACIÓN DE PAGINACIÓN Y BOTONES -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top border-secondary border-opacity-10 gap-3">
+    <div class="small text-secondary" id="txtResumenPaginacion">
+      Mostrando registros 0 al 0 de 0
+    </div>
+
+    <nav aria-label="Navegación de historial">
+      <ul class="pagination pagination-custom pagination-sm mb-0" id="ulPaginacion">
+        <!-- Botones dinámicos de página -->
+      </ul>
+    </nav>
   </div>
 </div>
 
@@ -506,7 +810,19 @@
           // Recargar historial únicamente si es un registro guardado en BD y su ID cambió
           if (data.deteccion.guardado_en_historial && data.deteccion.id !== ultimoIdDeteccion) {
             ultimoIdDeteccion = data.deteccion.id;
-            cargarHistorial();
+            if (paginaActual === 1 && (!sortColumna || sortColumna === 'id' || sortColumna === 'fecha_hora') && (!sortDireccion || sortDireccion === 'desc')) {
+              cargarHistorial(data.deteccion.id);
+            } else {
+              itemsPendientesNotif++;
+              const txtNotif = document.getElementById('txtNotifCount');
+              const boxNotif = document.getElementById('boxNotifNuevaDeteccion');
+              if (txtNotif) txtNotif.textContent = itemsPendientesNotif;
+              if (boxNotif) boxNotif.style.display = 'block';
+              if (badgeTotalHistorial) {
+                const actual = parseInt(badgeTotalHistorial.textContent) || 0;
+                badgeTotalHistorial.textContent = `${actual + 1} capturas`;
+              }
+            }
           }
         }
       }
@@ -630,47 +946,152 @@
     placeholderEl.style.display = 'block';
   }
 
-  async function cargarHistorial() {
+  // =========================================================================
+  // GESTIÓN DEL HISTORIAL PAGINADO, INTERACTIVO Y ORDENABLE
+  // =========================================================================
+  let paginaActual = 1;
+  let porPagina = 10;
+  let sortColumna = null;
+  let sortDireccion = null;
+  let itemsPendientesNotif = 0;
+
+  const fDesde = document.getElementById('filtroFechaDesde');
+  const fHasta = document.getElementById('filtroFechaHasta');
+  const fClase = document.getElementById('filtroClase');
+  const fBusqueda = document.getElementById('filtroBusqueda');
+  const selectPerPage = document.getElementById('selectPerPage');
+  const txtEstadoOrden = document.getElementById('txtEstadoOrden');
+  const txtResumenPaginacion = document.getElementById('txtResumenPaginacion');
+  const ulPaginacion = document.getElementById('ulPaginacion');
+  const badgeTotalHistorial = document.getElementById('badgeTotalHistorial');
+  const boxNotifNuevaDeteccion = document.getElementById('boxNotifNuevaDeteccion');
+  const btnIrPrimeraPagina = document.getElementById('btnIrPrimeraPagina');
+  const txtNotifCount = document.getElementById('txtNotifCount');
+
+  function toggleOrden(columna) {
+    if (sortColumna !== columna) {
+      sortColumna = columna;
+      sortDireccion = 'desc'; // 1er Clic: Mayor a Menor
+    } else if (sortDireccion === 'desc') {
+      sortDireccion = 'asc';  // 2do Clic: Menor a Mayor
+    } else if (sortDireccion === 'asc') {
+      sortColumna = null;     // 3er Clic: Sin Orden (natural por llegada)
+      sortDireccion = null;
+    }
+
+    actualizarIconosOrden();
+    paginaActual = 1;
+    cargarHistorial();
+  }
+
+  function actualizarIconosOrden() {
+    const columnas = ['id', 'fecha_hora', 'modelo', 'clase', 'conf', 'condicion', 'accion'];
+    
+    columnas.forEach(col => {
+      const thEl = document.querySelector(`th[onclick="toggleOrden('${col}')"]`);
+      const iconEl = document.getElementById(`icon-sort-${col}`);
+      
+      if (thEl) {
+        thEl.classList.remove('sorted-desc', 'sorted-asc');
+      }
+
+      if (iconEl) {
+        if (sortColumna === col && sortDireccion === 'desc') {
+          if (thEl) thEl.classList.add('sorted-desc');
+          iconEl.innerHTML = '<i class="bi bi-sort-down text-info"></i>';
+        } else if (sortColumna === col && sortDireccion === 'asc') {
+          if (thEl) thEl.classList.add('sorted-asc');
+          iconEl.innerHTML = '<i class="bi bi-sort-up text-info"></i>';
+        } else {
+          iconEl.innerHTML = '<i class="bi bi-arrow-down-up"></i>';
+        }
+      }
+    });
+
+    if (txtEstadoOrden) {
+      if (!sortColumna || !sortDireccion) {
+        txtEstadoOrden.innerHTML = '<i class="bi bi-arrow-down-up me-1"></i> Orden: Natural (más recientes primero)';
+      } else {
+        const dirTxt = sortDireccion === 'desc' ? 'Mayor a menor (Descendente 🔽)' : 'Menor a mayor (Ascendente 🔼)';
+        txtEstadoOrden.innerHTML = `<i class="bi bi-check-circle-fill text-info me-1"></i> Ordenando por <strong>${sortColumna}</strong>: ${dirTxt}`;
+      }
+    }
+  }
+
+  async function cargarHistorial(animarFilaId = null) {
     try {
-      const resp = await fetch('/api/detecciones/historial?limit=30');
+      const params = new URLSearchParams({
+        page: paginaActual,
+        per_page: porPagina
+      });
+
+      if (fDesde && fDesde.value) params.append('fecha_desde', fDesde.value);
+      if (fHasta && fHasta.value) params.append('fecha_hasta', fHasta.value);
+      if (fClase && fClase.value && fClase.value !== 'TODAS') params.append('clase', fClase.value);
+      if (fBusqueda && fBusqueda.value.trim()) params.append('busqueda', fBusqueda.value.trim());
+      if (sortColumna && sortDireccion) {
+        params.append('sort_col', sortColumna);
+        params.append('sort_dir', sortDireccion);
+      }
+
+      const resp = await fetch(`/api/detecciones/historial?${params.toString()}`);
       if (!resp.ok) return;
       const data = await resp.json();
       if (data.status === 'ok') {
-        renderTablaHistorial(data.detecciones || []);
+        renderTablaHistorial(data, animarFilaId);
       }
     } catch (err) {
       console.warn("Error cargando historial de detecciones:", err);
     }
   }
 
-  function renderTablaHistorial(lista) {
+  function renderTablaHistorial(data, animarFilaId = null) {
     const tbody = document.getElementById('tbodyHistorialDetecciones');
-    const badgeTotal = document.getElementById('badgeTotalHistorial');
-    badgeTotal.textContent = `${lista.length} capturas`;
+    const lista = data.detecciones || [];
+    const totalRegistros = data.total_registros !== undefined ? data.total_registros : lista.length;
+    const totalPaginas = data.total_paginas || 1;
+
+    if (badgeTotalHistorial) {
+      badgeTotalHistorial.textContent = `${totalRegistros} capturas`;
+    }
+
+    const inicioIdx = totalRegistros > 0 ? (paginaActual - 1) * porPagina + 1 : 0;
+    const finIdx = Math.min((paginaActual - 1) * porPagina + lista.length, totalRegistros);
+
+    if (txtResumenPaginacion) {
+      if (totalRegistros === 0) {
+        txtResumenPaginacion.textContent = `Mostrando 0 registros (Filtros activos)`;
+      } else {
+        txtResumenPaginacion.textContent = `Mostrando registros ${inicioIdx} al ${finIdx} de ${totalRegistros} (Página ${paginaActual} de ${totalPaginas})`;
+      }
+    }
 
     if (lista.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center text-secondary py-4">
-            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-            No se han registrado capturas aún.
+          <td colspan="7" class="text-center py-5 text-secondary">
+            <i class="bi bi-search fs-2 d-block mb-2 text-info opacity-50"></i>
+            <strong>No se encontraron capturas con los filtros indicados.</strong>
+            <p class="small mb-0 mt-1">Intenta ajustando las fechas o limpiando la búsqueda.</p>
           </td>
         </tr>`;
+      renderizarPaginacion(0);
       return;
     }
 
     tbody.innerHTML = lista.map(item => {
       const confPct = Math.round((item.conf || 0) * 100);
       const isEnf = item.enfermedad;
-      const badgeClass = isEnf ? 'bg-danger text-white' : (item.total > 0 ? 'bg-success text-white' : 'bg-secondary text-white');
-      const badgeText = isEnf ? '⚠️ Patología' : (item.total > 0 ? '✅ Sana' : '🔍 Sin Detección');
+      const badgeClass = isEnf ? 'badge-soft-danger' : (item.total > 0 ? 'badge-soft-success' : 'badge-soft-secondary');
+      const badgeText = isEnf ? 'Patología' : (item.total > 0 ? 'Sana' : 'Sin Detección');
+      const highlightClass = (animarFilaId && item.id === animarFilaId) ? 'row-live-highlight' : '';
 
       return `
-        <tr>
+        <tr class="${highlightClass}">
           <td>
             <img src="${item.image_url}" class="img-thumbnail-table" alt="Thumb" onclick="abrirModalImagen('${item.image_url}', '${item.clase}', '${confPct}%', '${item.total}', '${item.fecha_hora}')">
           </td>
-          <td><span class="text-secondary font-monospace small">${item.fecha_hora}</span></td>
+          <td><span class="text-white small font-monospace">${item.fecha_hora}</span></td>
           <td><span class="badge bg-dark border border-secondary text-info">${item.modelo}</span></td>
           <td><strong class="text-white">${item.clase}</strong></td>
           <td>
@@ -683,13 +1104,120 @@
           </td>
           <td><span class="badge ${badgeClass} px-2.5 py-1.5 rounded-pill">${badgeText}</span></td>
           <td class="text-center">
-            <button class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1" onclick="abrirModalImagen('${item.image_url}', '${item.clase}', '${confPct}%', '${item.total}', '${item.fecha_hora}')" title="Ver imagen completa">
+            <button class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1" onclick="abrirModalImagen('${item.image_url}', '${item.clase}', '${confPct}%', '${item.total}', '${item.fecha_hora}')" title="Ver imagen completa">
               <i class="bi bi-arrows-fullscreen"></i>
             </button>
           </td>
         </tr>
       `;
     }).join('');
+
+    renderizarPaginacion(totalPaginas);
+  }
+
+  function renderizarPaginacion(totalPaginas) {
+    if (!ulPaginacion) return;
+    if (totalPaginas <= 1) {
+      ulPaginacion.innerHTML = '';
+      return;
+    }
+
+    let html = '';
+
+    html += `
+      <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="cambiarPagina(1); return false;" title="Primera página">«</a>
+      </li>
+      <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual - 1}); return false;" title="Página anterior">‹</a>
+      </li>
+    `;
+
+    let inicio = Math.max(1, paginaActual - 2);
+    let fin = Math.min(totalPaginas, inicio + 4);
+    if (fin - inicio < 4) {
+      inicio = Math.max(1, fin - 4);
+    }
+
+    for (let p = inicio; p <= fin; p++) {
+      html += `
+        <li class="page-item ${p === paginaActual ? 'active' : ''}">
+          <a class="page-link" href="#" onclick="cambiarPagina(${p}); return false;">${p}</a>
+        </li>
+      `;
+    }
+
+    html += `
+      <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="cambiarPagina(${paginaActual + 1}); return false;" title="Página siguiente">›</a>
+      </li>
+      <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="cambiarPagina(${totalPaginas}); return false;" title="Última página">»</a>
+      </li>
+    `;
+
+    ulPaginacion.innerHTML = html;
+  }
+
+  function cambiarPagina(nuevaPag) {
+    paginaActual = nuevaPag;
+    cargarHistorial();
+  }
+
+  // Listeners de filtros
+  [fDesde, fHasta, fClase].forEach(el => {
+    if (el) {
+      el.addEventListener('change', () => {
+        paginaActual = 1;
+        cargarHistorial();
+      });
+    }
+  });
+
+  if (fBusqueda) {
+    let debounceTimer = null;
+    fBusqueda.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        paginaActual = 1;
+        cargarHistorial();
+      }, 300);
+    });
+  }
+
+  if (selectPerPage) {
+    selectPerPage.addEventListener('change', (e) => {
+      porPagina = parseInt(e.target.value);
+      paginaActual = 1;
+      cargarHistorial();
+    });
+  }
+
+  const btnLimpiar = document.getElementById('btnLimpiarFiltros');
+  if (btnLimpiar) {
+    btnLimpiar.addEventListener('click', () => {
+      if (fDesde) fDesde.value = '';
+      if (fHasta) fHasta.value = '';
+      if (fClase) fClase.value = 'TODAS';
+      if (fBusqueda) fBusqueda.value = '';
+      sortColumna = null;
+      sortDireccion = null;
+      actualizarIconosOrden();
+      paginaActual = 1;
+      cargarHistorial();
+    });
+  }
+
+  if (btnIrPrimeraPagina) {
+    btnIrPrimeraPagina.addEventListener('click', () => {
+      paginaActual = 1;
+      itemsPendientesNotif = 0;
+      if (boxNotifNuevaDeteccion) boxNotifNuevaDeteccion.style.display = 'none';
+      sortColumna = null;
+      sortDireccion = null;
+      actualizarIconosOrden();
+      cargarHistorial();
+    });
   }
 
   function abrirModalImagen(url, clase, conf, total, fecha) {

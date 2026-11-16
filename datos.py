@@ -680,5 +680,96 @@ class Database:
             result.append(d)
         return result
 
+    def get_detections_history_paginated(self, page=1, per_page=10, fecha_desde=None, fecha_hasta=None, clase=None, busqueda=None, sort_col=None, sort_dir=None):
+        conn = sqlite3.connect(self.db_name)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        conditions = []
+        params = []
+
+        if fecha_desde:
+            conditions.append("date(fecha_hora) >= date(?)")
+            params.append(fecha_desde)
+
+        if fecha_hasta:
+            conditions.append("date(fecha_hora) <= date(?)")
+            params.append(fecha_hasta)
+
+        if clase and clase != 'TODAS':
+            conditions.append("clase = ?")
+            params.append(clase)
+
+        if busqueda and busqueda.strip():
+            term = f"%{busqueda.strip()}%"
+            conditions.append("(clase LIKE ? OR modelo LIKE ? OR cast(id as text) LIKE ? OR fecha_hora LIKE ?)")
+            params.extend([term, term, term, term])
+
+        where_clause = ""
+        if conditions:
+            where_clause = "WHERE " + " AND ".join(conditions)
+
+        # 1. Conteo total con filtros
+        count_sql = f"SELECT COUNT(*) as total FROM detecciones {where_clause}"
+        cursor.execute(count_sql, params)
+        total_records = cursor.fetchone()['total']
+
+        # 2. Ordenamiento seguro
+        valid_cols = {
+            'id': 'id',
+            'fecha_hora': 'fecha_hora',
+            'modelo': 'modelo',
+            'clase': 'clase',
+            'conf': 'conf',
+            'condicion': 'enfermedad'
+        }
+        
+        if sort_col and sort_col in valid_cols:
+            col_db = valid_cols[sort_col]
+            dir_db = 'ASC' if str(sort_dir).upper() == 'ASC' else 'DESC'
+            order_by = f"ORDER BY {col_db} {dir_db}, id DESC"
+        else:
+            # Orden natural: más recientes primero
+            order_by = "ORDER BY id DESC"
+
+        # 3. Paginación
+        try:
+            page = max(1, int(page))
+        except (ValueError, TypeError):
+            page = 1
+
+        try:
+            per_page = max(1, min(100, int(per_page)))
+        except (ValueError, TypeError):
+            per_page = 10
+
+        offset = (page - 1) * per_page
+
+        query_sql = f"""
+            SELECT * FROM detecciones
+            {where_clause}
+            {order_by}
+            LIMIT ? OFFSET ?
+        """
+        cursor.execute(query_sql, params + [per_page, offset])
+        rows = cursor.fetchall()
+        conn.close()
+
+        result = []
+        for r in rows:
+            d = dict(r)
+            d['enfermedad'] = bool(d['enfermedad'])
+            result.append(d)
+
+        total_pages = (total_records + per_page - 1) // per_page if total_records > 0 else 1
+
+        return {
+            "detecciones": result,
+            "total_registros": total_records,
+            "total_paginas": total_pages,
+            "pagina_actual": page,
+            "por_pagina": per_page
+        }
+
 
 

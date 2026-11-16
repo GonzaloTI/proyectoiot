@@ -222,3 +222,25 @@ def obtener_historial_detecciones(limit=50):
         r['image_url'] = f"/static/{r['path']}"
     return {"status": "ok", "detecciones": rows, "total": len(rows)}
 
+
+def obtener_historial_paginado(page=1, per_page=10, fecha_desde=None, fecha_hasta=None, clase=None, busqueda=None, sort_col=None, sort_dir=None):
+    """
+    Obtiene el historial de detecciones con paginación, filtros y ordenamiento para la interfaz web.
+    """
+    res = d_detecciones.obtener_historial_paginado(
+        page=page,
+        per_page=per_page,
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+        clase=clase,
+        busqueda=busqueda,
+        sort_col=sort_col,
+        sort_dir=sort_dir
+    )
+    for r in res.get('detecciones', []):
+        r['image_url'] = f"/static/{r['path']}"
+    return {
+        "status": "ok",
+        **res
+    }
+

@@ -33,3 +33,18 @@ class Ddetecciones:
         """
         return self.db.get_detections_history(limit=limit)
 
+    def obtener_historial_paginado(self, page=1, per_page=10, fecha_desde=None, fecha_hasta=None, clase=None, busqueda=None, sort_col=None, sort_dir=None):
+        """
+        Obtiene el historial de detecciones con paginación, filtros y ordenamiento dinámico.
+        """
+        return self.db.get_detections_history_paginated(
+            page=page,
+            per_page=per_page,
+            fecha_desde=fecha_desde,
+            fecha_hasta=fecha_hasta,
+            clase=clase,
+            busqueda=busqueda,
+            sort_col=sort_col,
+            sort_dir=sort_dir
+        )
+
