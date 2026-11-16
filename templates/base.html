@@ -506,10 +506,13 @@
                     });
                 }
 
+                let subData = subscription.toJSON ? subscription.toJSON() : JSON.parse(JSON.stringify(subscription));
+                subData.id_usuario = {{ session.get('user_id') or 'null' }};
+
                 const response = await fetch("/subscribe", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(subscription)
+                    body: JSON.stringify(subData)
                 });
 
                 const data = await response.json();

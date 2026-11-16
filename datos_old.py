@@ -88,15 +88,6 @@ class Database:
             )
         ''')
 
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS subscriptions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                endpoint TEXT UNIQUE NOT NULL,
-                p256dh TEXT NOT NULL,
-                auth TEXT NOT NULL
-            )
-        ''')
-
         # 5. Tabla de Lecturas
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS readings (
@@ -611,28 +602,80 @@ class Database:
         conn.close()
         return True, None
 
-    # Métodos de Notificaciones Push
-    def save_push_subscription(self, endpoint, p256dh, auth):
+    # ==================== MÉTODOS DE NOTIFICACIONES PUSH ====================
+    def save_push_subscription(self, endpoint, p256dh, auth, id_usuario=None):
+        """
+        Guarda o actualiza la suscripción Web Push en la tabla 'suscripcion' de SQLite,
+        asociada al usuario correspondiente.
+        """
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT OR REPLACE INTO subscriptions (endpoint, p256dh, auth)
-            VALUES (?, ?, ?)
-        """, (endpoint, p256dh, auth))
-        conn.commit()
-        cursor.execute("SELECT COUNT(*) FROM subscriptions")
-        total = cursor.fetchone()[0]
-        conn.close()
-        return total
+        try:
+            # Si no se pasó id_usuario, buscar el usuario admin por defecto
+            if not id_usuario:
+                cursor.execute("SELECT id FROM usuario WHERE usuario = 'admin' LIMIT 1")
+                row = cursor.fetchone()
+                id_usuario = row[0] if row else 1
 
-    def get_push_subscriptions(self):
+            # Desvincular endpoint si pertenecía a otro usuario para evitar colisión de la llave UNIQUE en endpoint
+            cursor.execute("DELETE FROM suscripcion WHERE endpoint = ? AND id_usuario != ?", (endpoint, id_usuario))
+
+            # Insertar o actualizar la suscripción del usuario en la tabla 'suscripcion'
+            cursor.execute("""
+                INSERT INTO suscripcion (id_usuario, endpoint, p256dh, auth)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT (id_usuario) DO UPDATE 
+                SET endpoint = excluded.endpoint, 
+                    p256dh = excluded.p256dh, 
+                    auth = excluded.auth
+            """, (id_usuario, endpoint, p256dh, auth))
+            conn.commit()
+
+            cursor.execute("SELECT COUNT(*) FROM suscripcion")
+            total = cursor.fetchone()[0]
+            return total
+        finally:
+            conn.close()
+
+    def get_push_subscriptions(self, id_usuario=None):
+        """
+        Obtiene las suscripciones Web Push activas desde la tabla 'suscripcion' de SQLite,
+        incluyendo el nombre del usuario vinculado.
+        """
         conn = sqlite3.connect(self.db_name)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM subscriptions")
-        rows = cursor.fetchall()
-        conn.close()
-        return rows
+        try:
+            if id_usuario:
+                cursor.execute("""
+                    SELECT s.id, s.id_usuario, u.usuario, s.endpoint, s.p256dh, s.auth
+                    FROM suscripcion s
+                    LEFT JOIN usuario u ON s.id_usuario = u.id
+                    WHERE s.id_usuario = ?
+                """, (id_usuario,))
+            else:
+                cursor.execute("""
+                    SELECT s.id, s.id_usuario, u.usuario, s.endpoint, s.p256dh, s.auth
+                    FROM suscripcion s
+                    LEFT JOIN usuario u ON s.id_usuario = u.id
+                    ORDER BY s.id ASC
+                """)
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+        finally:
+            conn.close()
+
+    def delete_push_subscription(self, endpoint):
+        """
+        Elimina una suscripción inválida o expirada de la tabla 'suscripcion'.
+        """
+        conn = sqlite3.connect(self.db_name)
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DELETE FROM suscripcion WHERE endpoint = ?", (endpoint,))
+            conn.commit()
+        finally:
+            conn.close()
 
     # =========================================================================
     # Métodos de Detecciones (Visión Artificial Fragaria)

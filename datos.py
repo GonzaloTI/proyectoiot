@@ -137,15 +137,6 @@ class Database:
                 );
             ''')
 
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS subscriptions (
-                    id SERIAL PRIMARY KEY,
-                    endpoint TEXT UNIQUE NOT NULL,
-                    p256dh TEXT NOT NULL,
-                    auth TEXT NOT NULL
-                );
-            ''')
-
             # 5. Tabla de Lecturas de Sensores
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS readings (
@@ -720,31 +711,78 @@ class Database:
             conn.close()
 
     # ==================== MÉTODOS DE NOTIFICACIONES PUSH ====================
-    def save_push_subscription(self, endpoint, p256dh, auth):
+    def save_push_subscription(self, endpoint, p256dh, auth, id_usuario=None):
+        """
+        Guarda o actualiza la suscripción Web Push en la tabla 'suscripcion',
+        asociada al usuario correspondiente.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
         try:
+            # Si no se pasó id_usuario, buscar el usuario admin por defecto
+            if not id_usuario:
+                cursor.execute("SELECT id FROM usuario WHERE usuario = 'admin' LIMIT 1")
+                row = cursor.fetchone()
+                id_usuario = row[0] if row else 1
+
+            # Desvincular endpoint si pertenecía a otro usuario para evitar colisión de la llave UNIQUE en endpoint
+            cursor.execute("DELETE FROM suscripcion WHERE endpoint = %s AND id_usuario != %s", (endpoint, id_usuario))
+
+            # Insertar o actualizar la suscripción del usuario en la tabla 'suscripcion'
             cursor.execute("""
-                INSERT INTO subscriptions (endpoint, p256dh, auth)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (endpoint) DO UPDATE 
-                SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth
-            """, (endpoint, p256dh, auth))
+                INSERT INTO suscripcion (id_usuario, endpoint, p256dh, auth)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (id_usuario) DO UPDATE 
+                SET endpoint = EXCLUDED.endpoint, 
+                    p256dh = EXCLUDED.p256dh, 
+                    auth = EXCLUDED.auth
+            """, (id_usuario, endpoint, p256dh, auth))
             conn.commit()
-            cursor.execute("SELECT COUNT(*) FROM subscriptions")
+
+            cursor.execute("SELECT COUNT(*) FROM suscripcion")
             total = cursor.fetchone()[0]
             return total
         finally:
             cursor.close()
             conn.close()
 
-    def get_push_subscriptions(self):
+    def get_push_subscriptions(self, id_usuario=None):
+        """
+        Obtiene las suscripciones Web Push activas desde la tabla 'suscripcion',
+        incluyendo el nombre del usuario vinculado.
+        """
         conn = self.get_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         try:
-            cursor.execute("SELECT * FROM subscriptions")
+            if id_usuario:
+                cursor.execute("""
+                    SELECT s.id, s.id_usuario, u.usuario, s.endpoint, s.p256dh, s.auth
+                    FROM suscripcion s
+                    LEFT JOIN usuario u ON s.id_usuario = u.id
+                    WHERE s.id_usuario = %s
+                """, (id_usuario,))
+            else:
+                cursor.execute("""
+                    SELECT s.id, s.id_usuario, u.usuario, s.endpoint, s.p256dh, s.auth
+                    FROM suscripcion s
+                    LEFT JOIN usuario u ON s.id_usuario = u.id
+                    ORDER BY s.id ASC
+                """)
             rows = cursor.fetchall()
             return rows
+        finally:
+            cursor.close()
+            conn.close()
+
+    def delete_push_subscription(self, endpoint):
+        """
+        Elimina una suscripción inválida o expirada de la tabla 'suscripcion'.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DELETE FROM suscripcion WHERE endpoint = %s", (endpoint,))
+            conn.commit()
         finally:
             cursor.close()
             conn.close()

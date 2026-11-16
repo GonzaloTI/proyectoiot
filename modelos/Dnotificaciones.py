@@ -2,29 +2,35 @@ from datos import Database
 
 class Dnotificaciones:
     """
-    Modelo de datos para la tabla 'subscriptions' (Suscripciones Web Push).
+    Modelo de datos para la tabla 'suscripcion' (Suscripciones Web Push asociadas a usuarios).
     Responsable de persistir y recuperar los endpoints y llaves de suscripción.
     """
-    def __init__(self, db_name='datos.db'):
+    def __init__(self, db_name='postgres'):
         self.db = Database(db_name=db_name)
 
     def inicializar_tabla(self):
         """
-        Garantiza que la tabla de suscripciones esté creada en la base de datos.
+        Garantiza que la tabla 'suscripcion' esté creada en la base de datos.
         """
         self.db.init_db()
 
-    def guardar_suscripcion(self, endpoint, p256dh, auth):
+    def guardar_suscripcion(self, endpoint, p256dh, auth, id_usuario=None):
         """
-        Inserta o actualiza una suscripción Web Push y retorna el conteo total.
+        Inserta o actualiza una suscripción Web Push vinculada a un id_usuario y retorna el conteo total.
         """
-        return self.db.save_push_subscription(endpoint, p256dh, auth)
+        return self.db.save_push_subscription(endpoint, p256dh, auth, id_usuario=id_usuario)
 
-    def obtener_suscripciones(self):
+    def obtener_suscripciones(self, id_usuario=None):
         """
-        Obtiene todas las suscripciones Web Push activas registradas.
+        Obtiene todas las suscripciones Web Push activas registradas (o filtradas por id_usuario).
         """
-        return self.db.get_push_subscriptions()
+        return self.db.get_push_subscriptions(id_usuario=id_usuario)
+
+    def eliminar_suscripcion(self, endpoint):
+        """
+        Elimina una suscripción inválida o expirada.
+        """
+        return self.db.delete_push_subscription(endpoint)
 
     # Alias en inglés para compatibilidad
     init_db = inicializar_tabla

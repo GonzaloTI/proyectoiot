@@ -167,7 +167,9 @@ def index():
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
-    res, status_code = procesar_suscripcion(request.get_json())
+    data = request.get_json(silent=True) or {}
+    user_id = session.get('user_id') or data.get('id_usuario')
+    res, status_code = procesar_suscripcion(data, user_id=user_id)
     return jsonify(res), status_code
 
 @app.route('/send-notification', methods=['POST'])

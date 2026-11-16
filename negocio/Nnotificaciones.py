@@ -31,9 +31,10 @@ def init_push_db():
     d_notificaciones.inicializar_tabla()
 
 
-def procesar_suscripcion(data):
+def procesar_suscripcion(data, user_id=None):
     """
-    Procesa y guarda los datos de la suscripción Web Push enviada desde el navegador.
+    Procesa y guarda los datos de la suscripción Web Push en la tabla 'suscripcion'
+    asociada al usuario del dispositivo.
     """
     print("\n==============================")
     print("📩 RECIBIENDO SUSCRIPCIÓN WEB PUSH")
@@ -54,23 +55,29 @@ def procesar_suscripcion(data):
     if not auth:
         auth = data.get("auth")
 
+    # Extraer user_id del parámetro o del payload JSON
+    if not user_id:
+        user_id = data.get("id_usuario")
+
     print(f"Endpoint: {endpoint}")
     print(f"p256dh: {p256dh}")
     print(f"auth: {auth}")
+    print(f"id_usuario: {user_id}")
 
     if not endpoint or not p256dh or not auth:
         return {"success": False, "message": "Faltan datos obligatorios de la suscripción"}, 400
 
     try:
-        total = d_notificaciones.guardar_suscripcion(endpoint, p256dh, auth)
+        total = d_notificaciones.guardar_suscripcion(endpoint, p256dh, auth, id_usuario=user_id)
 
-        print("✅ SUSCRIPCIÓN GUARDADA CORRECTAMENTE")
-        print(f"Total de suscripciones activas: {total}")
+        print("✅ SUSCRIPCIÓN GUARDADA CORRECTAMENTE EN TABLA 'suscripcion'")
+        print(f"Total de suscripciones activas: {total} (Usuario ID: {user_id})")
 
         return {
             "success": True,
             "message": "Suscripción guardada",
-            "total": total
+            "total": total,
+            "id_usuario": user_id
         }, 200
 
     except Exception as e:
@@ -120,13 +127,16 @@ def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una noti
 
 def obtener_suscripciones_debug():
     """
-    Obtiene un resumen de suscripciones registradas para depuración a través de Dnotificaciones.
+    Obtiene un resumen de suscripciones registradas en la tabla 'suscripcion'
+    junto al usuario asociado para depuración a través de Dnotificaciones.
     """
     subscriptions = d_notificaciones.obtener_suscripciones()
 
     return [
         {
             "id": row["id"],
+            "id_usuario": row.get("id_usuario"),
+            "usuario": row.get("usuario"),
             "endpoint": row["endpoint"][:80] + "..." if len(row["endpoint"]) > 80 else row["endpoint"],
             "p256dh": row["p256dh"][:20] + "..." if len(row["p256dh"]) > 20 else row["p256dh"],
             "auth": row["auth"][:20] + "..." if len(row["auth"]) > 20 else row["auth"]
