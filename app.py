@@ -1,4 +1,7 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
+from flask import (
+    Flask, request, jsonify, render_template, redirect, url_for,
+    session, flash, send_from_directory, make_response
+)
 from functools import wraps
 # pyrefly: ignore [missing-import]
 from negocio.Nsession import procesar_login, cerrar_sesion
@@ -110,7 +113,7 @@ def inject_permissions():
 @app.before_request
 def check_authentication():
     # Excluir rutas públicas: login, archivos estáticos, ingesta de datos, subida de detecciones y suscripción a notificaciones
-    if request.endpoint in ['login', 'logout', 'static', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'subir_deteccion', 'api_obtener_ultima_deteccion']:
+    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'subir_deteccion', 'api_obtener_ultima_deteccion']:
         return None
     
     # Si el usuario no ha iniciado sesión
@@ -139,6 +142,17 @@ def login():
 def logout():
     cerrar_sesion()
     return redirect(url_for('login'))
+
+@app.route('/sw.js')
+def service_worker():
+    """
+    Entrega el Service Worker con cabeceras de alcance global (Service-Worker-Allowed: /)
+    para que pueda controlar todas las rutas de la aplicación y gestionar Web Push.
+    """
+    response = make_response(send_from_directory('static', 'sw.js'))
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Service-Worker-Allowed'] = '/'
+    return response
 
 @app.route('/')
 def index():
