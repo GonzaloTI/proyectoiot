@@ -201,6 +201,59 @@
       color: #fff;
     }
 
+    /* Badges de Estado y Evaluación adaptables a Modo Claro y Oscuro */
+    .badge-eval-status {
+      background-color: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--card-border);
+      font-weight: 500;
+    }
+    body.light-theme .badge-eval-status {
+      background-color: #f1f2f6 !important;
+      color: #4b6584 !important;
+      border: 1px solid #dcdde1 !important;
+    }
+
+    .badge-eval-active {
+      background-color: rgba(46, 213, 115, 0.15) !important;
+      color: #2ed573 !important;
+      border: 1px solid rgba(46, 213, 115, 0.35) !important;
+      font-weight: 600;
+    }
+    body.light-theme .badge-eval-active {
+      background-color: #e8f8f0 !important;
+      color: #10ac84 !important;
+      border: 1px solid #b8e994 !important;
+    }
+
+    .badge-eval-manual {
+      background-color: rgba(255, 165, 2, 0.15) !important;
+      color: #ffa502 !important;
+      border: 1px solid rgba(255, 165, 2, 0.35) !important;
+      font-weight: 600;
+    }
+    body.light-theme .badge-eval-manual {
+      background-color: #fff4e5 !important;
+      color: #d68100 !important;
+      border: 1px solid #ffd8a8 !important;
+    }
+
+    /* Evitar texto oscuro sobre fondo negro en modo claro */
+    body.light-theme .bg-dark {
+      background-color: #f1f2f6 !important;
+      color: #2f3640 !important;
+    }
+
+    body.light-theme .alert-dark {
+      background-color: rgba(0, 0, 0, 0.03) !important;
+      border-color: rgba(0, 0, 0, 0.1) !important;
+      color: #2f3640 !important;
+    }
+
+    body.light-theme .nav-pills-custom {
+      background-color: rgba(0, 0, 0, 0.06) !important;
+    }
+
     /* Modales */
     .modal-custom-content {
       background-color: rgba(22, 28, 45, 0.96) !important;
@@ -335,7 +388,7 @@
                   <span class="led-indicator led-off" id="r1-led"></span>
                   <span class="fw-bold fs-7" id="r1-status-text">DESACTIVADO</span>
                 </div>
-                <span class="badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8" id="r1-eval-badge">En Espera</span>
+                <span class="badge badge-eval-status px-2.5 py-1 rounded-pill fs-8" id="r1-eval-badge">En Espera</span>
               </div>
             </div>
 
@@ -522,7 +575,7 @@
                   <span class="led-indicator led-off" id="r2-led"></span>
                   <span class="fw-bold fs-7" id="r2-status-text">DESACTIVADO</span>
                 </div>
-                <span class="badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8" id="r2-eval-badge">En Espera</span>
+                <span class="badge badge-eval-status px-2.5 py-1 rounded-pill fs-8" id="r2-eval-badge">En Espera</span>
               </div>
             </div>
 
@@ -1085,12 +1138,17 @@
     }
 
     function toggleManualRelay(relayNum) {
+      // 1. Deshabilitar inmediatamente el switch de Automatización Inteligente
+      const switchEl = document.getElementById(`r${relayNum}-enabled`);
+      if (switchEl) switchEl.checked = false;
       if (relayNum === 1) {
+        configActuadores.rele1.enabled = false;
         configActuadores.rele1.manualOverride = !configActuadores.rele1.manualOverride;
-        logConsole(`Relé 1 manual override: ${configActuadores.rele1.manualOverride ? 'ON' : 'OFF'}`);
+        logConsole(`Relé 1: Automatización deshabilitada. Manual forzado: ${configActuadores.rele1.manualOverride ? 'ON' : 'OFF'}`);
       } else {
+        configActuadores.rele2.enabled = false;
         configActuadores.rele2.manualOverride = !configActuadores.rele2.manualOverride;
-        logConsole(`Relé 2 manual override: ${configActuadores.rele2.manualOverride ? 'ON' : 'OFF'}`);
+        logConsole(`Relé 2: Automatización deshabilitada. Manual forzado: ${configActuadores.rele2.manualOverride ? 'ON' : 'OFF'}`);
       }
       evaluarReglas();
     }
@@ -1256,12 +1314,19 @@
       const simReason = document.getElementById(`sim-r${relayNum}-reason-text`);
       const card = document.getElementById(`sim-r${relayNum}-verdict-card`);
 
+      const isManual = (relayNum === 1) ? configActuadores.rele1.manualOverride : configActuadores.rele2.manualOverride;
+
       if (isActive) {
         ledTop.className = 'led-indicator led-on';
         statusText.innerText = 'ENCENDIDO';
         statusText.className = 'fw-bold fs-7 text-success';
-        evalBadge.className = 'badge bg-success text-white px-2 py-0.5 rounded-pill fs-8';
-        evalBadge.innerText = 'Regla Cumplida';
+        if (isManual) {
+          evalBadge.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
+          evalBadge.innerText = 'Control Manual: Forzado ON (Auto OFF)';
+        } else {
+          evalBadge.className = 'badge badge-eval-active px-2.5 py-1 rounded-pill fs-8';
+          evalBadge.innerText = reason;
+        }
 
         simLed.className = 'led-indicator led-on';
         simBadge.className = 'badge bg-success text-white px-2.5 py-1 rounded-pill fs-8';
@@ -1271,8 +1336,13 @@
         ledTop.className = 'led-indicator led-off';
         statusText.innerText = 'DESACTIVADO';
         statusText.className = 'fw-bold fs-7 text-secondary';
-        evalBadge.className = 'badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8';
-        evalBadge.innerText = 'Condición No Cumplida';
+        if (isManual) {
+          evalBadge.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
+          evalBadge.innerText = 'Control Manual: Forzado OFF (Auto OFF)';
+        } else {
+          evalBadge.className = 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+          evalBadge.innerText = reason;
+        }
 
         simLed.className = 'led-indicator led-off';
         simBadge.className = 'badge bg-secondary px-2.5 py-1 rounded-pill fs-8';

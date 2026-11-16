@@ -94,21 +94,35 @@ def obtener_historial(relay_state, limit=50):
 def actualizar_estado_rele(relay_state, data):
     """
     Actualiza la configuración manual o automática de los relés enviada por la interfaz.
+    Si se solicita alternar o forzar un relé, activa el modo manual para darle prioridad al operador.
     """
     if "manual_mode" in data:
         relay_state["manual_mode"] = bool(data["manual_mode"])
-    if "manual_state" in data:
-        relay_state["manual_state"] = bool(data["manual_state"])
-    if "manual_state_2" in data:
-        relay_state["manual_state_2"] = bool(data["manual_state_2"])
 
-    # Soporte para toggle individual mediante relay_id (1 o 2)
-    if "relay_id" in data and "state" in data:
-        rid = int(data["relay_id"])
+    # Soporte para toggle simple {"relay": 1} o {"relay_id": 1}
+    relay_num = data.get("relay") or data.get("relay_id")
+    if relay_num is not None:
+        rid = int(relay_num)
+        relay_state["manual_mode"] = True
+        if "state" in data:
+            target_state = bool(data["state"])
+        else:
+            # Si no viene estado explícito, alternar el estado actual
+            curr = relay_state.get("manual_state", False) if rid == 1 else relay_state.get("manual_state_2", False)
+            target_state = not curr
+
         if rid == 1:
-            relay_state["manual_state"] = bool(data["state"])
+            relay_state["manual_state"] = target_state
         elif rid == 2:
-            relay_state["manual_state_2"] = bool(data["state"])
+            relay_state["manual_state_2"] = target_state
+
+    if "manual_state" in data:
+        relay_state["manual_mode"] = True
+        relay_state["manual_state"] = bool(data["manual_state"])
+
+    if "manual_state_2" in data:
+        relay_state["manual_mode"] = True
+        relay_state["manual_state_2"] = bool(data["manual_state_2"])
 
     return {
         "status": "ok",

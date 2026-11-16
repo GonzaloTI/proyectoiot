@@ -133,6 +133,59 @@
     color: #fff;
   }
 
+  /* Badges de Estado y Evaluación adaptables a Modo Claro y Oscuro */
+  .badge-eval-status {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--card-border);
+    font-weight: 500;
+  }
+  body.light-theme .badge-eval-status {
+    background-color: #f1f2f6 !important;
+    color: #4b6584 !important;
+    border: 1px solid #dcdde1 !important;
+  }
+
+  .badge-eval-active {
+    background-color: rgba(46, 213, 115, 0.15) !important;
+    color: #2ed573 !important;
+    border: 1px solid rgba(46, 213, 115, 0.35) !important;
+    font-weight: 600;
+  }
+  body.light-theme .badge-eval-active {
+    background-color: #e8f8f0 !important;
+    color: #10ac84 !important;
+    border: 1px solid #b8e994 !important;
+  }
+
+  .badge-eval-manual {
+    background-color: rgba(255, 165, 2, 0.15) !important;
+    color: #ffa502 !important;
+    border: 1px solid rgba(255, 165, 2, 0.35) !important;
+    font-weight: 600;
+  }
+  body.light-theme .badge-eval-manual {
+    background-color: #fff4e5 !important;
+    color: #d68100 !important;
+    border: 1px solid #ffd8a8 !important;
+  }
+
+  /* Evitar texto oscuro sobre fondo negro en modo claro */
+  body.light-theme .bg-dark {
+    background-color: #f1f2f6 !important;
+    color: #2f3640 !important;
+  }
+
+  body.light-theme .alert-dark {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #2f3640 !important;
+  }
+
+  body.light-theme .nav-pills-custom {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+  }
+
   .fs-7 { font-size: 0.88rem; }
   .fs-8 { font-size: 0.78rem; }
 </style>
@@ -214,7 +267,7 @@
                 <span class="led-indicator led-off" id="r1-led"></span>
                 <span class="fw-bold fs-7" id="r1-status-text">DESACTIVADO</span>
               </div>
-              <span class="badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8" id="r1-eval-badge">En Espera</span>
+              <span class="badge badge-eval-status px-2.5 py-1 rounded-pill fs-8" id="r1-eval-badge">En Espera</span>
             </div>
           </div>
 
@@ -401,7 +454,7 @@
                 <span class="led-indicator led-off" id="r2-led"></span>
                 <span class="fw-bold fs-7" id="r2-status-text">DESACTIVADO</span>
               </div>
-              <span class="badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8" id="r2-eval-badge">En Espera</span>
+              <span class="badge badge-eval-status px-2.5 py-1 rounded-pill fs-8" id="r2-eval-badge">En Espera</span>
             </div>
           </div>
 
@@ -861,12 +914,26 @@
           const eval1 = document.getElementById('r1-eval-badge');
           if (eval1 && data.smart_eval.rele1) {
             eval1.innerText = data.smart_eval.rele1.reason;
-            eval1.className = data.smart_eval.rele1.active ? 'badge bg-success text-white px-2 py-0.5 rounded-pill fs-8' : 'badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8';
+            eval1.className = data.smart_eval.rele1.active ? 'badge badge-eval-active px-2.5 py-1 rounded-pill fs-8' : 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
           }
           const eval2 = document.getElementById('r2-eval-badge');
           if (eval2 && data.smart_eval.rele2) {
             eval2.innerText = data.smart_eval.rele2.reason;
-            eval2.className = data.smart_eval.rele2.active ? 'badge bg-success text-white px-2 py-0.5 rounded-pill fs-8' : 'badge bg-dark text-secondary px-2 py-0.5 rounded-pill fs-8';
+            eval2.className = data.smart_eval.rele2.active ? 'badge badge-eval-active px-2.5 py-1 rounded-pill fs-8' : 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+          }
+        }
+
+        // Si el relé está deshabilitado para automatización o en modo manual
+        if (data.relay_state && data.relay_state.manual_mode) {
+          const eval1 = document.getElementById('r1-eval-badge');
+          if (eval1 && !configActuadores.rele1.enabled) {
+            eval1.innerText = r1_online ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
+            eval1.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
+          }
+          const eval2 = document.getElementById('r2-eval-badge');
+          if (eval2 && !configActuadores.rele2.enabled) {
+            eval2.innerText = r2_online ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
+            eval2.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
           }
         }
       }
@@ -979,16 +1046,56 @@
 
   async function toggleManualRelay(relayNum) {
     try {
-      const res = await fetch('/api/relay/toggle', {
+      // 1. Deshabilitar inmediatamente el switch de Automatización Inteligente en UI y memoria
+      const switchEl = document.getElementById(`r${relayNum}-enabled`);
+      if (switchEl) switchEl.checked = false;
+      if (relayNum === 1) {
+        configActuadores.rele1.enabled = false;
+      } else {
+        configActuadores.rele2.enabled = false;
+      }
+
+      // 2. Determinar si actualmente está encendido o apagado para alternarlo
+      const statusText = document.getElementById(`r${relayNum}-status-text`);
+      const isCurrentlyOn = statusText ? statusText.innerText.includes('ENCENDIDO') : false;
+      const targetState = !isCurrentlyOn;
+
+      // 3. Notificar al backend para conmutar el relé físico
+      const resToggle = await fetch('/api/relay/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ relay: relayNum })
+        body: JSON.stringify({
+          relay: relayNum,
+          relay_id: relayNum,
+          state: targetState,
+          manual_mode: true,
+          ...(relayNum === 1 ? { manual_state: targetState } : { manual_state_2: targetState })
+        })
       });
-      const data = await res.json();
-      if (data.status === 'ok') {
-        logConsole(`Relé ${relayNum} alternado manualmente.`);
-        actualizarEstadoHardwareReal();
+      const dataToggle = await resToggle.json();
+
+      // 4. Guardar la configuración de actuadores deshabilitada en el backend
+      await fetch('/api/actuadores/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(configActuadores)
+      });
+
+      // 5. Actualización visual inmediata en UI
+      const led = document.getElementById(`r${relayNum}-led`);
+      if (led && statusText) {
+        led.className = targetState ? 'led-indicator led-on' : 'led-indicator led-off';
+        statusText.innerText = targetState ? 'ENCENDIDO' : 'DESACTIVADO';
+        statusText.className = targetState ? 'fw-bold fs-7 text-success' : 'fw-bold fs-7 text-secondary';
       }
+
+      const evalBadge = document.getElementById(`r${relayNum}-eval-badge`);
+      if (evalBadge) {
+        evalBadge.innerText = targetState ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
+        evalBadge.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
+      }
+
+      logConsole(`⚡ Relé ${relayNum} ${targetState ? 'ENCENDIDO' : 'APAGADO'} manualmente. Automatización Inteligente deshabilitada.`);
     } catch (e) {
       alert("Error al alternar relé manual: " + e.message);
     }
