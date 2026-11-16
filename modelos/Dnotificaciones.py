@@ -20,11 +20,17 @@ class Dnotificaciones:
         """
         return self.db.save_push_subscription(endpoint, p256dh, auth, id_usuario=id_usuario)
 
-    def obtener_suscripciones(self, id_usuario=None):
+    def obtener_suscripciones(self, id_usuario=None, user_ids=None):
         """
-        Obtiene todas las suscripciones Web Push activas registradas (o filtradas por id_usuario).
+        Obtiene todas las suscripciones Web Push activas registradas (o filtradas por id_usuario / user_ids).
         """
-        return self.db.get_push_subscriptions(id_usuario=id_usuario)
+        return self.db.get_push_subscriptions(id_usuario=id_usuario, user_ids=user_ids)
+
+    def obtener_usuarios_para_notificaciones(self):
+        """
+        Obtiene la lista de usuarios y el estado de sus suscripciones para elegir destinatarios.
+        """
+        return self.db.get_users_for_notifications()
 
     def eliminar_suscripcion(self, endpoint):
         """

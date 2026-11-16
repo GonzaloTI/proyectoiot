@@ -746,20 +746,30 @@ class Database:
             cursor.close()
             conn.close()
 
-    def get_push_subscriptions(self, id_usuario=None):
+    def get_push_subscriptions(self, id_usuario=None, user_ids=None):
         """
         Obtiene las suscripciones Web Push activas desde la tabla 'suscripcion',
         incluyendo el nombre del usuario vinculado.
+        Permite filtrar por un único id_usuario o por una lista de user_ids.
         """
         conn = self.get_connection()
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         try:
-            if id_usuario:
+            if user_ids and isinstance(user_ids, (list, tuple)) and len(user_ids) > 0:
+                cursor.execute("""
+                    SELECT s.id, s.id_usuario, u.usuario, s.endpoint, s.p256dh, s.auth
+                    FROM suscripcion s
+                    LEFT JOIN usuario u ON s.id_usuario = u.id
+                    WHERE s.id_usuario = ANY(%s)
+                    ORDER BY s.id ASC
+                """, (list(user_ids),))
+            elif id_usuario:
                 cursor.execute("""
                     SELECT s.id, s.id_usuario, u.usuario, s.endpoint, s.p256dh, s.auth
                     FROM suscripcion s
                     LEFT JOIN usuario u ON s.id_usuario = u.id
                     WHERE s.id_usuario = %s
+                    ORDER BY s.id ASC
                 """, (id_usuario,))
             else:
                 cursor.execute("""
@@ -770,6 +780,28 @@ class Database:
                 """)
             rows = cursor.fetchall()
             return rows
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_users_for_notifications(self):
+        """
+        Retorna la lista de usuarios activos junto al conteo de dispositivos suscritos
+        para la selección de destinatarios en el centro de notificaciones.
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        try:
+            cursor.execute("""
+                SELECT u.id, u.usuario, COUNT(s.id) as dispositivos
+                FROM usuario u
+                LEFT JOIN suscripcion s ON u.id = s.id_usuario
+                WHERE u.estado = 1
+                GROUP BY u.id, u.usuario
+                ORDER BY u.usuario ASC
+            """)
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
         finally:
             cursor.close()
             conn.close()

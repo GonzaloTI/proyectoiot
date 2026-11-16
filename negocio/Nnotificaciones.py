@@ -85,11 +85,14 @@ def procesar_suscripcion(data, user_id=None):
         return {"success": False, "message": str(e)}, 500
 
 
-def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una notificación de prueba del sistema!", tipo="aviso"):
+def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una notificación de prueba del sistema!", tipo="aviso", destinatarios="todos", user_ids=None):
     """
-    Envía una notificación Push a todas las suscripciones registradas a través de Dnotificaciones.
+    Envía una notificación Push a todas las suscripciones o a una lista específica de usuarios seleccionados.
     """
-    subscriptions = d_notificaciones.obtener_suscripciones()
+    if destinatarios == "custom" and user_ids:
+        subscriptions = d_notificaciones.obtener_suscripciones(user_ids=user_ids)
+    else:
+        subscriptions = d_notificaciones.obtener_suscripciones()
 
     payload = json.dumps({
         "title": title,
@@ -117,12 +120,27 @@ def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una noti
             )
             enviados += 1
         except WebPushException as e:
-            print(f"Error enviando WebPush: {e}")
+            print(f"Error enviando WebPush a {subscription.get('usuario', 'desconocido')}: {e}")
+            # Si el endpoint ya expiró o fue desregistrado (HTTP 404 / 410)
+            if hasattr(e, 'response') and e.response and e.response.status_code in [404, 410]:
+                try:
+                    d_notificaciones.eliminar_suscripcion(subscription["endpoint"])
+                    print(f"Suscripción expirada eliminada para usuario {subscription.get('usuario')}")
+                except Exception:
+                    pass
 
     return {
         "success": True,
-        "enviados": enviados
+        "enviados": enviados,
+        "total_destinatarios": len(subscriptions)
     }
+
+
+def obtener_usuarios_para_notificaciones():
+    """
+    Retorna la lista de usuarios y el conteo de dispositivos suscritos para la interfaz de envío selectivo.
+    """
+    return d_notificaciones.obtener_usuarios_para_notificaciones()
 
 
 def obtener_suscripciones_debug():

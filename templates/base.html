@@ -263,6 +263,24 @@
             margin-bottom: 0.25rem;
           }
         }
+
+        body.light-theme #contenedorListaUsuarios {
+          background: rgba(0, 0, 0, 0.04) !important;
+          border-color: rgba(0, 0, 0, 0.12) !important;
+        }
+
+        body.light-theme .form-check-inline.bg-dark {
+          background-color: rgba(0, 0, 0, 0.04) !important;
+          color: #2f3640 !important;
+        }
+
+        .user-check-item:hover {
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        body.light-theme .user-check-item:hover {
+          background: rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -438,12 +456,51 @@
 
                   <div class="mb-3 text-start">
                     <label for="pushBody" class="form-label small fw-semibold text-secondary">Mensaje / Texto a Enviar</label>
-                    <textarea class="form-control form-input-custom rounded-3" id="pushBody" rows="3" placeholder="Escribe el mensaje detallado que recibirán todos los usuarios..." maxlength="200"></textarea>
+                    <textarea class="form-control form-input-custom rounded-3" id="pushBody" rows="2" placeholder="Escribe el mensaje detallado que recibirán los usuarios..." maxlength="200"></textarea>
+                  </div>
+
+                  <!-- SELECCIÓN DE DESTINATARIOS -->
+                  <div class="mb-3 text-start">
+                    <label class="form-label small fw-semibold text-secondary d-flex justify-content-between align-items-center mb-1">
+                      <span><i class="bi bi-people-fill me-1"></i> Destinatarios de la Notificación</span>
+                    </label>
+
+                    <!-- Opciones: Enviar a Todos (por defecto) o Personalizado -->
+                    <div class="d-flex gap-2 gap-sm-3 mb-2">
+                      <div class="form-check form-check-inline border border-secondary-subtle rounded-3 p-2 px-3 flex-fill bg-dark bg-opacity-25 d-flex align-items-center m-0">
+                        <input class="form-check-input mt-0 me-2 cursor-pointer" type="radio" name="notifDestinatarios" id="destTodos" value="todos" checked>
+                        <label class="form-check-label fw-semibold cursor-pointer mb-0 small" for="destTodos">
+                          🌐 Enviar a todos
+                        </label>
+                      </div>
+                      <div class="form-check form-check-inline border border-secondary-subtle rounded-3 p-2 px-3 flex-fill bg-dark bg-opacity-25 d-flex align-items-center m-0">
+                        <input class="form-check-input mt-0 me-2 cursor-pointer" type="radio" name="notifDestinatarios" id="destCustom" value="custom">
+                        <label class="form-check-label fw-semibold cursor-pointer mb-0 small" for="destCustom">
+                          🎯 Personalizado
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Lista con casillas check de usuarios -->
+                    <div id="contenedorListaUsuarios" class="border border-secondary-subtle rounded-3 p-2 d-none" style="max-height: 160px; overflow-y: auto; background: rgba(0, 0, 0, 0.15);">
+                      <div class="d-flex justify-content-between align-items-center px-2 py-1 mb-1 border-bottom border-secondary-subtle small text-secondary">
+                        <span class="fw-semibold small">Usuarios a notificar:</span>
+                        <div>
+                          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-info me-2 small" id="btnSelectAllUsers" style="font-size: 0.75rem;">Marcar todos</button>
+                          <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-secondary small" id="btnDeselectAllUsers" style="font-size: 0.75rem;">Desmarcar todos</button>
+                        </div>
+                      </div>
+                      <div id="listaUsuariosDestinatarios" class="px-1 py-1">
+                        <div class="text-center text-secondary small py-2">
+                          <span class="spinner-border spinner-border-sm me-1" role="status"></span> Cargando usuarios...
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div class="d-flex justify-content-end">
                     <button type="button" id="btnEnviarBroadcast" class="btn btn-warning rounded-pill px-4 fw-bold d-flex align-items-center gap-2">
-                      <i class="bi bi-send-fill"></i> Enviar Notificación a Todos
+                      <i class="bi bi-send-fill"></i> Enviar Notificación
                     </button>
                   </div>
                 </form>
@@ -568,25 +625,102 @@
             }
         }
 
+        // Gestión de Destinatarios (Enviar a todos vs Personalizado)
+        let usuariosCargadosParaPush = false;
+
+        async function cargarUsuariosDestinatarios() {
+            const listaEl = document.getElementById('listaUsuariosDestinatarios');
+            if (!listaEl) return;
+            try {
+                const resp = await fetch('/api/notificaciones/destinatarios');
+                if (!resp.ok) throw new Error("No se pudo obtener la lista");
+                const data = await resp.json();
+                if (data && data.usuarios && data.usuarios.length > 0) {
+                    listaEl.innerHTML = data.usuarios.map(u => `
+                        <div class="form-check py-1 px-2 rounded user-check-item d-flex align-items-center">
+                            <input class="form-check-input user-push-check m-0 cursor-pointer" type="checkbox" value="${u.id}" id="userCheck_${u.id}" checked>
+                            <label class="form-check-label ms-2 cursor-pointer flex-grow-1 small d-flex justify-content-between align-items-center" for="userCheck_${u.id}">
+                                <span class="fw-medium">${u.usuario}</span>
+                                ${u.dispositivos > 0 
+                                    ? `<span class="badge bg-success bg-opacity-25 text-success small" style="font-size:0.7rem;"><i class="bi bi-phone me-1"></i>${u.dispositivos} disp.</span>` 
+                                    : `<span class="badge bg-secondary bg-opacity-25 text-secondary small" style="font-size:0.7rem;">sin disp.</span>`}
+                            </label>
+                        </div>
+                    `).join('');
+                    usuariosCargadosParaPush = true;
+                } else {
+                    listaEl.innerHTML = '<div class="text-secondary small p-2 text-center">No hay usuarios disponibles.</div>';
+                }
+            } catch (err) {
+                listaEl.innerHTML = '<div class="text-danger small p-2 text-center">Error al cargar usuarios.</div>';
+            }
+        }
+
+        document.querySelectorAll('input[name="notifDestinatarios"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const contenedor = document.getElementById('contenedorListaUsuarios');
+                if (!contenedor) return;
+                if (e.target.value === 'custom') {
+                    contenedor.classList.remove('d-none');
+                    if (!usuariosCargadosParaPush) {
+                        cargarUsuariosDestinatarios();
+                    }
+                } else {
+                    contenedor.classList.add('d-none');
+                }
+            });
+        });
+
+        document.getElementById('btnSelectAllUsers')?.addEventListener('click', () => {
+            document.querySelectorAll('.user-push-check').forEach(chk => chk.checked = true);
+        });
+
+        document.getElementById('btnDeselectAllUsers')?.addEventListener('click', () => {
+            document.querySelectorAll('.user-push-check').forEach(chk => chk.checked = false);
+        });
+
+        // Pre-cargar usuarios al cambiar a la pestaña Enviar
+        document.getElementById('enviar-tab')?.addEventListener('shown.bs.tab', () => {
+            if (!usuariosCargadosParaPush) {
+                cargarUsuariosDestinatarios();
+            }
+        });
+
         async function enviarNotificacionBroadcast() {
             if (!pushEstado) return;
             const tipo = document.querySelector('input[name="notifTipo"]:checked')?.value || 'aviso';
             const title = document.getElementById("pushTitle")?.value.trim() || '';
             const body = document.getElementById("pushBody")?.value.trim() || '';
 
+            const destTipo = document.querySelector('input[name="notifDestinatarios"]:checked')?.value || 'todos';
+            let user_ids = [];
+
+            if (destTipo === 'custom') {
+                const checks = document.querySelectorAll('.user-push-check:checked');
+                checks.forEach(chk => user_ids.push(parseInt(chk.value)));
+                if (user_ids.length === 0) {
+                    pushEstado.textContent = "⚠️ Debes marcar al menos un usuario para enviar la notificación personalizada.";
+                    pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-warning bg-opacity-25 text-warning border border-warning fw-semibold";
+                    return;
+                }
+            }
+
             try {
                 pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-dark bg-opacity-50 text-light border border-secondary-subtle";
-                pushEstado.textContent = "🚀 Enviando notificación a todos los usuarios registrados...";
+                pushEstado.textContent = destTipo === 'custom'
+                    ? `🚀 Enviando notificación a los ${user_ids.length} usuario(s) seleccionado(s)...`
+                    : "🚀 Enviando notificación a todos los usuarios registrados...";
 
                 const response = await fetch("/send-notification", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ tipo, title, body })
+                    body: JSON.stringify({ tipo, title, body, destinatarios: destTipo, user_ids })
                 });
 
                 const data = await response.json();
                 if (data.success) {
-                    pushEstado.textContent = `✅ Notificación [${tipo.toUpperCase()}] enviada a ${data.enviados} dispositivo(s).`;
+                    const detalleDest = destTipo === 'custom' ? ` a los usuarios seleccionados` : ` a todos los usuarios`;
+                    pushEstado.textContent = `✅ Notificación [${tipo.toUpperCase()}] enviada a ${data.enviados} dispositivo(s)${detalleDest}.`;
                     pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-success bg-opacity-25 text-success border border-success fw-bold";
                     if (document.getElementById("pushTitle")) document.getElementById("pushTitle").value = "";
                     if (document.getElementById("pushBody")) document.getElementById("pushBody").value = "";
@@ -595,7 +729,7 @@
                     pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
                 }
             } catch (err) {
-                console.error("Error enviando broadcast:", err);
+                console.error("Error enviando notificación:", err);
                 pushEstado.textContent = "❌ Error: " + err.message;
                 pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
             }

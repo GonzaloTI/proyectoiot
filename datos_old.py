@@ -637,21 +637,31 @@ class Database:
         finally:
             conn.close()
 
-    def get_push_subscriptions(self, id_usuario=None):
+    def get_push_subscriptions(self, id_usuario=None, user_ids=None):
         """
         Obtiene las suscripciones Web Push activas desde la tabla 'suscripcion' de SQLite,
-        incluyendo el nombre del usuario vinculado.
+        incluyendo el nombre del usuario vinculado. Permite filtrar por id_usuario o lista de user_ids.
         """
         conn = sqlite3.connect(self.db_name)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         try:
-            if id_usuario:
+            if user_ids and isinstance(user_ids, (list, tuple)) and len(user_ids) > 0:
+                placeholders = ",".join("?" for _ in user_ids)
+                cursor.execute(f"""
+                    SELECT s.id, s.id_usuario, u.usuario, s.endpoint, s.p256dh, s.auth
+                    FROM suscripcion s
+                    LEFT JOIN usuario u ON s.id_usuario = u.id
+                    WHERE s.id_usuario IN ({placeholders})
+                    ORDER BY s.id ASC
+                """, list(user_ids))
+            elif id_usuario:
                 cursor.execute("""
                     SELECT s.id, s.id_usuario, u.usuario, s.endpoint, s.p256dh, s.auth
                     FROM suscripcion s
                     LEFT JOIN usuario u ON s.id_usuario = u.id
                     WHERE s.id_usuario = ?
+                    ORDER BY s.id ASC
                 """, (id_usuario,))
             else:
                 cursor.execute("""
@@ -660,6 +670,27 @@ class Database:
                     LEFT JOIN usuario u ON s.id_usuario = u.id
                     ORDER BY s.id ASC
                 """)
+            rows = cursor.fetchall()
+            return [dict(r) for r in rows]
+        finally:
+            conn.close()
+
+    def get_users_for_notifications(self):
+        """
+        Retorna la lista de usuarios activos junto al conteo de dispositivos suscritos en SQLite.
+        """
+        conn = sqlite3.connect(self.db_name)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT u.id, u.usuario, COUNT(s.id) as dispositivos
+                FROM usuario u
+                LEFT JOIN suscripcion s ON u.id = s.id_usuario
+                WHERE u.estado = 1
+                GROUP BY u.id, u.usuario
+                ORDER BY u.usuario ASC
+            """)
             rows = cursor.fetchall()
             return [dict(r) for r in rows]
         finally:

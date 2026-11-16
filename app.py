@@ -19,6 +19,7 @@ from negocio.Nnotificaciones import (
     procesar_suscripcion,
     enviar_notificacion_push,
     obtener_suscripciones_debug,
+    obtener_usuarios_para_notificaciones,
     VAPID_PUBLIC_KEY
 )
 # pyrefly: ignore [missing-import]
@@ -113,7 +114,7 @@ def inject_permissions():
 @app.before_request
 def check_authentication():
     # Excluir rutas públicas: login, archivos estáticos, ingesta de datos, subida de detecciones y suscripción a notificaciones
-    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'favicon', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'subir_deteccion', 'api_obtener_ultima_deteccion']:
+    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'favicon', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'api_destinatarios_notificaciones', 'subir_deteccion', 'api_obtener_ultima_deteccion']:
         return None
     
     # Si el usuario no ha iniciado sesión
@@ -178,9 +179,22 @@ def send_notification():
     title = data.get('title')
     body = data.get('body')
     tipo = data.get('tipo', 'aviso')
+    destinatarios = data.get('destinatarios', 'todos')
+    user_ids = data.get('user_ids', [])
     
-    res = enviar_notificacion_push(title=title, body=body, tipo=tipo)
+    res = enviar_notificacion_push(
+        title=title,
+        body=body,
+        tipo=tipo,
+        destinatarios=destinatarios,
+        user_ids=user_ids
+    )
     return jsonify(res)
+
+@app.route('/api/notificaciones/destinatarios', methods=['GET'])
+def api_destinatarios_notificaciones():
+    usuarios = obtener_usuarios_para_notificaciones()
+    return jsonify({"status": "ok", "usuarios": usuarios})
 
 @app.route('/debug/subscriptions', methods=['GET'])
 def debug_subscriptions():
