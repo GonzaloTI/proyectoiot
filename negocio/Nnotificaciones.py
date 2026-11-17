@@ -85,20 +85,27 @@ def procesar_suscripcion(data, user_id=None):
         return {"success": False, "message": str(e)}, 500
 
 
-def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una notificación de prueba del sistema!", tipo="aviso", destinatarios="todos", user_ids=None):
+def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una notificación de prueba del sistema!", tipo="aviso", destinatarios="todos", user_ids=None, tag=None, url="/detecciones", renotify=True):
     """
     Envía una notificación Push a todas las suscripciones o a una lista específica de usuarios seleccionados.
+    Soporta 'tag' para evitar acumulación de spam y 'url' para redirección al hacer clic.
     """
     if destinatarios == "custom" and user_ids:
         subscriptions = d_notificaciones.obtener_suscripciones(user_ids=user_ids)
     else:
         subscriptions = d_notificaciones.obtener_suscripciones()
 
-    payload = json.dumps({
+    payload_dict = {
         "title": title,
         "body": body,
-        "tipo": tipo
-    })
+        "tipo": tipo,
+        "url": url,
+        "renotify": renotify
+    }
+    if tag:
+        payload_dict["tag"] = tag
+
+    payload = json.dumps(payload_dict)
 
     enviados = 0
 

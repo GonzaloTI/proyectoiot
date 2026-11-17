@@ -1,0 +1,8 @@
+{
+  "habilitado": true,
+  "intervalo_minutos": 5,
+  "destinatarios": "todos",
+  "user_ids": [],
+  "solo_enfermedades": false,
+  "confianza_minima": 0.5
+}

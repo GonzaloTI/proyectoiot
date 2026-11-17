@@ -1,14 +1,141 @@
 import os
 import uuid
 import time
+import json
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from modelos.Ddetecciones import Ddetecciones
+from negocio.Nnotificaciones import enviar_notificacion_push
 
 # Directorio base para almacenamiento de imágenes de detecciones
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 UPLOADS_DIR = os.path.join(BASE_DIR, 'static', 'uploads', 'detecciones')
 os.makedirs(UPLOADS_DIR, exist_ok=True)
+
+# Archivo de configuración de notificaciones automáticas de detecciones
+CONFIG_NOTIF_FILE = os.path.join(BASE_DIR, 'config_notificaciones_detecciones.json')
+
+DEFAULT_CONFIG_NOTIF = {
+    "habilitado": True,
+    "intervalo_minutos": 5,
+    "destinatarios": "todos",
+    "user_ids": [],
+    "solo_enfermedades": False,
+    "confianza_minima": 0.50
+}
+
+# Buffer en memoria para acumular detecciones en la ventana de tiempo configurada
+_buffer_detecciones = {
+    "total_detecciones": 0,
+    "total_frutos": 0,
+    "clases_conteo": {},
+    "enfermedades_conteo": 0,
+    "inicio_ventana_ts": None,
+    "ultima_notificacion_ts": 0
+}
+
+def obtener_config_notificaciones_detecciones():
+    """
+    Obtiene la configuración de frecuencia y destinatarios de notificaciones para Visión Artificial.
+    """
+    if not os.path.exists(CONFIG_NOTIF_FILE):
+        guardar_config_notificaciones_detecciones(DEFAULT_CONFIG_NOTIF)
+        return dict(DEFAULT_CONFIG_NOTIF)
+    try:
+        with open(CONFIG_NOTIF_FILE, 'r', encoding='utf-8') as f:
+            cfg = json.load(f)
+            merged = dict(DEFAULT_CONFIG_NOTIF)
+            merged.update(cfg)
+            return merged
+    except Exception:
+        return dict(DEFAULT_CONFIG_NOTIF)
+
+def guardar_config_notificaciones_detecciones(nueva_config):
+    """
+    Guarda la configuración de frecuencia y destinatarios de notificaciones para Visión Artificial.
+    """
+    try:
+        merged = dict(DEFAULT_CONFIG_NOTIF)
+        merged.update(nueva_config)
+        with open(CONFIG_NOTIF_FILE, 'w', encoding='utf-8') as f:
+            json.dump(merged, f, indent=2, ensure_ascii=False)
+        return True, "Configuración de notificaciones guardada correctamente."
+    except Exception as e:
+        return False, str(e)
+
+def _acumular_y_evaluar_notificacion(total, clase, conf, enfermedad):
+    """
+    Acumula las detecciones recibidas durante la ventana de tiempo (por defecto 5 min)
+    y despacha una notificación push con resumen acumulado y tag anti-spam.
+    """
+    global _buffer_detecciones
+    cfg = obtener_config_notificaciones_detecciones()
+    if not cfg.get("habilitado", True):
+        return
+
+    # Si se configuró solo notificar anomalías/enfermedades y no hay patología, omitir
+    if cfg.get("solo_enfermedades", False) and not enfermedad:
+        return
+
+    # Si no hay frutos detectados, no acumular
+    if total <= 0:
+        return
+
+    ahora = time.time()
+    if _buffer_detecciones["inicio_ventana_ts"] is None:
+        _buffer_detecciones["inicio_ventana_ts"] = ahora
+
+    _buffer_detecciones["total_detecciones"] += 1
+    _buffer_detecciones["total_frutos"] += total
+    if clase:
+        _buffer_detecciones["clases_conteo"][clase] = _buffer_detecciones["clases_conteo"].get(clase, 0) + total
+    if enfermedad:
+        _buffer_detecciones["enfermedades_conteo"] += total
+
+    intervalo_minutos = max(1, int(cfg.get("intervalo_minutos", 5)))
+    intervalo_segundos = intervalo_minutos * 60
+    tiempo_transcurrido = ahora - _buffer_detecciones["ultima_notificacion_ts"]
+
+    # Si ya transcurrió el intervalo programado
+    if tiempo_transcurrido >= intervalo_segundos:
+        tot_frutos = _buffer_detecciones["total_frutos"]
+        enf_cnt = _buffer_detecciones["enfermedades_conteo"]
+        clases_list = [f"{cnt} {cls}" for cls, cnt in _buffer_detecciones["clases_conteo"].items()]
+        detalle_clases = ", ".join(clases_list) if clases_list else f"{tot_frutos} frutos"
+
+        if enf_cnt > 0:
+            titulo = f"⚠️ Alerta Fragaria: {enf_cnt} Patologías Detectadas"
+            cuerpo = f"Últimos {intervalo_minutos} min: {tot_frutos} frutos ({detalle_clases}). Clic para ver capturas."
+            tipo_notif = "alerta"
+        else:
+            titulo = f" Monitoreo Fragaria: {tot_frutos} Frutos"
+            cuerpo = f"Últimos {intervalo_minutos} min: {detalle_clases}. Clic para ver capturas en vivo."
+            tipo_notif = "aviso"
+
+        destinatarios = cfg.get("destinatarios", "todos")
+        user_ids = cfg.get("user_ids", None)
+
+        try:
+            enviar_notificacion_push(
+                title=titulo,
+                body=cuerpo,
+                tipo=tipo_notif,
+                destinatarios=destinatarios,
+                user_ids=user_ids,
+                tag="alerta-deteccion-fragaria",
+                url="/detecciones",
+                renotify=True
+            )
+        except Exception as e:
+            print(f"[Push Notif Error] {e}")
+
+        # Reiniciar acumulador
+        _buffer_detecciones["total_detecciones"] = 0
+        _buffer_detecciones["total_frutos"] = 0
+        _buffer_detecciones["clases_conteo"] = {}
+        _buffer_detecciones["enfermedades_conteo"] = 0
+        _buffer_detecciones["inicio_ventana_ts"] = ahora
+        _buffer_detecciones["ultima_notificacion_ts"] = ahora
 
 # Instancia del modelo de datos Ddetecciones
 d_detecciones = Ddetecciones()
@@ -110,6 +237,12 @@ def procesar_subida_deteccion(file_storage, datos):
             "consecutive_empty": consecutive_empty_count
         }
 
+        # Evaluar acumulación de notificaciones push automáticas
+        try:
+            _acumular_y_evaluar_notificacion(total, clase, conf, enfermedad)
+        except Exception as e:
+            print(f"[Notif Push Buffer Error] {e}")
+
         return {
             "status": "ok",
             "id": new_id,
@@ -151,6 +284,12 @@ def procesar_subida_deteccion(file_storage, datos):
             "guardado_en_historial": False,
             "consecutive_empty": consecutive_empty_count
         }
+
+        # Evaluar acumulación de notificaciones push automáticas
+        try:
+            _acumular_y_evaluar_notificacion(total, clase, conf, enfermedad)
+        except Exception as e:
+            print(f"[Notif Push Buffer Error] {e}")
 
         return {
             "status": "ok",

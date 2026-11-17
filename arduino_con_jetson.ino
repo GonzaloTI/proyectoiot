@@ -380,7 +380,7 @@ void loop() {
 void controlAutonomoLocal(float temp) {
   if (temp >= 27.0) {
     if (!relay_1_activo || !relay_2_activo) {
-      digitalWrite(RELAY_1_PIN, RELAY_ON);
+      digitalWrite(RELAY_1_PIN, RELAlsusbY_ON);
       relay_1_activo = true;
       digitalWrite(RELAY_2_PIN, RELAY_ON);
       relay_2_activo = true;

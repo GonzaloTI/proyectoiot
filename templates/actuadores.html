@@ -135,14 +135,15 @@
 
   /* Badges de Estado y Evaluación adaptables a Modo Claro y Oscuro */
   .badge-eval-status {
-    background-color: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
-    border: 1px solid var(--card-border);
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid var(--card-border) !important;
     font-weight: 500;
   }
-  body.light-theme .badge-eval-status {
+  body.light-theme .badge-eval-status,
+  [data-bs-theme="light"] .badge-eval-status {
     background-color: #f1f2f6 !important;
-    color: #4b6584 !important;
+    color: #2f3640 !important;
     border: 1px solid #dcdde1 !important;
   }
 
@@ -152,7 +153,8 @@
     border: 1px solid rgba(46, 213, 115, 0.35) !important;
     font-weight: 600;
   }
-  body.light-theme .badge-eval-active {
+  body.light-theme .badge-eval-active,
+  [data-bs-theme="light"] .badge-eval-active {
     background-color: #e8f8f0 !important;
     color: #10ac84 !important;
     border: 1px solid #b8e994 !important;
@@ -164,14 +166,16 @@
     border: 1px solid rgba(255, 165, 2, 0.35) !important;
     font-weight: 600;
   }
-  body.light-theme .badge-eval-manual {
+  body.light-theme .badge-eval-manual,
+  [data-bs-theme="light"] .badge-eval-manual {
     background-color: #fff4e5 !important;
     color: #d68100 !important;
     border: 1px solid #ffd8a8 !important;
   }
 
   /* Evitar texto oscuro sobre fondo negro en modo claro */
-  body.light-theme .bg-dark {
+  body.light-theme .bg-dark,
+  [data-bs-theme="light"] .bg-dark {
     background-color: #f1f2f6 !important;
     color: #2f3640 !important;
   }
@@ -278,7 +282,7 @@
               <label class="form-check-label fs-7 fw-semibold mb-0" for="r1-enabled">Automatización Inteligente</label>
             </div>
             <div class="form-check form-switch m-0">
-              <input class="form-check-input" type="checkbox" id="r1-enabled" checked onchange="evaluarReglasLocales()">
+              <input class="form-check-input" type="checkbox" id="r1-enabled" checked onchange="onAutomationSwitchToggle(1)">
             </div>
           </div>
 
@@ -465,7 +469,7 @@
               <label class="form-check-label fs-7 fw-semibold mb-0" for="r2-enabled">Automatización Inteligente</label>
             </div>
             <div class="form-check form-switch m-0">
-              <input class="form-check-input" type="checkbox" id="r2-enabled" checked onchange="evaluarReglasLocales()">
+              <input class="form-check-input" type="checkbox" id="r2-enabled" checked onchange="onAutomationSwitchToggle(2)">
             </div>
           </div>
 
@@ -1042,6 +1046,39 @@
     buttons.forEach(btn => btn.classList.remove('active'));
     if (btnEl) btnEl.classList.add('active');
     evaluarReglasLocales();
+  }
+
+  async function onAutomationSwitchToggle(relayNum) {
+    const isChecked = document.getElementById(`r${relayNum}-enabled`).checked;
+    if (relayNum === 1) {
+      configActuadores.rele1.enabled = isChecked;
+    } else {
+      configActuadores.rele2.enabled = isChecked;
+    }
+
+    // Si el usuario reactiva la automatización inteligente, desactivar el modo manual forzado
+    if (isChecked) {
+      try {
+        await fetch('/api/relay/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ manual_mode: false })
+        });
+      } catch (e) {}
+    }
+
+    // Guardar cambio en el servidor
+    try {
+      await fetch('/api/actuadores/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(configActuadores)
+      });
+    } catch (e) {}
+
+    evaluarReglasLocales();
+    actualizarEstadoHardwareReal();
+    logConsole(`🤖 Automatización Inteligente para Relé ${relayNum} ${isChecked ? 'HABILITADA' : 'DESHABILITADA'}.`);
   }
 
   async function toggleManualRelay(relayNum) {

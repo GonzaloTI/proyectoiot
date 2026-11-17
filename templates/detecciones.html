@@ -394,6 +394,12 @@
         <option value="0" class="text-dark">⏸️ Pausado</option>
       </select>
     </div>
+    <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-2 d-flex align-items-center gap-1.5"
+      data-bs-toggle="modal" data-bs-target="#modalConfigNotifDeteccion"
+      onclick="cargarConfigNotificacionesDeteccion()"
+      title="Configurar frecuencia y destinatarios de notificaciones automáticas">
+      <i class="bi bi-bell-fill"></i> Notificaciones
+    </button>
     <button class="btn btn-sm btn-outline-info rounded-pill px-3 py-2" id="btnManualRefresh"
       onclick="actualizarDeteccionManual()" title="Refrescar fotograma e historial manualmente">
       <i class="bi bi-arrow-repeat me-1"></i> Actualizar
@@ -714,6 +720,123 @@
             <strong class="text-secondary" id="modalDetFecha">--</strong>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Configuración de Notificaciones de Detección -->
+<div class="modal fade" id="modalConfigNotifDeteccion" tabindex="-1" aria-labelledby="modalConfigNotifDeteccionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content glass-card modal-custom-content border shadow-lg">
+      <div class="modal-header border-bottom border-secondary border-opacity-10 pb-3">
+        <div class="d-flex align-items-center gap-2">
+          <div class="p-2 rounded-circle bg-warning bg-opacity-10 text-warning">
+            <i class="bi bi-bell-fill fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-white mb-0" id="modalConfigNotifDeteccionLabel">Configuración de Notificaciones Fragaria</h5>
+            <small class="text-secondary">Frecuencia anti-spam y destinatarios de alertas de Visión Artificial</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      
+      <div class="modal-body p-4">
+        <!-- Switch Maestro de Notificaciones -->
+        <div class="p-3 rounded-3 mb-4 d-flex align-items-center justify-content-between" style="background: rgba(255, 165, 2, 0.08); border: 1px dashed rgba(255, 165, 2, 0.3);">
+          <div class="d-flex align-items-center gap-2.5">
+            <i class="bi bi-broadcast text-warning fs-4"></i>
+            <div>
+              <label class="form-check-label fw-bold text-white mb-0" for="detNotifHabilitado">Alertas Push Automáticas</label>
+              <div class="small text-secondary">Activa el envío periódico con resumen acumulado de detecciones</div>
+            </div>
+          </div>
+          <div class="form-check form-switch m-0 fs-5">
+            <input class="form-check-input" type="checkbox" id="detNotifHabilitado" checked>
+          </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <!-- Intervalo / Frecuencia -->
+          <div class="col-md-6">
+            <label class="form-label text-secondary small fw-semibold text-uppercase mb-1.5">
+              <i class="bi bi-stopwatch text-info me-1"></i> Frecuencia de Notificaciones:
+            </label>
+            <select class="form-select form-select-dark" id="detNotifIntervalo">
+              <option value="1">Cada 1 minuto (Alta frecuencia)</option>
+              <option value="3">Cada 3 minutos</option>
+              <option value="5" selected>Cada 5 minutos (Por defecto recomendado)</option>
+              <option value="10">Cada 10 minutos</option>
+              <option value="15">Cada 15 minutos</option>
+              <option value="30">Cada 30 minutos</option>
+              <option value="60">Cada 1 hora</option>
+            </select>
+            <small class="text-secondary d-block mt-1">
+              Las detecciones se acumulan y se envía un único resumen al término de la ventana, reemplazando la alerta anterior (evita spam).
+            </small>
+          </div>
+
+          <!-- Filtro de Enfermedades -->
+          <div class="col-md-6">
+            <label class="form-label text-secondary small fw-semibold text-uppercase mb-1.5">
+              <i class="bi bi-shield-exclamation text-danger me-1"></i> Criterio de Activación:
+            </label>
+            <div class="form-check p-3 rounded-3 border border-secondary border-opacity-10 h-auto" style="background: rgba(255, 255, 255, 0.02);">
+              <input class="form-check-input ms-0 me-2" type="checkbox" id="detNotifSoloEnfermedades">
+              <label class="form-check-label text-white small" for="detNotifSoloEnfermedades">
+                <strong>Solo notificar si se detectan patologías</strong>
+                <span class="d-block text-secondary small mt-0.5">Omite notificaciones cuando todos los frutos analizados se encuentren sanos.</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Destinatarios de la Notificación -->
+        <div class="mb-3">
+          <label class="form-label text-secondary small fw-semibold text-uppercase mb-2">
+            <i class="bi bi-people-fill text-info me-1"></i> Destinatarios de las Alertas:
+          </label>
+          <div class="d-flex gap-3 mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="detNotifDestinatarios" id="detDestTodos" value="todos" checked onchange="toggleListaUsuariosNotifDeteccion(false)">
+              <label class="form-check-label text-white" for="detDestTodos">
+                <i class="bi bi-broadcast me-1 text-primary"></i> Enviar a todos los usuarios suscritos
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="detNotifDestinatarios" id="detDestCustom" value="custom" onchange="toggleListaUsuariosNotifDeteccion(true)">
+              <label class="form-check-label text-white" for="detDestCustom">
+                <i class="bi bi-person-check me-1 text-warning"></i> Personalizado (elegir usuarios)
+              </label>
+            </div>
+          </div>
+
+          <!-- Lista de usuarios seleccionables (para modo personalizado) -->
+          <div id="contenedorListaUsuariosDeteccion" class="p-3 rounded-3 border border-secondary border-opacity-10 d-none" style="background: rgba(0, 0, 0, 0.2); max-height: 180px; overflow-y: auto;">
+            <div class="text-secondary small mb-2">Seleccione los usuarios que recibirán la notificación:</div>
+            <div id="listaUsuariosDeteccion" class="d-flex flex-column gap-2">
+              <span class="text-secondary small">Cargando usuarios...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner Explicativo de la propiedad Tag y Redirección -->
+        <div class="alert alert-dark border-0 p-3 rounded-3 mb-0 d-flex align-items-start gap-2.5 small text-secondary" style="background: rgba(255, 255, 255, 0.03);">
+          <i class="bi bi-info-circle-fill text-info fs-5 flex-shrink-0"></i>
+          <div>
+            <strong class="text-white">Propiedad <code>tag</code> y Redirección directa:</strong>
+            Las notificaciones Web Push utilizan la etiqueta <code>tag: 'alerta-deteccion-fragaria'</code> para actualizar la notificación en tu barra de estado sin saturar tu dispositivo con cientos de avisos. Al hacer clic en la notificación en tu teléfono o PC, se abrirá y enfocará de inmediato esta sección de Visión Artificial.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer border-top border-secondary border-opacity-10 pt-3">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm" onclick="guardarConfigNotificacionesDeteccion()">
+          <i class="bi bi-floppy-fill me-1"></i> Guardar Configuración de Notificaciones
+        </button>
       </div>
     </div>
   </div>
@@ -1258,6 +1381,115 @@
     selectInterval.addEventListener('change', (e) => {
       aplicarIntervalo(parseInt(e.target.value));
     });
+  }
+
+  // ==================== CONFIGURACIÓN DE NOTIFICACIONES DETECCIÓN ====================
+  let configNotifDeteccion = {
+    habilitado: true,
+    intervalo_minutos: 5,
+    destinatarios: "todos",
+    user_ids: [],
+    solo_enfermedades: false
+  };
+
+  async function cargarConfigNotificacionesDeteccion() {
+    try {
+      const res = await fetch('/api/detecciones/notificaciones/config');
+      const data = await res.json();
+      if (data && data.config) {
+        configNotifDeteccion = data.config;
+        document.getElementById('detNotifHabilitado').checked = (configNotifDeteccion.habilitado !== false);
+        document.getElementById('detNotifIntervalo').value = configNotifDeteccion.intervalo_minutos || 5;
+        document.getElementById('detNotifSoloEnfermedades').checked = !!configNotifDeteccion.solo_enfermedades;
+
+        const isCustom = configNotifDeteccion.destinatarios === 'custom';
+        if (isCustom) {
+          document.getElementById('detDestCustom').checked = true;
+        } else {
+          document.getElementById('detDestTodos').checked = true;
+        }
+        toggleListaUsuariosNotifDeteccion(isCustom);
+      }
+    } catch (e) {
+      console.error("Error al cargar config notificaciones:", e);
+    }
+
+    await cargarUsuariosDestinatariosDeteccion();
+  }
+
+  function toggleListaUsuariosNotifDeteccion(show) {
+    const cont = document.getElementById('contenedorListaUsuariosDeteccion');
+    if (cont) {
+      if (show) cont.classList.remove('d-none');
+      else cont.classList.add('d-none');
+    }
+  }
+
+  async function cargarUsuariosDestinatariosDeteccion() {
+    const lista = document.getElementById('listaUsuariosDeteccion');
+    if (!lista) return;
+    try {
+      const res = await fetch('/api/notificaciones/destinatarios');
+      const data = await res.json();
+      if (data.status === 'ok') {
+        const selectedIds = (configNotifDeteccion.user_ids || []).map(String);
+        lista.innerHTML = data.usuarios.map(u => `
+          <div class="form-check d-flex align-items-center justify-content-between p-2 rounded-2" style="background: rgba(255,255,255,0.03);">
+            <div class="d-flex align-items-center gap-2">
+              <input class="form-check-input chk-user-deteccion" type="checkbox" value="${u.id}" id="chkDetUser_${u.id}" ${selectedIds.includes(String(u.id)) ? 'checked' : ''}>
+              <label class="form-check-label text-white small mb-0" for="chkDetUser_${u.id}">
+                <strong>${u.usuario}</strong>
+              </label>
+            </div>
+            <span class="badge ${u.dispositivos > 0 ? 'bg-success bg-opacity-25 text-success' : 'bg-secondary bg-opacity-25 text-secondary'} small">
+              <i class="bi bi-phone me-1"></i>${u.dispositivos} disp.
+            </span>
+          </div>
+        `).join('');
+      } else {
+        lista.innerHTML = '<span class="text-danger small">No se pudieron cargar los usuarios.</span>';
+      }
+    } catch (e) {
+      lista.innerHTML = '<span class="text-danger small">Error de conexión al cargar usuarios.</span>';
+    }
+  }
+
+  async function guardarConfigNotificacionesDeteccion() {
+    const isCustom = document.getElementById('detDestCustom').checked;
+    let userIds = [];
+    if (isCustom) {
+      document.querySelectorAll('.chk-user-deteccion:checked').forEach(chk => {
+        userIds.push(parseInt(chk.value));
+      });
+    }
+
+    const payload = {
+      habilitado: document.getElementById('detNotifHabilitado').checked,
+      intervalo_minutos: parseInt(document.getElementById('detNotifIntervalo').value) || 5,
+      solo_enfermedades: document.getElementById('detNotifSoloEnfermedades').checked,
+      destinatarios: isCustom ? "custom" : "todos",
+      user_ids: userIds
+    };
+
+    try {
+      const res = await fetch('/api/detecciones/notificaciones/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        configNotifDeteccion = payload;
+        alert("✅ Configuración de notificaciones guardada exitosamente.");
+        const modalEl = document.getElementById('modalConfigNotifDeteccion');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
+      } else {
+        alert("⚠️ Error al guardar: " + data.message);
+      }
+    } catch (e) {
+      alert("Error de conexión al guardar configuración: " + e.message);
+    }
   }
 
   // Inicio automático con intervalo recomendado de 1.5s

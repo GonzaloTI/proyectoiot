@@ -203,14 +203,15 @@
 
     /* Badges de Estado y Evaluación adaptables a Modo Claro y Oscuro */
     .badge-eval-status {
-      background-color: rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.7);
-      border: 1px solid var(--card-border);
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+      border: 1px solid var(--card-border) !important;
       font-weight: 500;
     }
-    body.light-theme .badge-eval-status {
+    body.light-theme .badge-eval-status,
+    [data-bs-theme="light"] .badge-eval-status {
       background-color: #f1f2f6 !important;
-      color: #4b6584 !important;
+      color: #2f3640 !important;
       border: 1px solid #dcdde1 !important;
     }
 
@@ -220,7 +221,8 @@
       border: 1px solid rgba(46, 213, 115, 0.35) !important;
       font-weight: 600;
     }
-    body.light-theme .badge-eval-active {
+    body.light-theme .badge-eval-active,
+    [data-bs-theme="light"] .badge-eval-active {
       background-color: #e8f8f0 !important;
       color: #10ac84 !important;
       border: 1px solid #b8e994 !important;
@@ -232,14 +234,16 @@
       border: 1px solid rgba(255, 165, 2, 0.35) !important;
       font-weight: 600;
     }
-    body.light-theme .badge-eval-manual {
+    body.light-theme .badge-eval-manual,
+    [data-bs-theme="light"] .badge-eval-manual {
       background-color: #fff4e5 !important;
       color: #d68100 !important;
       border: 1px solid #ffd8a8 !important;
     }
 
     /* Evitar texto oscuro sobre fondo negro en modo claro */
-    body.light-theme .bg-dark {
+    body.light-theme .bg-dark,
+    [data-bs-theme="light"] .bg-dark {
       background-color: #f1f2f6 !important;
       color: #2f3640 !important;
     }
@@ -1138,17 +1142,18 @@
     }
 
     function toggleManualRelay(relayNum) {
-      // 1. Deshabilitar inmediatamente el switch de Automatización Inteligente
+      // 1. Deshabilitar inmediatamente el switch de Automatización Inteligente en UI y estado
       const switchEl = document.getElementById(`r${relayNum}-enabled`);
       if (switchEl) switchEl.checked = false;
+
       if (relayNum === 1) {
         configActuadores.rele1.enabled = false;
         configActuadores.rele1.manualOverride = !configActuadores.rele1.manualOverride;
-        logConsole(`Relé 1: Automatización deshabilitada. Manual forzado: ${configActuadores.rele1.manualOverride ? 'ON' : 'OFF'}`);
+        logConsole(`Relé 1: Automatización Inteligente deshabilitada. Control Manual forzado: ${configActuadores.rele1.manualOverride ? 'ENCENDIDO (ON)' : 'APAGADO (OFF)'}`);
       } else {
         configActuadores.rele2.enabled = false;
         configActuadores.rele2.manualOverride = !configActuadores.rele2.manualOverride;
-        logConsole(`Relé 2: Automatización deshabilitada. Manual forzado: ${configActuadores.rele2.manualOverride ? 'ON' : 'OFF'}`);
+        logConsole(`Relé 2: Automatización Inteligente deshabilitada. Control Manual forzado: ${configActuadores.rele2.manualOverride ? 'ENCENDIDO (ON)' : 'APAGADO (OFF)'}`);
       }
       evaluarReglas();
     }
@@ -1183,6 +1188,14 @@
       document.getElementById('r1-duracion-calc').innerText = `${configActuadores.rele1.schedule.startTime} ➔ ${configActuadores.rele1.schedule.endTime}`;
       document.getElementById('r2-duracion-calc').innerText = `${configActuadores.rele2.schedule.startTime} ➔ ${configActuadores.rele2.schedule.endTime}`;
 
+      // Si el switch de automatización se activó, desactivar el override manual
+      if (configActuadores.rele1.enabled) {
+        configActuadores.rele1.manualOverride = false;
+      }
+      if (configActuadores.rele2.enabled) {
+        configActuadores.rele2.manualOverride = false;
+      }
+
       // ------------------------------------------
       // EVALUACIÓN RELÉ 1 (Bomba de Riego)
       // ------------------------------------------
@@ -1190,12 +1203,12 @@
       let r1_active = false;
       let r1_reason = "";
 
-      if (!r1.enabled) {
+      if (r1.manualOverride) {
+        r1_active = true;
+        r1_reason = "⚡ Control Manual: Forzado ACTIVADO (Auto Deshabilitada)";
+      } else if (!r1.enabled) {
         r1_active = false;
         r1_reason = "⚠️ Automatización deshabilitada para este relé.";
-      } else if (r1.manualOverride) {
-        r1_active = true;
-        r1_reason = "⚡ Forzado Manual ACTIVADO por el operador.";
       } else {
         const startMin = timeStringToMinutes(r1.schedule.startTime);
         const endMin = timeStringToMinutes(r1.schedule.endTime);
@@ -1259,12 +1272,12 @@
       let r2_active = false;
       let r2_reason = "";
 
-      if (!r2.enabled) {
+      if (r2.manualOverride) {
+        r2_active = true;
+        r2_reason = "⚡ Control Manual: Forzado ACTIVADO (Auto Deshabilitada)";
+      } else if (!r2.enabled) {
         r2_active = false;
         r2_reason = "⚠️ Automatización deshabilitada para este relé.";
-      } else if (r2.manualOverride) {
-        r2_active = true;
-        r2_reason = "⚡ Forzado Manual ACTIVADO por el operador.";
       } else {
         const isThermalEmergency = r2.sensorRules.useTemp && (simTemp >= r2.sensorRules.tempTrigger);
         const isAirContaminated = r2.sensorRules.useAir && (simAir >= r2.sensorRules.airPpmTrigger);

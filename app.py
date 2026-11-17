@@ -37,7 +37,9 @@ from negocio.Ndetecciones import (
     procesar_subida_deteccion,
     obtener_ultima_deteccion,
     obtener_historial_detecciones,
-    obtener_historial_paginado
+    obtener_historial_paginado,
+    obtener_config_notificaciones_detecciones,
+    guardar_config_notificaciones_detecciones
 )
 # pyrefly: ignore [missing-import]
 from negocio.Nactuadores import (
@@ -119,7 +121,7 @@ def inject_permissions():
 @app.before_request
 def check_authentication():
     # Excluir rutas públicas: login, archivos estáticos, ingesta de datos, subida de detecciones y suscripción a notificaciones
-    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'favicon', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'api_destinatarios_notificaciones', 'subir_deteccion', 'api_obtener_ultima_deteccion', 'actuadores_page', 'api_actuadores_config', 'api_actuadores_estado']:
+    if request.endpoint in ['login', 'logout', 'static', 'service_worker', 'favicon', 'recibir_datos', 'subscribe', 'send_notification', 'debug_subscriptions', 'api_destinatarios_notificaciones', 'subir_deteccion', 'api_obtener_ultima_deteccion', 'actuadores_page', 'api_actuadores_config', 'api_actuadores_estado', 'api_detecciones_notificaciones_config']:
         return None
     
     # Si el usuario no ha iniciado sesión
@@ -373,6 +375,22 @@ def detecciones_page():
     Página web de monitoreo de Visión Artificial: Detección en vivo e Historial.
     """
     return render_template('detecciones.html')
+
+@app.route('/api/detecciones/notificaciones/config', methods=['GET', 'POST'])
+def api_detecciones_notificaciones_config():
+    """
+    Obtiene o actualiza la configuración de frecuencia y destinatarios de notificaciones automáticas para Visión Artificial.
+    """
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        if not data:
+            return jsonify({"status": "error", "message": "Datos JSON inválidos"}), 400
+        exito, msg = guardar_config_notificaciones_detecciones(data)
+        if exito:
+            return jsonify({"status": "ok", "message": msg, "config": obtener_config_notificaciones_detecciones()})
+        return jsonify({"status": "error", "message": msg}), 500
+
+    return jsonify({"status": "ok", "config": obtener_config_notificaciones_detecciones()})
 
 @app.route('/actuadores')
 @app.route('/control-actuadores')
