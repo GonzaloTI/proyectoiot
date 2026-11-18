@@ -66,10 +66,59 @@
         /* Estilo de Navbar Premium */
         .navbar-custom {
           background: var(--nav-bg) !important;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
           border-bottom: 1px solid var(--nav-border);
           transition: background 0.3s ease, border-bottom 0.3s ease;
+          position: sticky;
+          top: 0;
+          z-index: 1050 !important;
+        }
+
+        /* Garantizar que los menús desplegables se muestren por encima de las tarjetas y contenido */
+        .navbar-custom .dropdown-menu {
+          z-index: 1060 !important;
+          background-color: rgba(22, 28, 45, 0.95) !important;
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid var(--card-border) !important;
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45) !important;
+        }
+
+        .navbar-custom .dropdown-menu .dropdown-item {
+          color: var(--text-color) !important;
+          transition: all 0.2s ease;
+        }
+
+        .navbar-custom .dropdown-menu .dropdown-item:hover {
+          background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        body.light-theme .navbar-custom .dropdown-menu {
+          background-color: rgba(255, 255, 255, 0.98) !important;
+          border: 1px solid rgba(0, 0, 0, 0.12) !important;
+          box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12) !important;
+        }
+
+        body.light-theme .navbar-custom .dropdown-menu .dropdown-item {
+          color: #2f3640 !important;
+        }
+
+        body.light-theme .navbar-custom .dropdown-menu .dropdown-item:hover {
+          background-color: #f1f2f6 !important;
+        }
+
+        body.light-theme .navbar-custom .dropdown-menu .dropdown-item span,
+        body.light-theme .navbar-custom .dropdown-menu .dropdown-item strong {
+          color: #2f3640 !important;
+        }
+
+        body.light-theme .navbar-custom .dropdown-menu .dropdown-item small {
+          color: #636e72 !important;
+        }
+
+        body.light-theme .navbar-custom .dropdown-menu .dropdown-item.text-danger {
+          color: #dc3545 !important;
         }
 
         .text-primary-gradient {
@@ -588,7 +637,7 @@
     </script>
     
     <!-- Navbar principal del sistema -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="/">
                 <img src="{{ url_for('static', filename='icono.jpg') }}" alt="Logo" style="width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1.5px solid #00f2fe;">
