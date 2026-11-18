@@ -20,6 +20,9 @@ from negocio.Nnotificaciones import (
     enviar_notificacion_push,
     obtener_suscripciones_debug,
     obtener_usuarios_para_notificaciones,
+    obtener_config_alertas_sensores,
+    guardar_config_alertas_sensores,
+    simular_prueba_push,
     VAPID_PUBLIC_KEY
 )
 # pyrefly: ignore [missing-import]
@@ -391,6 +394,61 @@ def api_detecciones_notificaciones_config():
         return jsonify({"status": "error", "message": msg}), 500
 
     return jsonify({"status": "ok", "config": obtener_config_notificaciones_detecciones()})
+
+# ==================== RUTAS DE ALERTAS DE SENSORES Y UMBRALES ====================
+
+@app.route('/api/alertas/config', methods=['GET', 'POST'])
+def api_alertas_config():
+    """
+    Obtiene o actualiza la configuración de alertas de sensores (umbrales mín/máx, frecuencia, condición y destinatarios).
+    Solo usuarios con rol Administrador pueden guardar modificaciones.
+    """
+    if request.method == 'POST':
+        if not session.get('user_id') or not session.get('is_admin'):
+            return jsonify({
+                "status": "error",
+                "message": "Acceso restringido: únicamente administradores pueden modificar los umbrales de alerta."
+            }), 403
+
+        data = request.get_json(silent=True) or {}
+        if not data:
+            return jsonify({"status": "error", "message": "Payload JSON inválido"}), 400
+
+        exito, msg = guardar_config_alertas_sensores(data)
+        if exito:
+            return jsonify({
+                "status": "ok",
+                "message": msg,
+                "config": obtener_config_alertas_sensores()
+            })
+        return jsonify({"status": "error", "message": msg}), 500
+
+    # GET: Retorna configuración actual, bandera is_admin y lista de usuarios
+    usuarios = obtener_usuarios_para_notificaciones()
+    return jsonify({
+        "status": "ok",
+        "config": obtener_config_alertas_sensores(),
+        "is_admin": bool(session.get('is_admin', False)),
+        "current_user": session.get('usuario', 'invitado'),
+        "usuarios": usuarios
+    })
+
+@app.route('/api/alertas/probar', methods=['POST'])
+def api_alertas_probar():
+    """
+    Permite enviar una notificación push simulada con un escenario específico (anomalía, normal, esp32 offline, jetson offline).
+    """
+    data = request.get_json(silent=True) or {}
+    escenario = data.get('escenario', 'anomalia')
+    destinatarios = data.get('destinatarios')
+    user_ids = data.get('user_ids')
+
+    resultado = simular_prueba_push(escenario=escenario, destinatarios=destinatarios, user_ids=user_ids)
+    return jsonify({
+        "status": "ok",
+        "escenario": escenario,
+        "resultado": resultado
+    })
 
 @app.route('/actuadores')
 @app.route('/control-actuadores')

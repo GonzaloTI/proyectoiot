@@ -1,0 +1,44 @@
+{
+  "version": "1.1",
+  "habilitado_global": true,
+  "frecuencia_minutos": 20,
+  "condicion_reporte": "solo_anomalias",
+  "hardware_offline": {
+    "esp32": true,
+    "jetson": true
+  },
+  "destinatarios": "todos",
+  "usuarios_seleccionados": [
+    1
+  ],
+  "sensores": {
+    "calidad_aire": {
+      "habilitado": true,
+      "max_normal": 450.0,
+      "min_normal": 0.0,
+      "nombre": "Calidad de Aire / Gases",
+      "unidad": "PPM"
+    },
+    "humedad_suelo": {
+      "habilitado": true,
+      "max_normal": 80.0,
+      "min_normal": 25.0,
+      "nombre": "Humedad del Suelo",
+      "unidad": "%"
+    },
+    "presion": {
+      "habilitado": false,
+      "max_normal": 1030.0,
+      "min_normal": 980.0,
+      "nombre": "Presión Barométrica",
+      "unidad": "hPa"
+    },
+    "temperatura": {
+      "habilitado": true,
+      "max_normal": 32.0,
+      "min_normal": 14.0,
+      "nombre": "Temperatura Ambiental",
+      "unidad": "°C"
+    }
+  }
+}

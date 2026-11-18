@@ -1,5 +1,6 @@
+import time
 from datetime import datetime
-from negocio.Nnotificaciones import verificar_alertas_sensores
+from negocio.Nnotificaciones import verificar_alertas_sensores, evaluar_y_despachar_alertas_sensores
 from modelos.Ddatos import Ddatos
 from negocio.Nactuadores import evaluar_automatizacion_inteligente
 
@@ -21,9 +22,10 @@ def procesar_y_guardar_datos(data, relay_state):
     humo = float(data.get('humo', 0.0))
     humedad_suelo = float(data.get('humedad_suelo', 0.0))
 
-    # Actualizar estado de los relés reportado por el dispositivo
+    # Actualizar estado de los relés reportado por el dispositivo y timestamp de presencia
     relay_state["last_esp32_relay_status"] = relay_activo
     relay_state["last_esp32_relay_2_status"] = relay_2_activo
+    relay_state["last_esp32_seen"] = time.time()
 
     # Guardar la lectura a través del modelo de datos Ddatos (sin modificar esquema de BD)
     try:
@@ -31,12 +33,19 @@ def procesar_y_guardar_datos(data, relay_state):
     except Exception as e:
         print(f"Error guardando datos en la BD: {e}")
 
-    # Evaluar alertas en función de los umbrales
+    # Evaluar y despachar alertas Web Push si corresponde (anti-saturación por frecuencia)
+    try:
+        evaluar_y_despachar_alertas_sensores(data)
+    except Exception as e:
+        print(f"Error en evaluación de alertas push: {e}")
+
+    # Evaluar alertas visuales en función de los umbrales dinámicos
     alertas = verificar_alertas_sensores({
         'temperatura': temperatura,
         'co2': co2,
         'humo': humo,
-        'humedad_suelo': humedad_suelo
+        'humedad_suelo': humedad_suelo,
+        'presion': presion
     })
 
     # Determinar el modo y comandos para enviar al ESP32

@@ -168,7 +168,7 @@
     margin-bottom: 0;
   }
 
-  .table-custom > :not(caption) > * > * {
+  .table-custom> :not(caption)>*>* {
     background-color: transparent !important;
     box-shadow: none !important;
     color: inherit;
@@ -220,7 +220,8 @@
     color: #00f2fe !important;
   }
 
-  .th-sortable.sorted-desc, .th-sortable.sorted-asc {
+  .th-sortable.sorted-desc,
+  .th-sortable.sorted-asc {
     background-color: rgba(0, 242, 254, 0.14) !important;
     color: #00f2fe !important;
     border-bottom: 2px solid #00f2fe !important;
@@ -238,7 +239,8 @@
     opacity: 0.9;
   }
 
-  .sorted-desc .sort-icon, .sorted-asc .sort-icon {
+  .sorted-desc .sort-icon,
+  .sorted-asc .sort-icon {
     opacity: 1;
     color: #00f2fe;
   }
@@ -249,6 +251,7 @@
       background-color: rgba(46, 213, 115, 0.4);
       box-shadow: inset 0 0 16px rgba(46, 213, 115, 0.6);
     }
+
     100% {
       background-color: transparent;
       box-shadow: none;
@@ -260,7 +263,8 @@
   }
 
   /* Controles de formulario Dark */
-  .form-control-dark, .form-select-dark {
+  .form-control-dark,
+  .form-select-dark {
     background-color: #121824 !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     color: #f1f2f6 !important;
@@ -269,7 +273,8 @@
     color-scheme: dark;
   }
 
-  body.light-theme .form-control-dark, body.light-theme .form-select-dark {
+  body.light-theme .form-control-dark,
+  body.light-theme .form-select-dark {
     background-color: #fff !important;
     border-color: rgba(0, 0, 0, 0.15) !important;
     color: #2f3640 !important;
@@ -301,7 +306,8 @@
     color-scheme: light !important;
   }
 
-  .form-control-dark:focus, .form-select-dark:focus {
+  .form-control-dark:focus,
+  .form-select-dark:focus {
     background-color: #162032 !important;
     border-color: #00f2fe !important;
     box-shadow: 0 0 0 0.25rem rgba(0, 242, 254, 0.18) !important;
@@ -395,8 +401,7 @@
       </select>
     </div>
     <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-2 d-flex align-items-center gap-1.5"
-      data-bs-toggle="modal" data-bs-target="#modalConfigNotifDeteccion"
-      onclick="cargarConfigNotificacionesDeteccion()"
+      data-bs-toggle="modal" data-bs-target="#modalConfigNotifDeteccion" onclick="cargarConfigNotificacionesDeteccion()"
       title="Configurar frecuencia y destinatarios de notificaciones automáticas">
       <i class="bi bi-bell-fill"></i> Notificaciones
     </button>
@@ -589,8 +594,10 @@
           <i class="bi bi-search me-1 text-info"></i> Búsqueda Rápida:
         </label>
         <div class="input-group">
-          <span class="input-group-text bg-transparent border-secondary text-secondary"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control form-control-dark" id="filtroBusqueda" placeholder="Buscar por clase, ID, modelo...">
+          <span class="input-group-text bg-transparent border-secondary text-secondary"><i
+              class="bi bi-search"></i></span>
+          <input type="text" class="form-control form-control-dark" id="filtroBusqueda"
+            placeholder="Buscar por clase, ID, modelo...">
         </div>
       </div>
     </div>
@@ -611,7 +618,8 @@
 
     <!-- Notificación de nueva detección si está en página > 1 -->
     <div id="boxNotifNuevaDeteccion" style="display: none;">
-      <span class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-1.5 rounded-pill" style="cursor: pointer;" id="btnIrPrimeraPagina">
+      <span class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-1.5 rounded-pill"
+        style="cursor: pointer;" id="btnIrPrimeraPagina">
         <span class="live-pulse"></span> <span id="txtNotifCount">1</span> nueva captura en vivo. <u>Ver inicio</u>
       </span>
     </div>
@@ -629,37 +637,45 @@
       <thead>
         <tr>
           <!-- Miniatura (ordenable por ID) -->
-          <th class="th-sortable" onclick="toggleOrden('id')" title="Clic para ordenar por ID: Mayor a menor → Menor a mayor → Sin orden">
+          <th class="th-sortable" onclick="toggleOrden('id')"
+            title="Clic para ordenar por ID: Mayor a menor → Menor a mayor → Sin orden">
             Miniatura <span class="sort-icon" id="icon-sort-id"><i class="bi bi-arrow-down-up"></i></span>
           </th>
-          
+
           <!-- Fecha y Hora -->
-          <th class="th-sortable" onclick="toggleOrden('fecha_hora')" title="Clic para ordenar por Fecha: Mayor a menor → Menor a mayor → Sin orden">
+          <th class="th-sortable" onclick="toggleOrden('fecha_hora')"
+            title="Clic para ordenar por Fecha: Mayor a menor → Menor a mayor → Sin orden">
             Fecha y Hora <span class="sort-icon" id="icon-sort-fecha_hora"><i class="bi bi-arrow-down-up"></i></span>
           </th>
 
           <!-- Modelo -->
-          <th class="th-sortable" onclick="toggleOrden('modelo')" title="Clic para ordenar por Modelo: A-Z → Z-A → Sin orden">
+          <th class="th-sortable" onclick="toggleOrden('modelo')"
+            title="Clic para ordenar por Modelo: A-Z → Z-A → Sin orden">
             Modelo <span class="sort-icon" id="icon-sort-modelo"><i class="bi bi-arrow-down-up"></i></span>
           </th>
 
           <!-- Diagnóstico / Clase -->
-          <th class="th-sortable" onclick="toggleOrden('clase')" title="Clic para ordenar por Clase: A-Z → Z-A → Sin orden">
+          <th class="th-sortable" onclick="toggleOrden('clase')"
+            title="Clic para ordenar por Clase: A-Z → Z-A → Sin orden">
             Diagnóstico / Clase <span class="sort-icon" id="icon-sort-clase"><i class="bi bi-arrow-down-up"></i></span>
           </th>
 
           <!-- Confianza -->
-          <th class="th-sortable" onclick="toggleOrden('conf')" title="Clic para ordenar por Confianza: Mayor a menor → Menor a mayor → Sin orden">
+          <th class="th-sortable" onclick="toggleOrden('conf')"
+            title="Clic para ordenar por Confianza: Mayor a menor → Menor a mayor → Sin orden">
             Confianza <span class="sort-icon" id="icon-sort-conf"><i class="bi bi-arrow-down-up"></i></span>
           </th>
 
           <!-- Condición Sanitaria -->
-          <th class="th-sortable" onclick="toggleOrden('condicion')" title="Clic para ordenar por Condición Sanitaria: Patologías primero → Menor severidad → Sin orden">
-            Condición Sanitaria <span class="sort-icon" id="icon-sort-condicion"><i class="bi bi-arrow-down-up"></i></span>
+          <th class="th-sortable" onclick="toggleOrden('condicion')"
+            title="Clic para ordenar por Condición Sanitaria: Patologías primero → Menor severidad → Sin orden">
+            Condición Sanitaria <span class="sort-icon" id="icon-sort-condicion"><i
+                class="bi bi-arrow-down-up"></i></span>
           </th>
 
           <!-- Acción -->
-          <th class="th-sortable text-center" onclick="toggleOrden('id')" title="Clic para ordenar: Mayor a menor → Menor a mayor → Sin orden">
+          <th class="th-sortable text-center" onclick="toggleOrden('id')"
+            title="Clic para ordenar: Mayor a menor → Menor a mayor → Sin orden">
             Acción <span class="sort-icon" id="icon-sort-accion"><i class="bi bi-arrow-down-up"></i></span>
           </th>
         </tr>
@@ -676,7 +692,8 @@
   </div>
 
   <!-- PIE: INFORMACIÓN DE PAGINACIÓN Y BOTONES -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top border-secondary border-opacity-10 gap-3">
+  <div
+    class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top border-secondary border-opacity-10 gap-3">
     <div class="small text-secondary" id="txtResumenPaginacion">
       Mostrando registros 0 al 0 de 0
     </div>
@@ -726,7 +743,8 @@
 </div>
 
 <!-- Modal: Configuración de Notificaciones de Detección -->
-<div class="modal fade" id="modalConfigNotifDeteccion" tabindex="-1" aria-labelledby="modalConfigNotifDeteccionLabel" aria-hidden="true">
+<div class="modal fade" id="modalConfigNotifDeteccion" tabindex="-1" aria-labelledby="modalConfigNotifDeteccionLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content glass-card modal-custom-content border shadow-lg">
       <div class="modal-header border-bottom border-secondary border-opacity-10 pb-3">
@@ -735,20 +753,23 @@
             <i class="bi bi-bell-fill fs-5"></i>
           </div>
           <div>
-            <h5 class="modal-title fw-bold text-white mb-0" id="modalConfigNotifDeteccionLabel">Configuración de Notificaciones Fragaria</h5>
+            <h5 class="modal-title fw-bold text-white mb-0" id="modalConfigNotifDeteccionLabel">Configuración de
+              Notificaciones Fragaria</h5>
             <small class="text-secondary">Frecuencia anti-spam y destinatarios de alertas de Visión Artificial</small>
           </div>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      
+
       <div class="modal-body p-4">
         <!-- Switch Maestro de Notificaciones -->
-        <div class="p-3 rounded-3 mb-4 d-flex align-items-center justify-content-between" style="background: rgba(255, 165, 2, 0.08); border: 1px dashed rgba(255, 165, 2, 0.3);">
+        <div class="p-3 rounded-3 mb-4 d-flex align-items-center justify-content-between"
+          style="background: rgba(255, 165, 2, 0.08); border: 1px dashed rgba(255, 165, 2, 0.3);">
           <div class="d-flex align-items-center gap-2.5">
             <i class="bi bi-broadcast text-warning fs-4"></i>
             <div>
-              <label class="form-check-label fw-bold text-white mb-0" for="detNotifHabilitado">Alertas Push Automáticas</label>
+              <label class="form-check-label fw-bold text-white mb-0" for="detNotifHabilitado">Alertas Push
+                Automáticas</label>
               <div class="small text-secondary">Activa el envío periódico con resumen acumulado de detecciones</div>
             </div>
           </div>
@@ -773,7 +794,8 @@
               <option value="60">Cada 1 hora</option>
             </select>
             <small class="text-secondary d-block mt-1">
-              Las detecciones se acumulan y se envía un único resumen al término de la ventana, reemplazando la alerta anterior (evita spam).
+              Las detecciones se acumulan y se envía un único resumen al término de la ventana, reemplazando la alerta
+              anterior (evita spam).
             </small>
           </div>
 
@@ -782,11 +804,13 @@
             <label class="form-label text-secondary small fw-semibold text-uppercase mb-1.5">
               <i class="bi bi-shield-exclamation text-danger me-1"></i> Criterio de Activación:
             </label>
-            <div class="form-check p-3 rounded-3 border border-secondary border-opacity-10 h-auto" style="background: rgba(255, 255, 255, 0.02);">
+            <div class="form-check p-3 rounded-3 border border-secondary border-opacity-10 h-auto"
+              style="background: rgba(255, 255, 255, 0.02);">
               <input class="form-check-input ms-0 me-2" type="checkbox" id="detNotifSoloEnfermedades">
               <label class="form-check-label text-white small" for="detNotifSoloEnfermedades">
                 <strong>Solo notificar si se detectan patologías</strong>
-                <span class="d-block text-secondary small mt-0.5">Omite notificaciones cuando todos los frutos analizados se encuentren sanos.</span>
+                <span class="d-block text-secondary small mt-0.5">Omite notificaciones cuando todos los frutos
+                  analizados se encuentren sanos.</span>
               </label>
             </div>
           </div>
@@ -799,13 +823,15 @@
           </label>
           <div class="d-flex gap-3 mb-3">
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="detNotifDestinatarios" id="detDestTodos" value="todos" checked onchange="toggleListaUsuariosNotifDeteccion(false)">
+              <input class="form-check-input" type="radio" name="detNotifDestinatarios" id="detDestTodos" value="todos"
+                checked onchange="toggleListaUsuariosNotifDeteccion(false)">
               <label class="form-check-label text-white" for="detDestTodos">
                 <i class="bi bi-broadcast me-1 text-primary"></i> Enviar a todos los usuarios suscritos
               </label>
             </div>
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="detNotifDestinatarios" id="detDestCustom" value="custom" onchange="toggleListaUsuariosNotifDeteccion(true)">
+              <input class="form-check-input" type="radio" name="detNotifDestinatarios" id="detDestCustom"
+                value="custom" onchange="toggleListaUsuariosNotifDeteccion(true)">
               <label class="form-check-label text-white" for="detDestCustom">
                 <i class="bi bi-person-check me-1 text-warning"></i> Personalizado (elegir usuarios)
               </label>
@@ -813,7 +839,9 @@
           </div>
 
           <!-- Lista de usuarios seleccionables (para modo personalizado) -->
-          <div id="contenedorListaUsuariosDeteccion" class="p-3 rounded-3 border border-secondary border-opacity-10 d-none" style="background: rgba(0, 0, 0, 0.2); max-height: 180px; overflow-y: auto;">
+          <div id="contenedorListaUsuariosDeteccion"
+            class="p-3 rounded-3 border border-secondary border-opacity-10 d-none"
+            style="background: rgba(0, 0, 0, 0.2); max-height: 180px; overflow-y: auto;">
             <div class="text-secondary small mb-2">Seleccione los usuarios que recibirán la notificación:</div>
             <div id="listaUsuariosDeteccion" class="d-flex flex-column gap-2">
               <span class="text-secondary small">Cargando usuarios...</span>
@@ -821,20 +849,15 @@
           </div>
         </div>
 
-        <!-- Banner Explicativo de la propiedad Tag y Redirección -->
-        <div class="alert alert-dark border-0 p-3 rounded-3 mb-0 d-flex align-items-start gap-2.5 small text-secondary" style="background: rgba(255, 255, 255, 0.03);">
-          <i class="bi bi-info-circle-fill text-info fs-5 flex-shrink-0"></i>
-          <div>
-            <strong class="text-white">Propiedad <code>tag</code> y Redirección directa:</strong>
-            Las notificaciones Web Push utilizan la etiqueta <code>tag: 'alerta-deteccion-fragaria'</code> para actualizar la notificación en tu barra de estado sin saturar tu dispositivo con cientos de avisos. Al hacer clic en la notificación en tu teléfono o PC, se abrirá y enfocará de inmediato esta sección de Visión Artificial.
-          </div>
-        </div>
+
 
       </div>
 
       <div class="modal-footer border-top border-secondary border-opacity-10 pt-3">
-        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm" onclick="guardarConfigNotificacionesDeteccion()">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+          data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm"
+          onclick="guardarConfigNotificacionesDeteccion()">
           <i class="bi bi-floppy-fill me-1"></i> Guardar Configuración de Notificaciones
         </button>
       </div>
@@ -1109,11 +1132,11 @@
 
   function actualizarIconosOrden() {
     const columnas = ['id', 'fecha_hora', 'modelo', 'clase', 'conf', 'condicion', 'accion'];
-    
+
     columnas.forEach(col => {
       const thEl = document.querySelector(`th[onclick="toggleOrden('${col}')"]`);
       const iconEl = document.getElementById(`icon-sort-${col}`);
-      
+
       if (thEl) {
         thEl.classList.remove('sorted-desc', 'sorted-asc');
       }

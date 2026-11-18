@@ -274,6 +274,40 @@
           color: #2f3640 !important;
         }
 
+        /* Badges de Actuadores y Estado legibles en Modo Claro */
+        body.light-theme .badge.bg-dark,
+        body.light-theme .badge-eval-status {
+          background-color: #f1f2f6 !important;
+          color: #2f3640 !important;
+          border: 1px solid #dcdde1 !important;
+        }
+
+        body.light-theme .badge-eval-active {
+          background-color: #e8f8f0 !important;
+          color: #10ac84 !important;
+          border: 1px solid #b8e994 !important;
+        }
+
+        body.light-theme .badge-eval-manual {
+          background-color: #fff4e5 !important;
+          color: #d68100 !important;
+          border: 1px solid #ffd8a8 !important;
+        }
+
+        /* Controles de Radio y Checkbox nítidos en Modo Claro */
+        body.light-theme .form-check-input {
+          background-color: #ffffff !important;
+          border: 2px solid #576574 !important;
+        }
+        body.light-theme .form-check-input:checked {
+          background-color: #0d6efd !important;
+          border-color: #0d6efd !important;
+        }
+        body.light-theme .form-check-input:focus {
+          border-color: #0d6efd !important;
+          box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+        }
+
         .user-check-item:hover {
           background: rgba(255, 255, 255, 0.05);
         }
@@ -281,6 +315,268 @@
         body.light-theme .user-check-item:hover {
           background: rgba(0, 0, 0, 0.05);
         }
+
+        /* ==================== ESTILOS PARA MODAL DE ALERTAS DE SENSORES ==================== */
+        body.light-theme #bannerPermisoRol.alert-success {
+          background-color: #e8f8f0 !important;
+          border: 1px solid #b8e994 !important;
+        }
+        body.light-theme #bannerPermisoRol.alert-success #titlePermisoRol {
+          color: #0f5132 !important;
+          font-weight: 700;
+        }
+        body.light-theme #bannerPermisoRol.alert-success #descPermisoRol {
+          color: #155724 !important;
+        }
+
+        body.light-theme #bannerPermisoRol.alert-warning {
+          background-color: #fff9db !important;
+          border: 1px solid #ffe066 !important;
+        }
+        body.light-theme #bannerPermisoRol.alert-warning #titlePermisoRol {
+          color: #664d03 !important;
+          font-weight: 700;
+        }
+        body.light-theme #bannerPermisoRol.alert-warning #descPermisoRol {
+          color: #664d03 !important;
+        }
+
+        .master-switch-card {
+          background: rgba(255, 165, 2, 0.08);
+          border: 1px dashed rgba(255, 165, 2, 0.35);
+          transition: all 0.2s ease;
+        }
+        body.light-theme .master-switch-card {
+          background-color: #fffdf5 !important;
+          border: 1.5px solid rgba(243, 156, 18, 0.5) !important;
+          box-shadow: 0 2px 8px rgba(243, 156, 18, 0.08) !important;
+        }
+        body.light-theme .master-switch-card label {
+          color: #1e272e !important;
+        }
+        body.light-theme .master-switch-card small {
+          color: #576574 !important;
+        }
+
+        .frequency-config-card {
+          background: rgba(0, 242, 254, 0.05);
+          border: 1px solid var(--card-border);
+          transition: all 0.2s ease;
+        }
+        body.light-theme .frequency-config-card {
+          background-color: #f0f7ff !important;
+          border: 1px solid #b8daff !important;
+        }
+        body.light-theme .frequency-config-card label {
+          color: #0d6efd !important;
+        }
+        body.light-theme .frequency-config-card select {
+          background-color: #ffffff !important;
+          color: #2f3640 !important;
+          border-color: #b8daff !important;
+          font-weight: 500;
+        }
+        body.light-theme .frequency-config-card small {
+          color: #495057 !important;
+        }
+        body.light-theme .frequency-config-card code {
+          color: #0d6efd !important;
+          background-color: rgba(13, 110, 253, 0.1) !important;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+
+        .recipients-config-card {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid var(--card-border);
+          transition: all 0.2s ease;
+        }
+        body.light-theme .recipients-config-card {
+          background-color: #fafbfc !important;
+          border: 1px solid #e1e4e8 !important;
+        }
+        body.light-theme .recipients-config-card label {
+          color: #2f3640 !important;
+        }
+        body.light-theme #contenedorListaUsuariosAlertas {
+          background-color: #f1f3f5 !important;
+          border: 1px solid #ced4da !important;
+          overflow-x: hidden !important;
+        }
+        .user-alerta-item {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          transition: all 0.2s ease;
+          user-select: none;
+        }
+        .user-alerta-item:hover {
+          border-color: rgba(0, 242, 254, 0.35);
+          background: rgba(255, 255, 255, 0.06);
+        }
+        body.light-theme .user-alerta-item {
+          background-color: #ffffff !important;
+          border: 1.5px solid #ced4da !important;
+          color: #2f3640 !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+        body.light-theme .user-alerta-item label {
+          color: #2f3640 !important;
+        }
+        body.light-theme .user-alerta-item:hover {
+          background-color: #f8f9fa !important;
+          border-color: #0d6efd !important;
+        }
+
+        .condition-config-card {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid var(--card-border);
+          transition: all 0.2s ease;
+        }
+        body.light-theme .condition-config-card {
+          background-color: #fafbfc !important;
+          border: 1px solid #e1e4e8 !important;
+        }
+        .condition-option-item {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 8px;
+          transition: all 0.2s ease;
+          user-select: none;
+        }
+        .condition-option-item:hover {
+          border-color: rgba(0, 242, 254, 0.4);
+          background: rgba(255, 255, 255, 0.06);
+        }
+        body.light-theme .condition-option-item {
+          background-color: #ffffff !important;
+          border: 1.5px solid #ced4da !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        }
+        body.light-theme .condition-option-item:hover {
+          background-color: #f8f9fa !important;
+          border-color: #0d6efd !important;
+        }
+        body.light-theme .condition-option-item label {
+          color: #1e272e !important;
+        }
+
+        .sensor-card {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid var(--card-border);
+          border-radius: 12px;
+          padding: 1.1rem;
+          transition: all 0.25s ease;
+          position: relative;
+        }
+        .sensor-card:hover {
+          border-color: rgba(0, 242, 254, 0.35);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        body.light-theme .sensor-card {
+          background-color: #ffffff !important;
+          border: 1px solid #dfe6e9 !important;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+        }
+        body.light-theme .sensor-card strong {
+          color: #1e272e !important;
+          font-weight: 700;
+        }
+        body.light-theme .sensor-card small.text-secondary {
+          color: #636e72 !important;
+        }
+        body.light-theme .sensor-card label.form-label {
+          color: #4b6584 !important;
+          font-weight: 600;
+        }
+        body.light-theme .sensor-card .input-group-text {
+          background-color: #f1f2f6 !important;
+          border-color: #ced4da !important;
+          color: #4b6584 !important;
+          font-weight: 600;
+        }
+        body.light-theme .sensor-card .form-input-custom {
+          background-color: #ffffff !important;
+          border-color: #ced4da !important;
+          color: #2f3640 !important;
+          font-weight: 600;
+        }
+        body.light-theme .sensor-card .form-input-custom:focus {
+          border-color: #0d6efd !important;
+          box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15) !important;
+        }
+        body.light-theme .sensor-card span.fs-8.text-secondary {
+          color: #636e72 !important;
+        }
+
+        .sensor-card-disabled {
+          opacity: 0.55;
+          filter: grayscale(60%);
+          background: rgba(0, 0, 0, 0.08) !important;
+        }
+        body.light-theme .sensor-card-disabled {
+          background-color: #f8f9fa !important;
+          border: 1px dashed #ced4da !important;
+          opacity: 0.82 !important;
+          filter: none !important;
+          box-shadow: none !important;
+        }
+        body.light-theme .sensor-card-disabled strong {
+          color: #8395a7 !important;
+        }
+        body.light-theme .sensor-card-disabled small.text-secondary {
+          color: #a4b0be !important;
+        }
+        body.light-theme .sensor-card-disabled label.form-label {
+          color: #8395a7 !important;
+        }
+        body.light-theme .sensor-card-disabled .input-group-text {
+          background-color: #f1f2f6 !important;
+          color: #8395a7 !important;
+          border-color: #dcdde1 !important;
+        }
+        body.light-theme .sensor-card-disabled .form-input-custom {
+          background-color: #f1f2f6 !important;
+          color: #8395a7 !important;
+          border-color: #dcdde1 !important;
+        }
+
+        .range-visual-bar {
+          height: 6px;
+          border-radius: 4px;
+          background: linear-gradient(90deg, #ff4757 0%, #2ed573 25%, #2ed573 75%, #ff4757 100%);
+          position: relative;
+          margin: 8px 0;
+        }
+
+        .push-preview-card {
+          background: #1e272e;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 14px;
+          padding: 1rem 1.2rem;
+          color: #f1f2f6;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+          position: relative;
+        }
+        body.light-theme .push-preview-card {
+          background-color: #ffffff !important;
+          border: 1px solid #ced4da !important;
+          color: #2f3640 !important;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06) !important;
+        }
+        body.light-theme .push-preview-card #pushPreviewTitle {
+          color: #d97706 !important;
+          font-weight: 700 !important;
+        }
+        body.light-theme .push-preview-card #pushPreviewBody {
+          color: #334155 !important;
+          font-weight: 500 !important;
+        }
+        body.light-theme .push-preview-card small.text-secondary {
+          color: #64748b !important;
+        }
+
+        .fs-7 { font-size: 0.88rem; }
+        .fs-8 { font-size: 0.78rem; }
     </style>
 </head>
 <body>
@@ -364,15 +660,39 @@
                         
                         {% if session.get('user_id') %}
                         <!-- Icono de Notificaciones al lado del icono de Usuario -->
-                        <button class="btn btn-sm btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; flex-shrink: 0;" data-bs-toggle="modal" data-bs-target="#notificationModal" title="Notificaciones Web Push">
+                        <button class="btn btn-sm btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; flex-shrink: 0;" data-bs-toggle="modal" data-bs-target="#modalAlertasSensores" onclick="abrirModalAlertasSensores()" title="Configuración de Alertas de Sensores y Web Push">
                             <i class="bi bi-bell-fill" style="font-size: 0.95rem;"></i>
                         </button>
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-info rounded-pill px-3 dropdown-toggle d-flex align-items-center gap-1 text-nowrap" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-person-circle"></i> {{ session.get('usuario') }}
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end glass-card p-1 shadow">
-                                <li><a class="dropdown-menu-item text-danger dropdown-item rounded d-flex align-items-center gap-2" href="/logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end glass-card p-1 shadow" style="min-width: 260px;">
+                                <li>
+                                    <!-- OPCIÓN SOLICITADA POR EL USUARIO: ABRE EL MENÚ DE DEFINICIÓN DE UMBRALES -->
+                                    <a class="dropdown-item rounded d-flex align-items-center gap-2 py-2" href="#" data-bs-toggle="modal" data-bs-target="#modalAlertasSensores" onclick="abrirModalAlertasSensores()">
+                                        <div class="p-1.5 rounded-2 bg-warning bg-opacity-15 text-warning d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                            <i class="bi bi-bell-fill fs-6"></i>
+                                        </div>
+                                        <div>
+                                            <span class="d-block fw-semibold" style="font-size: 0.86rem;">Alertas de Sensores</span>
+                                            <small class="text-secondary d-block" style="font-size: 0.72rem;">Umbrales sobre / bajo lo normal</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded d-flex align-items-center gap-2 py-2" href="#" data-bs-toggle="modal" data-bs-target="#notificationModal">
+                                        <div class="p-1.5 rounded-2 bg-info bg-opacity-15 text-info d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                            <i class="bi bi-phone-fill fs-6"></i>
+                                        </div>
+                                        <div>
+                                            <span class="d-block fw-semibold" style="font-size: 0.86rem;">Dispositivo Push</span>
+                                            <small class="text-secondary d-block" style="font-size: 0.72rem;">Suscripción y difusión</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li><a class="dropdown-menu-item text-danger dropdown-item rounded d-flex align-items-center gap-2 py-2" href="/logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                             </ul>
                         </div>
                         {% endif %}
@@ -527,6 +847,530 @@
           <div class="modal-footer border-secondary-subtle justify-content-center">
             <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- MODAL: CONFIGURACIÓN DE ALERTAS Y UMBRALES DE SENSORES         -->
+    <!-- ============================================================== -->
+    <div class="modal fade" id="modalAlertasSensores" tabindex="-1" aria-labelledby="modalAlertasSensoresLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content modal-custom-content glass-card shadow-lg border-0">
+          
+          <!-- Encabezado del Modal -->
+          <div class="modal-header border-bottom border-secondary border-opacity-10 pb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="p-2.5 rounded-circle bg-warning bg-opacity-15 text-warning shadow-sm">
+                <i class="bi bi-bell-fill fs-4"></i>
+              </div>
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-0.5">
+                  <h5 class="modal-title fw-bold text-white mb-0" id="modalAlertasSensoresLabel" style="font-family: 'Outfit', sans-serif;">
+                    Configuración de Alertas Bioclimáticas y Umbrales
+                  </h5>
+                  <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill fs-8" id="modal-role-indicator">
+                    <i class="bi bi-shield-check me-1"></i> Rol: ADMIN
+                  </span>
+                </div>
+                <small class="text-secondary">
+                  Monitoreo ambiental: define los rangos normales (inferior y superior), la frecuencia anti-spam y los destinatarios de notificaciones.
+                </small>
+              </div>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+
+          <div class="modal-body p-4">
+
+            <!-- BANNER DE VALIDACIÓN DE ROL (ADMIN VS OPERADOR) -->
+            <div id="bannerPermisoRol" class="alert alert-success bg-success bg-opacity-10 border border-success border-opacity-25 d-flex align-items-center justify-content-between p-3 rounded-3 mb-4">
+              <div class="d-flex align-items-center gap-2.5 small">
+                <i class="bi bi-shield-lock-fill fs-4 text-success flex-shrink-0" id="iconPermisoRol"></i>
+                <div>
+                  <strong class="d-block text-white" id="titlePermisoRol">Permiso Verificado: Acceso de Administrador</strong>
+                  <span class="text-secondary" id="descPermisoRol">Has iniciado sesión como <strong>{{ session.get('usuario') }}</strong>. Puedes modificar los valores umbral, activar/desactivar sensores y guardar cambios en el sistema.</span>
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-1.5 ms-auto">
+                <span class="badge bg-success text-white px-2.5 py-1 rounded-pill fs-8" id="badgePermisoRol">MODIFICACIÓN PERMITIDA</span>
+              </div>
+            </div>
+
+            <!-- FILA 1: SWITCH MAESTRO DE NOTIFICACIONES Y FRECUENCIA ANTI-SPAM -->
+            <div class="row g-3 mb-4">
+              
+              <!-- Switch Maestro -->
+              <div class="col-lg-6">
+                <div class="p-3 rounded-3 h-100 d-flex align-items-center justify-content-between master-switch-card">
+                  <div class="d-flex align-items-center gap-2.5 me-3">
+                    <div class="p-2 rounded-circle bg-warning bg-opacity-20 text-warning">
+                      <i class="bi bi-broadcast fs-5"></i>
+                    </div>
+                    <div>
+                      <label class="form-check-label fw-bold text-white mb-0 cursor-pointer" for="masterNotifSwitch">
+                        Notificaciones de Sensores (Global)
+                      </label>
+                      <small class="text-secondary d-block" id="masterNotifHelp">
+                        Activa el despacho de alertas web push. Si lo desactivas, se silencian todas las alarmas para no saturar tu dispositivo.
+                      </small>
+                    </div>
+                  </div>
+                  <div class="form-check form-switch m-0 fs-4">
+                    <input class="form-check-input" type="checkbox" id="masterNotifSwitch" checked onchange="onMasterSwitchToggle(this.checked)">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Frecuencia de Notificaciones (Por defecto 20 min) -->
+              <div class="col-lg-6">
+                <div class="p-3 rounded-3 h-100 frequency-config-card">
+                  <div class="d-flex align-items-center justify-content-between mb-1.5">
+                    <label class="form-label text-secondary small fw-semibold text-uppercase mb-0" for="selectFrecuenciaNotif">
+                      <i class="bi bi-stopwatch text-info me-1"></i> Frecuencia de Alerta (Anti-Saturación):
+                    </label>
+                    <span class="badge bg-info-subtle text-info border border-info border-opacity-25 rounded-pill fs-8">tag: alerta-sensores-iot</span>
+                  </div>
+                  <select class="form-select form-select-custom form-select-sm" id="selectFrecuenciaNotif" onchange="onFrecuenciaChange(this.value)">
+                    <option value="5">Cada 5 minutos (Supervisión Crítica)</option>
+                    <option value="10">Cada 10 minutos</option>
+                    <option value="15">Cada 15 minutos</option>
+                    <option value="20" selected>Cada 20 minutos (Recomendado por defecto)</option>
+                    <option value="30">Cada 30 minutos</option>
+                    <option value="60">Cada 1 hora</option>
+                    <option value="120">Cada 2 horas</option>
+                  </select>
+                  <small class="text-secondary d-block mt-1.5" style="font-size: 0.76rem;">
+                    <i class="bi bi-info-circle me-1 text-info"></i> Reemplaza en pantalla la notificación anterior usando la propiedad <code>tag</code>, evitando inundar la barra de notificaciones.
+                  </small>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- FILA 2: CONDICIÓN DE DISPARO DE ALERTAS BIOCLIMÁTICAS -->
+            <div class="p-3 rounded-3 mb-4 condition-config-card">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <label class="form-label text-secondary small fw-semibold text-uppercase mb-0">
+                  <i class="bi bi-funnel-fill text-info me-1"></i> Condición de Disparo de Alertas:
+                </label>
+                <span class="fs-8 text-secondary">Controla si se notifica únicamente ante problemas o también en estado normal</span>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <div class="condition-option-item p-2.5 rounded-3 d-flex align-items-start gap-2.5 h-100" style="cursor: pointer;" onclick="document.getElementById('condicionSoloAnomalias').click()">
+                    <input class="form-check-input m-0 mt-1" type="radio" name="condicionReporteRadio" id="condicionSoloAnomalias" value="solo_anomalias" checked onchange="onCondicionReporteChange(this.value)" style="width: 1.25rem; height: 1.25rem; cursor: pointer; flex-shrink: 0;">
+                    <div>
+                      <label class="small fw-bold mb-0 text-white d-block user-select-none" for="condicionSoloAnomalias" style="cursor: pointer;">
+                        ⚠️ Solo si los valores están FUERA DE RANGO
+                      </label>
+                      <small class="text-secondary d-block" style="font-size: 0.76rem;">
+                        (Por defecto / Recomendado). El sistema permanece en silencio si todo está bien. Solo notifica heladas, calor excesivo, sequía o gases nocivos.
+                      </small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="condition-option-item p-2.5 rounded-3 d-flex align-items-start gap-2.5 h-100" style="cursor: pointer;" onclick="document.getElementById('condicionIncluirNormal').click()">
+                    <input class="form-check-input m-0 mt-1" type="radio" name="condicionReporteRadio" id="condicionIncluirNormal" value="incluir_normal" onchange="onCondicionReporteChange(this.value)" style="width: 1.25rem; height: 1.25rem; cursor: pointer; flex-shrink: 0;">
+                    <div>
+                      <label class="small fw-bold mb-0 text-white d-block user-select-none" for="condicionIncluirNormal" style="cursor: pointer;">
+                        📊 Incluir reporte periódico de estado NORMAL
+                      </label>
+                      <small class="text-secondary d-block" style="font-size: 0.76rem;">
+                        Envía confirmaciones periódicas (cada X min) indicando que todos los parámetros del invernadero se encuentran en equilibrio óptimo.
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FILA 3: SELECCIÓN DE DESTINATARIOS -->
+            <div class="p-3 rounded-3 mb-4 recipients-config-card">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <label class="form-label text-secondary small fw-semibold text-uppercase mb-0">
+                  <i class="bi bi-people-fill text-info me-1"></i> Destinatarios de las Alertas:
+                </label>
+                <span class="fs-8 text-secondary">Elige a qué operadores o técnicos llegará la notificación</span>
+              </div>
+
+              <div class="d-flex gap-4 mb-2 flex-wrap">
+                <div class="d-flex align-items-center gap-2">
+                  <input class="form-check-input m-0" type="radio" name="destinatariosOptionAlertas" id="destTodosAlertas" value="todos" checked onchange="toggleListaDestinatariosAlertas(false)" style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                  <label class="form-check-label small mb-0 user-select-none" for="destTodosAlertas" style="cursor: pointer;">
+                    <i class="bi bi-broadcast me-1 text-primary"></i> Enviar a todos los usuarios suscritos
+                  </label>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <input class="form-check-input m-0" type="radio" name="destinatariosOptionAlertas" id="destCustomAlertas" value="custom" onchange="toggleListaDestinatariosAlertas(true)" style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                  <label class="form-check-label small mb-0 user-select-none" for="destCustomAlertas" style="cursor: pointer;">
+                    <i class="bi bi-person-check me-1 text-warning"></i> Personalizado (elegir usuarios específicos)
+                  </label>
+                </div>
+              </div>
+
+              <!-- Lista desplegable de usuarios -->
+              <div id="contenedorListaUsuariosAlertas" class="p-2.5 rounded-3 border d-none mt-2" style="max-height: 160px; overflow-y: auto;">
+                <div class="row g-2" id="listaUsuariosCheckboxesAlertas">
+                  <!-- Se poblará dinámicamente con JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- FILA 4: CONFIGURACIÓN INDIVIDUAL POR SENSOR (SOBRE Y BAJO)    -->
+            <!-- ============================================================== -->
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h6 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-speedometer2 text-info"></i> Umbrales de Alerta por Sensor (Inferior y Superior)
+              </h6>
+              <small class="text-secondary">Activa o silencia individualmente cada variable ambiental</small>
+            </div>
+
+            <div class="row g-3 mb-4" id="contenedorTarjetasSensores">
+
+              <!-- SENSOR 1: TEMPERATURA (°C) -->
+              <div class="col-md-6">
+                <div class="sensor-card h-100" id="card-sensor-temp">
+                  <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="p-2 rounded-circle bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-thermometer-half fs-5"></i>
+                      </div>
+                      <div>
+                        <strong class="text-white d-block" style="font-size: 0.92rem;">Temperatura Ambiental</strong>
+                        <small class="text-secondary" style="font-size: 0.72rem;">Sensor BMP280 (°C)</small>
+                      </div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                      <input class="form-check-input chk-sensor-toggle" type="checkbox" id="toggle-sensor-temp" checked onchange="onSensorToggle('temperatura', this.checked)">
+                    </div>
+                  </div>
+
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label fs-8 text-secondary mb-1">
+                        <i class="bi bi-arrow-down-circle text-info me-1"></i>Inferior a (Mínimo normal):
+                      </label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary">&le;</span>
+                        <input type="number" step="0.5" class="form-control form-input-custom input-umbral" id="min-sensor-temp" value="14.0" onchange="onThresholdChange()">
+                        <span class="input-group-text bg-transparent border-start-0 text-secondary">°C</span>
+                      </div>
+                      <span class="fs-8 text-secondary mt-0.5 d-block">Riesgo de frío / helada</span>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label fs-8 text-secondary mb-1">
+                        <i class="bi bi-arrow-up-circle text-danger me-1"></i>Superior a (Máximo normal):
+                      </label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary">&ge;</span>
+                        <input type="number" step="0.5" class="form-control form-input-custom input-umbral" id="max-sensor-temp" value="32.0" onchange="onThresholdChange()">
+                        <span class="input-group-text bg-transparent border-start-0 text-secondary">°C</span>
+                      </div>
+                      <span class="fs-8 text-secondary mt-0.5 d-block">Estrés térmico extremo</span>
+                    </div>
+                  </div>
+
+                  <div class="range-visual-bar mt-3 mb-1"></div>
+                  <div class="d-flex justify-content-between fs-8 text-secondary">
+                    <span class="text-info" id="lbl-temp-min">&lt; 14.0°C Frío</span>
+                    <span class="text-success fw-semibold" id="lbl-temp-safe">14.0°C - 32.0°C (Normal)</span>
+                    <span class="text-danger" id="lbl-temp-max">&gt; 32.0°C Calor</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SENSOR 2: HUMEDAD DEL SUELO (%) -->
+              <div class="col-md-6">
+                <div class="sensor-card h-100" id="card-sensor-suelo">
+                  <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="p-2 rounded-circle bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-droplet-half fs-5"></i>
+                      </div>
+                      <div>
+                        <strong class="text-white d-block" style="font-size: 0.92rem;">Humedad del Suelo</strong>
+                        <small class="text-secondary" style="font-size: 0.72rem;">Higrómetro Capacitivo (%)</small>
+                      </div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                      <input class="form-check-input chk-sensor-toggle" type="checkbox" id="toggle-sensor-suelo" checked onchange="onSensorToggle('humedad_suelo', this.checked)">
+                    </div>
+                  </div>
+
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label fs-8 text-secondary mb-1">
+                        <i class="bi bi-arrow-down-circle text-warning me-1"></i>Inferior a (Suelo Seco):
+                      </label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary">&le;</span>
+                        <input type="number" step="1" class="form-control form-input-custom input-umbral" id="min-sensor-suelo" value="25" onchange="onThresholdChange()">
+                        <span class="input-group-text bg-transparent border-start-0 text-secondary">%</span>
+                      </div>
+                      <span class="fs-8 text-secondary mt-0.5 d-block">Sequía / Riego urgente</span>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label fs-8 text-secondary mb-1">
+                        <i class="bi bi-arrow-up-circle text-primary me-1"></i>Superior a (Saturación):
+                      </label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary">&ge;</span>
+                        <input type="number" step="1" class="form-control form-input-custom input-umbral" id="max-sensor-suelo" value="80" onchange="onThresholdChange()">
+                        <span class="input-group-text bg-transparent border-start-0 text-secondary">%</span>
+                      </div>
+                      <span class="fs-8 text-secondary mt-0.5 d-block">Encharcamiento / Asfixia</span>
+                    </div>
+                  </div>
+
+                  <div class="range-visual-bar mt-3 mb-1"></div>
+                  <div class="d-flex justify-content-between fs-8 text-secondary">
+                    <span class="text-warning" id="lbl-suelo-min">&lt; 25% Seco</span>
+                    <span class="text-success fw-semibold" id="lbl-suelo-safe">25% - 80% (Óptimo)</span>
+                    <span class="text-primary" id="lbl-suelo-max">&gt; 80% Saturado</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SENSOR 3: CALIDAD DEL AIRE / CO2 Y HUMO (PPM) -->
+              <div class="col-md-6">
+                <div class="sensor-card h-100" id="card-sensor-aire">
+                  <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="p-2 rounded-circle bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-wind fs-5"></i>
+                      </div>
+                      <div>
+                        <strong class="text-white d-block" style="font-size: 0.92rem;">Calidad del Aire / Gases</strong>
+                        <small class="text-secondary" style="font-size: 0.72rem;">Sensor MQ-135 (PPM)</small>
+                      </div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                      <input class="form-check-input chk-sensor-toggle" type="checkbox" id="toggle-sensor-aire" checked onchange="onSensorToggle('calidad_aire', this.checked)">
+                    </div>
+                  </div>
+
+                  <div class="row g-2">
+                    <div class="col-12">
+                      <label class="form-label fs-8 text-secondary mb-1">
+                        <i class="bi bi-exclamation-octagon text-danger me-1"></i>Superior a (Límite Contaminación / CO2):
+                      </label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary">&ge;</span>
+                        <input type="number" step="10" class="form-control form-input-custom input-umbral" id="max-sensor-aire" value="450" onchange="onThresholdChange()">
+                        <span class="input-group-text bg-transparent border-start-0 text-secondary">PPM</span>
+                      </div>
+                      <span class="fs-8 text-secondary mt-0.5 d-block">Concentración nociva de humo, amoníaco o CO2</span>
+                    </div>
+                  </div>
+
+                  <div class="range-visual-bar mt-3 mb-1" style="background: linear-gradient(90deg, #2ed573 0%, #2ed573 60%, #ffa502 75%, #ff4757 100%);"></div>
+                  <div class="d-flex justify-content-between fs-8 text-secondary">
+                    <span class="text-success">&lt; 350 PPM Aire Limpio</span>
+                    <span class="text-warning">350 - 450 PPM Moderado</span>
+                    <span class="text-danger" id="lbl-aire-max">&ge; 450 PPM Alerta</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SENSOR 4: PRESIÓN ATMOSFÉRICA (hPa) -->
+              <div class="col-md-6">
+                <div class="sensor-card h-100" id="card-sensor-presion">
+                  <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="p-2 rounded-circle bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-speedometer fs-5"></i>
+                      </div>
+                      <div>
+                        <strong class="text-white d-block" style="font-size: 0.92rem;">Presión Barométrica</strong>
+                        <small class="text-secondary" style="font-size: 0.72rem;">Sensor BMP280 (hPa)</small>
+                      </div>
+                    </div>
+                    <div class="form-check form-switch m-0">
+                      <input class="form-check-input chk-sensor-toggle" type="checkbox" id="toggle-sensor-presion" onchange="onSensorToggle('presion', this.checked)">
+                    </div>
+                  </div>
+
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <label class="form-label fs-8 text-secondary mb-1">
+                        <i class="bi bi-cloud-lightning-rain text-warning me-1"></i>Inferior a (Tormenta):
+                      </label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary">&le;</span>
+                        <input type="number" step="1" class="form-control form-input-custom input-umbral" id="min-sensor-presion" value="980" onchange="onThresholdChange()">
+                        <span class="input-group-text bg-transparent border-start-0 text-secondary">hPa</span>
+                      </div>
+                      <span class="fs-8 text-secondary mt-0.5 d-block">Caída barométrica rápida</span>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label fs-8 text-secondary mb-1">
+                        <i class="bi bi-brightness-high text-info me-1"></i>Superior a (Alta Presión):
+                      </label>
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary">&ge;</span>
+                        <input type="number" step="1" class="form-control form-input-custom input-umbral" id="max-sensor-presion" value="1030" onchange="onThresholdChange()">
+                        <span class="input-group-text bg-transparent border-start-0 text-secondary">hPa</span>
+                      </div>
+                      <span class="fs-8 text-secondary mt-0.5 d-block">Anticiclón anómalo</span>
+                    </div>
+                  </div>
+
+                  <div class="range-visual-bar mt-3 mb-1"></div>
+                  <div class="d-flex justify-content-between fs-8 text-secondary">
+                    <span class="text-warning">&lt; 980 hPa Baja</span>
+                    <span class="text-success fw-semibold">980 - 1030 hPa (Estable)</span>
+                    <span class="text-info">&gt; 1030 hPa Alta</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- FILA 5: ALERTAS DE HARDWARE Y CONECTIVIDAD (DISPOSITIVOS OFFLINE)-->
+            <!-- ============================================================== -->
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h6 class="fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-hdd-network text-warning"></i> Alertas de Hardware y Conectividad (Dispositivos Fuera de Servicio)
+              </h6>
+              <small class="text-secondary">Detecta interrupción de telemetría o pérdida de enlace en tiempo real</small>
+            </div>
+
+            <div class="row g-3 mb-4">
+              <!-- Tarjeta ESP32 Offline -->
+              <div class="col-md-6">
+                <div class="sensor-card h-100" id="card-hw-esp32">
+                  <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="p-2 rounded-circle bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-cpu fs-5"></i>
+                      </div>
+                      <div>
+                        <strong class="text-white d-block" style="font-size: 0.92rem;">Microcontrolador ESP32</strong>
+                        <small class="text-secondary" style="font-size: 0.72rem;">Telemetría de Sensores & Relés</small>
+                      </div>
+                    </div>
+                    <div class="form-check form-switch m-0 fs-5">
+                      <input class="form-check-input" type="checkbox" id="chkOfflineEsp32" checked onchange="onHardwareOfflineToggle('esp32', this.checked)">
+                    </div>
+                  </div>
+                  <p class="text-secondary small mb-2" style="font-size: 0.78rem;">
+                    Notifica si el ESP32 deja de emitir telemetría reciente o se desconecta de la red WiFi (> 3 minutos sin lecturas consecutivas).
+                  </p>
+                  <div class="d-flex align-items-center justify-content-between pt-1 fs-8">
+                    <span class="text-secondary"><i class="bi bi-broadcast me-1 text-success"></i>Monitoreo:</span>
+                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill" id="badgeStatusEsp32Monitoreo">Alerta Activada</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tarjeta Jetson Nano Offline -->
+              <div class="col-md-6">
+                <div class="sensor-card h-100" id="card-hw-jetson">
+                  <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom border-secondary border-opacity-10">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="p-2 rounded-circle bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-camera-video fs-5"></i>
+                      </div>
+                      <div>
+                        <strong class="text-white d-block" style="font-size: 0.92rem;">NVIDIA Jetson Nano</strong>
+                        <small class="text-secondary" style="font-size: 0.72rem;">Visión Artificial & Detección YOLO</small>
+                      </div>
+                    </div>
+                    <div class="form-check form-switch m-0 fs-5">
+                      <input class="form-check-input" type="checkbox" id="chkOfflineJetson" checked onchange="onHardwareOfflineToggle('jetson', this.checked)">
+                    </div>
+                  </div>
+                  <p class="text-secondary small mb-2" style="font-size: 0.78rem;">
+                    Notifica si el módulo de visión artificial, cámara o contenedor Docker de inferencia deja de responder o queda fuera de servicio.
+                  </p>
+                  <div class="d-flex align-items-center justify-content-between pt-1 fs-8">
+                    <span class="text-secondary"><i class="bi bi-eye me-1 text-info"></i>Monitoreo:</span>
+                    <span class="badge bg-success bg-opacity-25 text-success rounded-pill" id="badgeStatusJetsonMonitoreo">Alerta Activada</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ============================================================== -->
+            <!-- FILA 6: PREVISUALIZACIÓN EN VIVO DE LA NOTIFICACIÓN PUSH      -->
+            <!-- ============================================================== -->
+            <div class="mb-2">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <label class="form-label text-secondary small fw-semibold text-uppercase mb-0">
+                  <i class="bi bi-phone-vibrate text-warning me-1"></i> Previsualización en Vivo (Simulador Web Push):
+                </label>
+                <!-- Selector de Escenario para Probar -->
+                <div class="btn-group btn-group-sm" role="group" id="grupoEscenariosPush">
+                  <button type="button" class="btn btn-sm btn-outline-warning active" onclick="seleccionarEscenarioPush('anomalia')" id="btnEscenarioAnomalia">
+                    ⚠️ Fuera de Rango
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-success" onclick="seleccionarEscenarioPush('normal')" id="btnEscenarioNormal">
+                    🌿 Normal
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="seleccionarEscenarioPush('esp32_offline')" id="btnEscenarioEsp32">
+                    🔴 ESP32 Offline
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="seleccionarEscenarioPush('jetson_offline')" id="btnEscenarioJetson">
+                    🔴 Jetson Offline
+                  </button>
+                </div>
+              </div>
+
+              <div class="push-preview-card" id="pushPreviewCard">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div id="pushPreviewIconBox" style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #0d6efd, #00f2fe); display: flex; align-items: center; justify-content: center; color: #fff;">
+                      <i class="bi bi-bell-fill fs-8" id="pushPreviewIcon"></i>
+                    </div>
+                    <div>
+                      <strong class="d-block text-white" style="font-size: 0.85rem;" id="pushPreviewTitle">⚠️ Alerta Bioclimática: Valores Fuera de Rango</strong>
+                      <small class="text-secondary" style="font-size: 0.72rem;" id="pushPreviewSubtitle">Monitor IoT • Invernadero Fragaria</small>
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-center gap-1.5">
+                    <span class="badge bg-secondary bg-opacity-25 text-secondary px-2 py-0.5 rounded-pill fs-8" id="pushPreviewTag">tag: alerta-sensores-iot</span>
+                    <small class="text-secondary" style="font-size: 0.72rem;">Ahora</small>
+                  </div>
+                </div>
+                <div class="text-secondary small ps-1" id="pushPreviewBody">
+                  Temperatura: 34.2°C (Supera 32.0°C). Suelo: 18% (Inferior a 25%). Frecuencia: Cada 20 min. Clic para ver dashboard.
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Pie del Modal -->
+          <div class="modal-footer border-top border-secondary border-opacity-10 pt-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="resetDefaultAlertasConfig()" id="btnResetAlertas">
+              <i class="bi bi-arrow-counterclockwise me-1"></i> Valores por Defecto
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3" onclick="probarNotificacionSimulada()" id="btnProbarPush">
+              <i class="bi bi-bell-pulse me-1"></i> Simular Disparo Push
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 shadow-sm fw-semibold" id="btnGuardarAlertas" onclick="guardarConfigAlertasSensores()">
+              <i class="bi bi-floppy-fill me-1"></i> Guardar Configuración de Alertas
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenedor de Toasts para Notificaciones del Sistema -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+      <div id="alertaToast" class="toast align-items-center text-white border-0 glass-card shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body d-flex align-items-center gap-2" id="alertaToastBody">
+            <i class="bi bi-info-circle-fill text-info"></i> Mensaje del sistema
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
       </div>
     </div>
@@ -793,6 +1637,589 @@
         if (window.location.pathname !== '/detecciones') {
             actualizarStatusNavbarJetson();
             setInterval(actualizarStatusNavbarJetson, 6000);
+        }
+
+        // ==================== LÓGICA DEL MODAL DE ALERTAS DE SENSORES ====================
+        let configAlertasSensores = {
+            version: "1.1",
+            habilitado_global: true,
+            frecuencia_minutos: 20,
+            condicion_reporte: "solo_anomalias",
+            hardware_offline: { esp32: true, jetson: true },
+            destinatarios: "todos",
+            usuarios_seleccionados: [1],
+            sensores: {
+                temperatura: { habilitado: true, min_normal: 14.0, max_normal: 32.0 },
+                humedad_suelo: { habilitado: true, min_normal: 25.0, max_normal: 80.0 },
+                calidad_aire: { habilitado: true, min_normal: 0.0, max_normal: 450.0 },
+                presion: { habilitado: false, min_normal: 980.0, max_normal: 1030.0 }
+            }
+        };
+
+        const DEFAULT_CONFIG_ALERTAS = JSON.parse(JSON.stringify(configAlertasSensores));
+        let esAdminUsuario = false;
+        let usuariosDisponiblesAlertas = [];
+        let escenarioPushActual = 'anomalia';
+        let lecturasRecientesPreview = { temp: 34.2, soil: 18.0, air: 480, pres: 1013 };
+
+        async function abrirModalAlertasSensores() {
+            try {
+                const resp = await fetch('/api/alertas/config');
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.status === 'ok') {
+                        if (data.config) configAlertasSensores = data.config;
+                        esAdminUsuario = !!data.is_admin;
+                        if (data.usuarios) usuariosDisponiblesAlertas = data.usuarios;
+                    }
+                }
+            } catch (e) {
+                console.warn("No se pudo obtener configuración desde el servidor:", e);
+            }
+
+            // Intentar sincronizar con lecturas reales recientes si están disponibles en el dashboard
+            if (window.historialData && window.historialData.length > 0) {
+                const last = window.historialData[window.historialData.length - 1];
+                if (last) {
+                    lecturasRecientesPreview.temp = last.temperatura ?? 34.2;
+                    lecturasRecientesPreview.soil = last.humedad_suelo ?? 18.0;
+                    lecturasRecientesPreview.air = last.co2 ?? 480;
+                    lecturasRecientesPreview.pres = last.presion ?? 1013;
+                }
+            }
+
+            poblarUsuariosDestinatariosAlertas();
+            sincronizarInputsDesdeConfigAlertas();
+            actualizarPermisosModalAlertas();
+            actualizarVistaPreviaPush();
+        }
+
+        function sincronizarInputsDesdeConfigAlertas() {
+            const cfg = configAlertasSensores;
+            const s = cfg.sensores || {};
+
+            const masterSwitch = document.getElementById('masterNotifSwitch');
+            if (masterSwitch) masterSwitch.checked = (cfg.habilitado_global !== false);
+
+            const selFrec = document.getElementById('selectFrecuenciaNotif');
+            if (selFrec) selFrec.value = cfg.frecuencia_minutos || 20;
+
+            const isSoloAnomalias = (cfg.condicion_reporte !== 'incluir_normal');
+            const rSolo = document.getElementById('condicionSoloAnomalias');
+            const rNorm = document.getElementById('condicionIncluirNormal');
+            if (rSolo) rSolo.checked = isSoloAnomalias;
+            if (rNorm) rNorm.checked = !isSoloAnomalias;
+
+            const hw = cfg.hardware_offline || { esp32: true, jetson: true };
+            const chkEsp = document.getElementById('chkOfflineEsp32');
+            const chkJet = document.getElementById('chkOfflineJetson');
+            if (chkEsp) chkEsp.checked = (hw.esp32 !== false);
+            if (chkJet) chkJet.checked = (hw.jetson !== false);
+            actualizarBadgesHardwareOffline();
+
+            const isCustom = cfg.destinatarios === 'custom';
+            const destTodos = document.getElementById('destTodosAlertas');
+            const destCustom = document.getElementById('destCustomAlertas');
+            if (destTodos) destTodos.checked = !isCustom;
+            if (destCustom) destCustom.checked = isCustom;
+            toggleListaDestinatariosAlertas(isCustom);
+
+            // Sensores
+            if (s.temperatura) {
+                const tEl = document.getElementById('toggle-sensor-temp');
+                const minEl = document.getElementById('min-sensor-temp');
+                const maxEl = document.getElementById('max-sensor-temp');
+                if (tEl) tEl.checked = s.temperatura.habilitado !== false;
+                if (minEl) minEl.value = s.temperatura.min_normal ?? 14.0;
+                if (maxEl) maxEl.value = s.temperatura.max_normal ?? 32.0;
+            }
+            if (s.humedad_suelo) {
+                const tEl = document.getElementById('toggle-sensor-suelo');
+                const minEl = document.getElementById('min-sensor-suelo');
+                const maxEl = document.getElementById('max-sensor-suelo');
+                if (tEl) tEl.checked = s.humedad_suelo.habilitado !== false;
+                if (minEl) minEl.value = s.humedad_suelo.min_normal ?? 25.0;
+                if (maxEl) maxEl.value = s.humedad_suelo.max_normal ?? 80.0;
+            }
+            if (s.calidad_aire) {
+                const tEl = document.getElementById('toggle-sensor-aire');
+                const maxEl = document.getElementById('max-sensor-aire');
+                if (tEl) tEl.checked = s.calidad_aire.habilitado !== false;
+                if (maxEl) maxEl.value = s.calidad_aire.max_normal ?? 450.0;
+            }
+            if (s.presion) {
+                const tEl = document.getElementById('toggle-sensor-presion');
+                const minEl = document.getElementById('min-sensor-presion');
+                const maxEl = document.getElementById('max-sensor-presion');
+                if (tEl) tEl.checked = s.presion.habilitado === true;
+                if (minEl) minEl.value = s.presion.min_normal ?? 980.0;
+                if (maxEl) maxEl.value = s.presion.max_normal ?? 1030.0;
+            }
+
+            aplicarEstiloTarjetasSensores();
+            onThresholdChange();
+        }
+
+        function poblarUsuariosDestinatariosAlertas() {
+            const container = document.getElementById('listaUsuariosCheckboxesAlertas');
+            if (!container) return;
+
+            const selected = configAlertasSensores.usuarios_seleccionados || [1];
+
+            if (usuariosDisponiblesAlertas.length === 0) {
+                container.innerHTML = '<div class="col-12 text-center text-secondary small py-2">No hay otros usuarios registrados aún.</div>';
+                return;
+            }
+
+            container.innerHTML = usuariosDisponiblesAlertas.map(u => `
+                <div class="col-sm-6">
+                    <div class="user-alerta-item p-2.5 rounded-3 d-flex align-items-center justify-content-between gap-2" style="cursor: pointer;" onclick="toggleUserAlertaCheck(${u.id})">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <input class="form-check-input chk-user-alerta m-0" type="checkbox" value="${u.id}" id="chkUserAlerta_${u.id}" ${selected.includes(u.id) ? 'checked' : ''} onclick="event.stopPropagation()" onchange="onUserAlertaCheckChange()" style="width: 1.25rem; height: 1.25rem; flex-shrink: 0; cursor: pointer;">
+                            <label class="small mb-0 user-select-none" for="chkUserAlerta_${u.id}" style="cursor: pointer;">
+                                <strong>${u.usuario}</strong> <span class="badge bg-secondary bg-opacity-25 text-secondary fs-8 ms-1">${u.rol || 'OPERADOR'}</span>
+                            </label>
+                        </div>
+                        <span class="badge ${u.dispositivos > 0 ? 'bg-success bg-opacity-25 text-success' : 'bg-secondary bg-opacity-25 text-secondary'} fs-8">
+                            <i class="bi bi-phone me-1"></i>${u.dispositivos} disp.
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleUserAlertaCheck(userId) {
+            if (!esAdminUsuario) return;
+            const chk = document.getElementById(`chkUserAlerta_${userId}`);
+            if (chk) {
+                chk.checked = !chk.checked;
+                onUserAlertaCheckChange();
+            }
+        }
+
+        function onUserAlertaCheckChange() {
+            const selected = [];
+            document.querySelectorAll('.chk-user-alerta:checked').forEach(chk => {
+                selected.push(parseInt(chk.value));
+            });
+            configAlertasSensores.usuarios_seleccionados = selected;
+        }
+
+        function actualizarPermisosModalAlertas() {
+            const esAdmin = esAdminUsuario;
+
+            const badgeRole = document.getElementById('modal-role-indicator');
+            if (badgeRole) {
+                badgeRole.className = esAdmin 
+                    ? 'badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 rounded-pill fs-8'
+                    : 'badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25 rounded-pill fs-8';
+                badgeRole.innerHTML = esAdmin 
+                    ? '<i class="bi bi-shield-check me-1"></i> Rol: ADMIN (Editable)'
+                    : '<i class="bi bi-shield-lock me-1"></i> Rol: OPERADOR (Solo Lectura)';
+            }
+
+            const banner = document.getElementById('bannerPermisoRol');
+            const icon = document.getElementById('iconPermisoRol');
+            const title = document.getElementById('titlePermisoRol');
+            const desc = document.getElementById('descPermisoRol');
+            const badgePerm = document.getElementById('badgePermisoRol');
+
+            if (banner) {
+                if (esAdmin) {
+                    banner.className = 'alert alert-success bg-success bg-opacity-10 border border-success border-opacity-25 d-flex align-items-center justify-content-between p-3 rounded-3 mb-4';
+                    if (icon) { icon.className = 'bi bi-shield-lock-fill fs-4 text-success flex-shrink-0'; }
+                    if (title) title.innerText = 'Permiso Verificado: Acceso de Administrador';
+                    if (desc) desc.innerHTML = 'Has iniciado sesión con credenciales de Administrador. Puedes modificar los valores umbral, activar/desactivar sensores y guardar cambios en el sistema.';
+                    if (badgePerm) {
+                        badgePerm.className = 'badge bg-success text-white px-2.5 py-1 rounded-pill fs-8';
+                        badgePerm.innerText = 'MODIFICACIÓN PERMITIDA';
+                    }
+                } else {
+                    banner.className = 'alert alert-warning bg-warning bg-opacity-10 border border-warning border-opacity-25 d-flex align-items-center justify-content-between p-3 rounded-3 mb-4';
+                    if (icon) { icon.className = 'bi bi-exclamation-triangle-fill fs-4 text-warning flex-shrink-0'; }
+                    if (title) title.innerText = 'Acceso de Solo Lectura (Operador)';
+                    if (desc) desc.innerHTML = 'Tu rol no dispone de permisos de Administrador para modificar los parámetros. Los controles están bloqueados en modo solo lectura.';
+                    if (badgePerm) {
+                        badgePerm.className = 'badge bg-warning text-dark px-2.5 py-1 rounded-pill fs-8';
+                        badgePerm.innerText = 'MODO SOLO LECTURA';
+                    }
+                }
+            }
+
+            // Deshabilitar o habilitar controles de edición
+            const modalEl = document.getElementById('modalAlertasSensores');
+            if (modalEl) {
+                const inputs = modalEl.querySelectorAll('input:not([data-bs-dismiss]), select');
+                inputs.forEach(inp => {
+                    if (inp.id !== 'theme-switch') {
+                        inp.disabled = !esAdmin;
+                    }
+                });
+            }
+
+            const btnGuardar = document.getElementById('btnGuardarAlertas');
+            if (btnGuardar) {
+                btnGuardar.disabled = !esAdmin;
+                if (esAdmin) {
+                    btnGuardar.className = 'btn btn-sm btn-primary rounded-pill px-4 shadow-sm fw-semibold';
+                    btnGuardar.innerHTML = '<i class="bi bi-floppy-fill me-1"></i> Guardar Configuración de Alertas';
+                } else {
+                    btnGuardar.className = 'btn btn-sm btn-secondary rounded-pill px-4 shadow-sm fw-semibold';
+                    btnGuardar.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Solo Administradores Pueden Guardar';
+                }
+            }
+
+            const btnReset = document.getElementById('btnResetAlertas');
+            if (btnReset) btnReset.disabled = !esAdmin;
+        }
+
+        function onMasterSwitchToggle(isChecked) {
+            configAlertasSensores.habilitado_global = isChecked;
+            const help = document.getElementById('masterNotifHelp');
+            if (help) {
+                help.innerText = isChecked 
+                    ? "Alertas web push y notificaciones de sensores ACTIVADAS." 
+                    : "🔇 Alertas de sensores SILENCIADAS globalmente para no saturar tu dispositivo.";
+            }
+            aplicarEstiloTarjetasSensores();
+            actualizarVistaPreviaPush();
+        }
+
+        function onFrecuenciaChange(val) {
+            configAlertasSensores.frecuencia_minutos = parseInt(val) || 20;
+            actualizarVistaPreviaPush();
+        }
+
+        function toggleListaDestinatariosAlertas(show) {
+            configAlertasSensores.destinatarios = show ? 'custom' : 'todos';
+            const cont = document.getElementById('contenedorListaUsuariosAlertas');
+            if (cont) {
+                if (show) cont.classList.remove('d-none');
+                else cont.classList.add('d-none');
+            }
+            actualizarVistaPreviaPush();
+        }
+
+        function onSensorToggle(sensorKey, isChecked) {
+            if (configAlertasSensores.sensores && configAlertasSensores.sensores[sensorKey]) {
+                configAlertasSensores.sensores[sensorKey].habilitado = isChecked;
+            }
+            aplicarEstiloTarjetasSensores();
+            actualizarVistaPreviaPush();
+        }
+
+        function aplicarEstiloTarjetasSensores() {
+            const globalOn = configAlertasSensores.habilitado_global !== false;
+            const s = configAlertasSensores.sensores || {};
+
+            const cardTemp = document.getElementById('card-sensor-temp');
+            const cardSuelo = document.getElementById('card-sensor-suelo');
+            const cardAire = document.getElementById('card-sensor-aire');
+            const cardPres = document.getElementById('card-sensor-presion');
+
+            if (cardTemp) cardTemp.classList.toggle('sensor-card-disabled', !globalOn || !s.temperatura?.habilitado);
+            if (cardSuelo) cardSuelo.classList.toggle('sensor-card-disabled', !globalOn || !s.humedad_suelo?.habilitado);
+            if (cardAire) cardAire.classList.toggle('sensor-card-disabled', !globalOn || !s.calidad_aire?.habilitado);
+            if (cardPres) cardPres.classList.toggle('sensor-card-disabled', !globalOn || !s.presion?.habilitado);
+        }
+
+        function onThresholdChange() {
+            const s = configAlertasSensores.sensores || {};
+
+            if (s.temperatura) {
+                s.temperatura.min_normal = parseFloat(document.getElementById('min-sensor-temp')?.value) || 14.0;
+                s.temperatura.max_normal = parseFloat(document.getElementById('max-sensor-temp')?.value) || 32.0;
+                const lMin = document.getElementById('lbl-temp-min');
+                const lSafe = document.getElementById('lbl-temp-safe');
+                const lMax = document.getElementById('lbl-temp-max');
+                if (lMin) lMin.innerText = `< ${s.temperatura.min_normal}°C Frío`;
+                if (lSafe) lSafe.innerText = `${s.temperatura.min_normal}°C - ${s.temperatura.max_normal}°C (Normal)`;
+                if (lMax) lMax.innerText = `> ${s.temperatura.max_normal}°C Calor`;
+            }
+
+            if (s.humedad_suelo) {
+                s.humedad_suelo.min_normal = parseFloat(document.getElementById('min-sensor-suelo')?.value) || 25.0;
+                s.humedad_suelo.max_normal = parseFloat(document.getElementById('max-sensor-suelo')?.value) || 80.0;
+                const lMin = document.getElementById('lbl-suelo-min');
+                const lSafe = document.getElementById('lbl-suelo-safe');
+                const lMax = document.getElementById('lbl-suelo-max');
+                if (lMin) lMin.innerText = `< ${s.humedad_suelo.min_normal}% Seco`;
+                if (lSafe) lSafe.innerText = `${s.humedad_suelo.min_normal}% - ${s.humedad_suelo.max_normal}% (Óptimo)`;
+                if (lMax) lMax.innerText = `> ${s.humedad_suelo.max_normal}% Saturado`;
+            }
+
+            if (s.calidad_aire) {
+                s.calidad_aire.max_normal = parseFloat(document.getElementById('max-sensor-aire')?.value) || 450.0;
+                const lMax = document.getElementById('lbl-aire-max');
+                if (lMax) lMax.innerText = `≥ ${s.calidad_aire.max_normal} PPM Alerta`;
+            }
+
+            if (s.presion) {
+                s.presion.min_normal = parseFloat(document.getElementById('min-sensor-presion')?.value) || 980.0;
+                s.presion.max_normal = parseFloat(document.getElementById('max-sensor-presion')?.value) || 1030.0;
+            }
+
+            actualizarVistaPreviaPush();
+        }
+
+        function onCondicionReporteChange(val) {
+            configAlertasSensores.condicion_reporte = val;
+            actualizarVistaPreviaPush();
+        }
+
+        function onHardwareOfflineToggle(device, isChecked) {
+            if (!configAlertasSensores.hardware_offline) {
+                configAlertasSensores.hardware_offline = { esp32: true, jetson: true };
+            }
+            configAlertasSensores.hardware_offline[device] = isChecked;
+            actualizarBadgesHardwareOffline();
+            actualizarVistaPreviaPush();
+        }
+
+        function actualizarBadgesHardwareOffline() {
+            const hw = configAlertasSensores.hardware_offline || { esp32: true, jetson: true };
+            const bEsp = document.getElementById('badgeStatusEsp32Monitoreo');
+            const bJet = document.getElementById('badgeStatusJetsonMonitoreo');
+            if (bEsp) {
+                bEsp.className = (hw.esp32 !== false) 
+                    ? 'badge bg-success bg-opacity-25 text-success rounded-pill'
+                    : 'badge bg-secondary bg-opacity-25 text-secondary rounded-pill';
+                bEsp.innerText = (hw.esp32 !== false) ? 'Alerta Activada' : 'Alerta Desactivada';
+            }
+            if (bJet) {
+                bJet.className = (hw.jetson !== false) 
+                    ? 'badge bg-success bg-opacity-25 text-success rounded-pill'
+                    : 'badge bg-secondary bg-opacity-25 text-secondary rounded-pill';
+                bJet.innerText = (hw.jetson !== false) ? 'Alerta Activada' : 'Alerta Desactivada';
+            }
+        }
+
+        function seleccionarEscenarioPush(scenario) {
+            escenarioPushActual = scenario;
+            ['anomalia', 'normal', 'esp32_offline', 'jetson_offline'].forEach(s => {
+                const btn = document.getElementById(
+                    s === 'anomalia' ? 'btnEscenarioAnomalia' :
+                    s === 'normal' ? 'btnEscenarioNormal' :
+                    s === 'esp32_offline' ? 'btnEscenarioEsp32' : 'btnEscenarioJetson'
+                );
+                if (btn) {
+                    if (s === scenario) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                }
+            });
+            actualizarVistaPreviaPush();
+        }
+
+        function actualizarVistaPreviaPush() {
+            const card = document.getElementById('pushPreviewCard');
+            const title = document.getElementById('pushPreviewTitle');
+            const sub = document.getElementById('pushPreviewSubtitle');
+            const body = document.getElementById('pushPreviewBody');
+            const tag = document.getElementById('pushPreviewTag');
+            const iconBox = document.getElementById('pushPreviewIconBox');
+            const icon = document.getElementById('pushPreviewIcon');
+            if (!card || !title || !body) return;
+
+            const frec = configAlertasSensores.frecuencia_minutos || 20;
+
+            if (configAlertasSensores.habilitado_global === false) {
+                title.innerHTML = "🔇 Alertas Silenciadas (Switch Maestro Desactivado)";
+                if (sub) sub.innerText = "Sistema de Notificaciones IoT";
+                body.innerHTML = "Las notificaciones automáticas y alertas push están pausadas por el usuario. No se emitirán avisos a ningún dispositivo.";
+                if (tag) tag.innerText = "estado: silenciado";
+                if (iconBox) iconBox.style.background = "#6c757d";
+                if (icon) icon.className = "bi bi-bell-slash-fill fs-8";
+                return;
+            }
+
+            if (escenarioPushActual === 'esp32_offline') {
+                const activo = configAlertasSensores.hardware_offline?.esp32 !== false;
+                title.innerHTML = activo 
+                    ? "🚨 Dispositivo Desconectado: ESP32 Fuera de Servicio" 
+                    : "⚪ Alerta Desactivada para Desconexión de ESP32";
+                if (sub) sub.innerText = "Monitor de Hardware IoT • Telemetría y Relés";
+                body.innerHTML = activo
+                    ? "El microcontrolador ESP32 lleva más de 3 minutos sin emitir datos recientes de telemetría. La conexión WiFi o alimentación eléctrica podrían estar interrumpidas."
+                    : "La alerta para ESP32 offline se encuentra apagada en la configuración.";
+                if (tag) tag.innerText = "tag: hardware-esp32-offline";
+                if (iconBox) iconBox.style.background = activo ? "linear-gradient(135deg, #ff4757, #ff6b81)" : "#6c757d";
+                if (icon) icon.className = activo ? "bi bi-cpu fs-8" : "bi bi-cpu fs-8 opacity-50";
+                return;
+            }
+
+            if (escenarioPushActual === 'jetson_offline') {
+                const activo = configAlertasSensores.hardware_offline?.jetson !== false;
+                title.innerHTML = activo 
+                    ? "🚨 Módulo IA Desconectado: NVIDIA Jetson Fuera de Servicio" 
+                    : "⚪ Alerta Desactivada para Desconexión de Jetson";
+                if (sub) sub.innerText = "Monitor de Visión Artificial • Detección Fragaria";
+                body.innerHTML = activo
+                    ? "La NVIDIA Jetson Nano o el contenedor de inferencia YOLO han dejado de responder al heartbeat del servidor. La detección de frutos por cámara está en pausa."
+                    : "La alerta para Jetson Nano offline se encuentra apagada en la configuración.";
+                if (tag) tag.innerText = "tag: hardware-jetson-offline";
+                if (iconBox) iconBox.style.background = activo ? "linear-gradient(135deg, #eb3b5a, #fc5c65)" : "#6c757d";
+                if (icon) icon.className = activo ? "bi bi-camera-video-off fs-8" : "bi bi-camera-video fs-8 opacity-50";
+                return;
+            }
+
+            if (escenarioPushActual === 'normal') {
+                const incluir = configAlertasSensores.condicion_reporte === 'incluir_normal';
+                title.innerHTML = incluir
+                    ? "🌿 Invernadero Fragaria: Todos los Sensores en Rango Normal"
+                    : "⚪ Silencio Operativo: Condiciones Normales (Sin Alerta)";
+                if (sub) sub.innerText = "Reporte de Equilibrio Bioclimático";
+                body.innerHTML = incluir
+                    ? `Temp: 23.5°C, Suelo: 58%, Aire: 380 PPM. Todos los parámetros se encuentran en balance óptimo. Despacho periódico cada ${frec} min.`
+                    : `Los sensores se encuentran en rangos normales (23.5°C, 58%, 380 PPM). Por configuración 'Solo fuera de rango', el sistema no emite alertas.`;
+                if (tag) tag.innerText = "tag: alerta-sensores-iot";
+                if (iconBox) iconBox.style.background = incluir ? "linear-gradient(135deg, #10ac84, #2ed573)" : "#6c757d";
+                if (icon) icon.className = incluir ? "bi bi-check2-circle fs-8" : "bi bi-check2 fs-8 opacity-50";
+                return;
+            }
+
+            // Escenario por defecto: 'anomalia' (Valores Fuera de Rango)
+            const s = configAlertasSensores.sensores || {};
+            const t = lecturasRecientesPreview.temp;
+            const h = lecturasRecientesPreview.soil;
+            const a = lecturasRecientesPreview.air;
+
+            const anomalias = [];
+            if (s.temperatura?.habilitado) {
+                if (t < s.temperatura.min_normal) anomalias.push(`Temperatura: ${t}°C (Frío crítico < ${s.temperatura.min_normal}°C)`);
+                else if (t > s.temperatura.max_normal) anomalias.push(`Temperatura: ${t}°C (Estrés térmico > ${s.temperatura.max_normal}°C)`);
+            }
+            if (s.humedad_suelo?.habilitado) {
+                if (h < s.humedad_suelo.min_normal) anomalias.push(`Suelo: ${h}% (Sequía / Riego < ${s.humedad_suelo.min_normal}%)`);
+                else if (h > s.humedad_suelo.max_normal) anomalias.push(`Suelo: ${h}% (Saturación > ${s.humedad_suelo.max_normal}%)`);
+            }
+            if (s.calidad_aire?.habilitado && a >= s.calidad_aire.max_normal) {
+                anomalias.push(`Aire: ${a} PPM (Gases nocivos ≥ ${s.calidad_aire.max_normal} PPM)`);
+            }
+
+            if (anomalias.length === 0) {
+                anomalias.push(`Temperatura: 34.2°C (Supera ${s.temperatura?.max_normal ?? 32}°C)`);
+                anomalias.push(`Suelo: 18% (Inferior a ${s.humedad_suelo?.min_normal ?? 25}%)`);
+            }
+
+            title.innerHTML = `⚠️ Alerta Bioclimática: ${anomalias.length} variable(s) fuera de rango normal`;
+            if (sub) sub.innerText = "Monitor IoT • Invernadero Fragaria";
+            body.innerHTML = `${anomalias.join(' • ')}. Despachando cada ${frec} min con tag anti-spam. Clic para ver panel.`;
+            if (tag) tag.innerText = "tag: alerta-sensores-iot";
+            if (iconBox) iconBox.style.background = "linear-gradient(135deg, #ffa502, #ff4757)";
+            if (icon) icon.className = "bi bi-exclamation-triangle-fill fs-8";
+        }
+
+        async function guardarConfigAlertasSensores() {
+            if (!esAdminUsuario) {
+                alert("🔒 ACCESO RESTRINGIDO: No posees permisos de Administrador para modificar los umbrales de alerta.");
+                return;
+            }
+
+            onThresholdChange();
+            configAlertasSensores.frecuencia_minutos = parseInt(document.getElementById('selectFrecuenciaNotif')?.value) || 20;
+            configAlertasSensores.condicion_reporte = document.getElementById('condicionIncluirNormal')?.checked ? 'incluir_normal' : 'solo_anomalias';
+            
+            if (!configAlertasSensores.hardware_offline) {
+                configAlertasSensores.hardware_offline = { esp32: true, jetson: true };
+            }
+            configAlertasSensores.hardware_offline.esp32 = (document.getElementById('chkOfflineEsp32')?.checked !== false);
+            configAlertasSensores.hardware_offline.jetson = (document.getElementById('chkOfflineJetson')?.checked !== false);
+
+            const btnGuardar = document.getElementById('btnGuardarAlertas');
+            const originalText = btnGuardar ? btnGuardar.innerHTML : '';
+            if (btnGuardar) {
+                btnGuardar.disabled = true;
+                btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Guardando...';
+            }
+
+            try {
+                const resp = await fetch('/api/alertas/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configAlertasSensores)
+                });
+                const data = await resp.json();
+
+                if (resp.ok && data.status === 'ok') {
+                    if (data.config) configAlertasSensores = data.config;
+                    mostrarToastAlerta('✅ ¡Configuración de alertas guardada con éxito en el sistema!', 'success');
+                    
+                    // Cerrar modal
+                    const modalEl = document.getElementById('modalAlertasSensores');
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    if (modalInstance) modalInstance.hide();
+                } else {
+                    mostrarToastAlerta(`❌ Error al guardar: ${data.message || 'Error del servidor'}`, 'danger');
+                }
+            } catch (err) {
+                console.error("Error al guardar alertas:", err);
+                mostrarToastAlerta(`❌ Error de conexión: ${err.message}`, 'danger');
+            } finally {
+                if (btnGuardar) {
+                    btnGuardar.disabled = false;
+                    btnGuardar.innerHTML = originalText;
+                }
+            }
+        }
+
+        async function resetDefaultAlertasConfig() {
+            if (!esAdminUsuario) {
+                alert("🔒 Solo administradores pueden restablecer valores.");
+                return;
+            }
+            if (confirm("¿Deseas restablecer los umbrales de alerta y frecuencia a sus valores óptimos de fábrica (20 min por defecto)?")) {
+                configAlertasSensores = JSON.parse(JSON.stringify(DEFAULT_CONFIG_ALERTAS));
+                sincronizarInputsDesdeConfigAlertas();
+                mostrarToastAlerta('Valores de fábrica restablecidos en el formulario. Haz clic en "Guardar" para aplicar.', 'info');
+            }
+        }
+
+        async function probarNotificacionSimulada() {
+            actualizarVistaPreviaPush();
+            const btn = document.getElementById('btnProbarPush');
+            if (btn) btn.disabled = true;
+
+            const destTipo = configAlertasSensores.destinatarios || 'todos';
+            const user_ids = configAlertasSensores.usuarios_seleccionados || [];
+
+            try {
+                const resp = await fetch('/api/alertas/probar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        escenario: escenarioPushActual,
+                        destinatarios: destTipo,
+                        user_ids: user_ids
+                    })
+                });
+                const data = await resp.json();
+                const res = data.resultado || {};
+
+                const title = document.getElementById('pushPreviewTitle')?.innerText || 'Alerta Push';
+                const tag = document.getElementById('pushPreviewTag')?.innerText || 'alerta-sensores-iot';
+
+                let tipoToast = 'warning';
+                if (escenarioPushActual === 'normal') tipoToast = 'success';
+                else if (escenarioPushActual.includes('offline')) tipoToast = 'danger';
+
+                mostrarToastAlerta(`📲 <strong>${title}</strong><br><small>Enviado a ${res.enviados ?? 1} dispositivo(s)</small><br><span class="badge bg-secondary mt-1 fs-8">${tag}</span>`, tipoToast);
+            } catch (err) {
+                mostrarToastAlerta(`⚠️ Prueba local simulada: ${escenarioPushActual}`, 'info');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function mostrarToastAlerta(mensaje, tipo = 'info') {
+            const toastEl = document.getElementById('alertaToast');
+            const toastBody = document.getElementById('alertaToastBody');
+            if (!toastEl || !toastBody) {
+                alert(mensaje.replace(/<[^>]*>/g, ''));
+                return;
+            }
+            toastBody.innerHTML = mensaje;
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
         }
     </script>
 </body>
