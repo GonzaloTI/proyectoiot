@@ -125,11 +125,11 @@ class Database:
                 );
             ''')
 
-            # 4. Tabla de Suscripción Web Push
+            # 4. Tabla de Suscripción Web Push (un usuario puede tener múltiples navegadores/dispositivos)
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS suscripcion (
                     id SERIAL PRIMARY KEY,
-                    id_usuario INTEGER UNIQUE NOT NULL,
+                    id_usuario INTEGER NOT NULL,
                     endpoint TEXT UNIQUE NOT NULL,
                     p256dh TEXT NOT NULL,
                     auth TEXT NOT NULL,
@@ -725,15 +725,13 @@ class Database:
                 row = cursor.fetchone()
                 id_usuario = row[0] if row else 1
 
-            # Desvincular endpoint si pertenecía a otro usuario para evitar colisión de la llave UNIQUE en endpoint
-            cursor.execute("DELETE FROM suscripcion WHERE endpoint = %s AND id_usuario != %s", (endpoint, id_usuario))
-
-            # Insertar o actualizar la suscripción del usuario en la tabla 'suscripcion'
+            # Insertar o actualizar la suscripción por endpoint único en la tabla 'suscripcion'
+            # (Permite que un usuario tenga múltiples navegadores o dispositivos suscritos)
             cursor.execute("""
                 INSERT INTO suscripcion (id_usuario, endpoint, p256dh, auth)
                 VALUES (%s, %s, %s, %s)
-                ON CONFLICT (id_usuario) DO UPDATE 
-                SET endpoint = EXCLUDED.endpoint, 
+                ON CONFLICT (endpoint) DO UPDATE 
+                SET id_usuario = EXCLUDED.id_usuario, 
                     p256dh = EXCLUDED.p256dh, 
                     auth = EXCLUDED.auth
             """, (id_usuario, endpoint, p256dh, auth))

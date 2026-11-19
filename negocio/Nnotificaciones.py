@@ -133,11 +133,16 @@ def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una noti
         }
 
         try:
+            # Importante: Pasar una copia fresca de los claims para evitar que pywebpush
+            # contamine la llave "aud" in-place entre diferentes servicios push (FCM vs WNS vs Mozilla).
+            # Se especifica ttl=86400 para compatibilidad universal con RFC 8030 y WNS (Edge/Windows).
+            claims_frescos = {"sub": f"mailto:{VAPID_EMAIL}"}
             webpush(
                 subscription_info=subscription_info,
                 data=payload,
                 vapid_private_key=VAPID_PRIVATE_KEY,
-                vapid_claims=VAPID_CLAIMS
+                vapid_claims=claims_frescos,
+                ttl=86400
             )
             enviados += 1
         except WebPushException as e:
