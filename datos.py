@@ -130,12 +130,18 @@ class Database:
                 CREATE TABLE IF NOT EXISTS suscripcion (
                     id SERIAL PRIMARY KEY,
                     id_usuario INTEGER NOT NULL,
-                    endpoint TEXT UNIQUE NOT NULL,
+                    endpoint TEXT NOT NULL,
                     p256dh TEXT NOT NULL,
                     auth TEXT NOT NULL,
                     FOREIGN KEY (id_usuario) REFERENCES usuario(id) ON DELETE CASCADE
                 );
             ''')
+            # Migración automática si la tabla fue creada previamente con restricciones antiguas
+            try:
+                cursor.execute("ALTER TABLE suscripcion DROP CONSTRAINT IF EXISTS suscripcion_id_usuario_key;")
+                cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS suscripcion_endpoint_idx ON suscripcion (endpoint);")
+            except Exception:
+                pass
 
             # 5. Tabla de Lecturas de Sensores
             cursor.execute('''
@@ -725,16 +731,21 @@ class Database:
                 row = cursor.fetchone()
                 id_usuario = row[0] if row else 1
 
-            # Insertar o actualizar la suscripción por endpoint único en la tabla 'suscripcion'
-            # (Permite que un usuario tenga múltiples navegadores o dispositivos suscritos)
-            cursor.execute("""
-                INSERT INTO suscripcion (id_usuario, endpoint, p256dh, auth)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (endpoint) DO UPDATE 
-                SET id_usuario = EXCLUDED.id_usuario, 
-                    p256dh = EXCLUDED.p256dh, 
-                    auth = EXCLUDED.auth
-            """, (id_usuario, endpoint, p256dh, auth))
+            # Comprobar si ya existe el endpoint registrado para actualizarlo o insertarlo
+            # (Compatible universalmente sin depender de restricciones ON CONFLICT en la BD)
+            cursor.execute("SELECT id FROM suscripcion WHERE endpoint = %s LIMIT 1", (endpoint,))
+            row_sub = cursor.fetchone()
+            if row_sub:
+                cursor.execute("""
+                    UPDATE suscripcion 
+                    SET id_usuario = %s, p256dh = %s, auth = %s 
+                    WHERE id = %s
+                """, (id_usuario, p256dh, auth, row_sub[0]))
+            else:
+                cursor.execute("""
+                    INSERT INTO suscripcion (id_usuario, endpoint, p256dh, auth)
+                    VALUES (%s, %s, %s, %s)
+                """, (id_usuario, endpoint, p256dh, auth))
             conn.commit()
 
             cursor.execute("SELECT COUNT(*) FROM suscripcion")
