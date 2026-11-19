@@ -89,11 +89,17 @@ def procesar_suscripcion(data, user_id=None):
         return {"success": False, "message": str(e)}, 500
 
 
-def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una notificación de prueba del sistema!", tipo="aviso", destinatarios="todos", user_ids=None, tag=None, url="/detecciones", renotify=True):
+def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una notificación de prueba del sistema!", tipo="aviso", destinatarios="todos", user_ids=None, tag=None, url="/", renotify=True):
     """
     Envía una notificación Push a todas las suscripciones o a una lista específica de usuarios seleccionados.
     Soporta 'tag' para evitar acumulación de spam y 'url' para redirección al hacer clic.
+    Cumple con la especificación W3C Web Notifications (renotify solo se incluye si tag existe).
     """
+    if not title:
+        title = "🔔 Proyecto IoT"
+    if not body:
+        body = "¡Esta es una notificación del sistema!"
+
     if destinatarios == "custom" and user_ids:
         subscriptions = d_notificaciones.obtener_suscripciones(user_ids=user_ids)
     else:
@@ -103,11 +109,11 @@ def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una noti
         "title": title,
         "body": body,
         "tipo": tipo,
-        "url": url,
-        "renotify": renotify
+        "url": url or "/"
     }
-    if tag:
-        payload_dict["tag"] = tag
+    if tag and str(tag).strip():
+        payload_dict["tag"] = str(tag).strip()
+        payload_dict["renotify"] = bool(renotify)
 
     payload = json.dumps(payload_dict)
 
@@ -137,6 +143,12 @@ def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una noti
                 try:
                     d_notificaciones.eliminar_suscripcion(subscription["endpoint"])
                     print(f"Suscripción expirada eliminada para usuario {subscription.get('usuario')}")
+                except Exception:
+                    pass
+            elif "Invalid p256dh" in str(e) or "Invalid auth" in str(e):
+                try:
+                    d_notificaciones.eliminar_suscripcion(subscription["endpoint"])
+                    print(f"Suscripción corrupta eliminada para usuario {subscription.get('usuario')}")
                 except Exception:
                     pass
 

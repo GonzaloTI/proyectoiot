@@ -1482,32 +1482,52 @@
             if (!pushEstado) return;
             if (!("serviceWorker" in navigator)) {
                 pushEstado.textContent = "❌ Tu navegador no soporta Service Workers.";
+                pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
                 return;
             }
             if (!("PushManager" in window)) {
                 pushEstado.textContent = "❌ Tu navegador no soporta Push Manager.";
+                pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
                 return;
             }
 
+            const btnSub = document.getElementById("btnSuscribir");
+            const originalBtnHtml = btnSub ? btnSub.innerHTML : '';
+            if (btnSub) {
+                btnSub.disabled = true;
+                btnSub.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Registrando suscripción...';
+            }
+
             try {
+                pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-info bg-opacity-25 text-info border border-info";
                 pushEstado.textContent = "⌛ Solicitando permiso de notificaciones...";
                 const permiso = await Notification.requestPermission();
 
                 if (permiso !== "granted") {
-                    pushEstado.textContent = "⚠️ Permiso de notificaciones denegado o rechazado.";
+                    pushEstado.innerHTML = "⚠️ <strong>Permiso no concedido:</strong> Para recibir alertas debes permitir las notificaciones en tu navegador (revisa el icono de candado 🔒 en la barra de direcciones).";
+                    pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-warning bg-opacity-25 text-warning border border-warning";
                     return;
                 }
 
-                pushEstado.textContent = "⌛ Registrando Service Worker y creando suscripción...";
+                pushEstado.textContent = "⌛ Registrando Service Worker y renovando suscripción Web Push...";
                 const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+                await navigator.serviceWorker.ready;
 
-                let subscription = await registration.pushManager.getSubscription();
-                if (!subscription) {
-                    subscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: urlBase64ToUint8Array(publicKey)
-                    });
+                // Si ya existía una suscripción previa (posiblemente con clave antigua o desincronizada), renovarla
+                let existingSub = await registration.pushManager.getSubscription();
+                if (existingSub) {
+                    try {
+                        await existingSub.unsubscribe();
+                    } catch (e) {
+                        console.warn("Unsubscribe previo:", e);
+                    }
                 }
+
+                // Generar nueva suscripción fresca con la clave pública activa
+                const subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(publicKey)
+                });
 
                 let subData = subscription.toJSON ? subscription.toJSON() : JSON.parse(JSON.stringify(subscription));
                 subData.id_usuario = {{ session.get('user_id') or 'null' }};
@@ -1520,14 +1540,73 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    pushEstado.textContent = "✅ ¡Suscripción guardada correctamente!";
-                    pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-success bg-opacity-25 text-success border border-success";
+                    pushEstado.innerHTML = `✅ <strong>¡Dispositivo registrado con éxito!</strong><br><small>Este navegador ahora recibirá las alertas y avisos en tiempo real.</small>`;
+                    pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-success bg-opacity-25 text-success border border-success fw-bold";
+                    if (btnSub) {
+                        btnSub.className = "btn btn-outline-success rounded-pill px-5 fw-semibold d-flex align-items-center gap-2";
+                        btnSub.innerHTML = '<i class="bi bi-check-circle-fill"></i> Notificaciones Activas en este Dispositivo';
+                    }
+
+                    // Mostrar notificación de confirmación local inmediata
+                    try {
+                        registration.showNotification("🎉 ¡Notificaciones Activadas!", {
+                            body: "Tu dispositivo está conectado al Centro de Notificaciones del Proyecto IoT.",
+                            icon: "/static/icono.jpg"
+                        });
+                    } catch (e) {
+                        // Silencioso
+                    }
                 } else {
                     pushEstado.textContent = "❌ Error al guardar suscripción: " + (data.message || "Error desconocido");
+                    pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
                 }
             } catch (err) {
                 console.error("Error en suscripción:", err);
                 pushEstado.textContent = "❌ Error: " + err.message;
+                pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
+            } finally {
+                if (btnSub && !btnSub.classList.contains('btn-outline-success')) {
+                    btnSub.disabled = false;
+                    btnSub.innerHTML = originalBtnHtml;
+                } else if (btnSub) {
+                    btnSub.disabled = false;
+                }
+            }
+        }
+
+        async function verificarEstadoSuscripcionLocal() {
+            if (!pushEstado) return;
+            if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+                pushEstado.textContent = "❌ Este navegador no soporta Notificaciones Web Push.";
+                pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                pushEstado.innerHTML = "🚫 <strong>Permiso bloqueado:</strong> Has bloqueado las notificaciones en este navegador. Haz clic en el candado 🔒 junto a la URL para permitirlas.";
+                pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
+                return;
+            }
+
+            try {
+                const reg = await navigator.serviceWorker.getRegistration();
+                if (reg) {
+                    const sub = await reg.pushManager.getSubscription();
+                    if (sub) {
+                        pushEstado.innerHTML = "✅ <strong>Dispositivo conectado:</strong> Este navegador está registrado para recibir notificaciones.";
+                        pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-success bg-opacity-25 text-success border border-success";
+                        const btnSub = document.getElementById('btnSuscribir');
+                        if (btnSub) {
+                            btnSub.className = "btn btn-outline-success rounded-pill px-5 fw-semibold d-flex align-items-center gap-2";
+                            btnSub.innerHTML = '<i class="bi bi-check-circle-fill"></i> Notificaciones Activas (Clic para Renovar)';
+                        }
+                        return;
+                    }
+                }
+                pushEstado.innerHTML = "ℹ️ Este dispositivo aún no está suscrito. Pulsa el botón para activarlas.";
+                pushEstado.className = "mt-3 p-2 rounded-3 text-center small bg-info bg-opacity-25 text-info border border-info";
+            } catch (e) {
+                console.warn("Error comprobando suscripción:", e);
             }
         }
 
@@ -1585,7 +1664,14 @@
             document.querySelectorAll('.user-push-check').forEach(chk => chk.checked = false);
         });
 
-        // Pre-cargar usuarios al cambiar a la pestaña Enviar
+        // Pre-cargar usuarios y verificar estado al abrir el modal de notificaciones
+        document.getElementById('notificationModal')?.addEventListener('shown.bs.modal', () => {
+            verificarEstadoSuscripcionLocal();
+            if (!usuariosCargadosParaPush) {
+                cargarUsuariosDestinatarios();
+            }
+        });
+
         document.getElementById('enviar-tab')?.addEventListener('shown.bs.tab', () => {
             if (!usuariosCargadosParaPush) {
                 cargarUsuariosDestinatarios();
@@ -1595,8 +1681,15 @@
         async function enviarNotificacionBroadcast() {
             if (!pushEstado) return;
             const tipo = document.querySelector('input[name="notifTipo"]:checked')?.value || 'aviso';
-            const title = document.getElementById("pushTitle")?.value.trim() || '';
-            const body = document.getElementById("pushBody")?.value.trim() || '';
+            let title = document.getElementById("pushTitle")?.value.trim() || '';
+            let body = document.getElementById("pushBody")?.value.trim() || '';
+
+            if (!title) {
+                title = tipo === 'emergencia' ? '🚨 Emergencia Crítica del Sistema' : '📢 Aviso del Sistema IoT';
+            }
+            if (!body) {
+                body = 'Mensaje emitido en tiempo real desde el Centro de Notificaciones Push.';
+            }
 
             const destTipo = document.querySelector('input[name="notifDestinatarios"]:checked')?.value || 'todos';
             let user_ids = [];
@@ -1609,6 +1702,13 @@
                     pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-warning bg-opacity-25 text-warning border border-warning fw-semibold";
                     return;
                 }
+            }
+
+            const btnEnviar = document.getElementById("btnEnviarBroadcast");
+            const originalBtnHtml = btnEnviar ? btnEnviar.innerHTML : '';
+            if (btnEnviar) {
+                btnEnviar.disabled = true;
+                btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Enviando...';
             }
 
             try {
@@ -1626,8 +1726,13 @@
                 const data = await response.json();
                 if (data.success) {
                     const detalleDest = destTipo === 'custom' ? ` a los usuarios seleccionados` : ` a todos los usuarios`;
-                    pushEstado.textContent = `✅ Notificación [${tipo.toUpperCase()}] enviada a ${data.enviados} dispositivo(s)${detalleDest}.`;
-                    pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-success bg-opacity-25 text-success border border-success fw-bold";
+                    if (data.enviados > 0) {
+                        pushEstado.textContent = `✅ Notificación [${tipo.toUpperCase()}] entregada con éxito a ${data.enviados} dispositivo(s)${detalleDest}.`;
+                        pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-success bg-opacity-25 text-success border border-success fw-bold";
+                    } else {
+                        pushEstado.innerHTML = `⚠️ <strong>No se entregó a ningún dispositivo (0 dispositivos activos).</strong><br><small>Asegúrate de haber activado las notificaciones en la <strong>Pestaña 1</strong> de este navegador o en los teléfonos de los operadores.</small>`;
+                        pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-warning bg-opacity-25 text-warning border border-warning fw-semibold";
+                    }
                     if (document.getElementById("pushTitle")) document.getElementById("pushTitle").value = "";
                     if (document.getElementById("pushBody")) document.getElementById("pushBody").value = "";
                 } else {
@@ -1638,6 +1743,11 @@
                 console.error("Error enviando notificación:", err);
                 pushEstado.textContent = "❌ Error: " + err.message;
                 pushEstado.className = "mt-4 p-2 rounded-3 text-center small bg-danger bg-opacity-25 text-danger border border-danger";
+            } finally {
+                if (btnEnviar) {
+                    btnEnviar.disabled = false;
+                    btnEnviar.innerHTML = originalBtnHtml;
+                }
             }
         }
 
