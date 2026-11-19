@@ -158,11 +158,14 @@ def logout():
 def service_worker():
     """
     Entrega el Service Worker con cabeceras de alcance global (Service-Worker-Allowed: /)
-    para que pueda controlar todas las rutas de la aplicación y gestionar Web Push.
+    y sin caché HTTP para asegurar actualizaciones inmediatas en los navegadores clientes.
     """
     response = make_response(send_from_directory('static', 'sw.js'))
     response.headers['Content-Type'] = 'application/javascript'
     response.headers['Service-Worker-Allowed'] = '/'
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
     return response
 
 @app.route('/favicon.ico')

@@ -1,3 +1,14 @@
+// Service Worker para el sistema de alertas y Notificaciones Web Push
+self.addEventListener("install", function (event) {
+    // Forzar activación inmediata sin esperar a que se cierren pestañas abiertas
+    self.skipWaiting();
+});
+
+self.addEventListener("activate", function (event) {
+    // Tomar control de todas las ventanas abiertas de inmediato
+    event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", function (event) {
     let data = {};
     try {
@@ -22,13 +33,14 @@ self.addEventListener("push", function (event) {
     };
 
     // La especificación Web Notifications exige que renotify SOLO sea true si existe un tag no vacío
-    if (data.tag && String(data.tag).trim().length > 0) {
-        options.tag = String(data.tag).trim();
-        if (data.renotify !== undefined) {
-            options.renotify = Boolean(data.renotify);
-        } else {
-            options.renotify = true;
-        }
+    const rawTag = (data.tag !== undefined && data.tag !== null) ? String(data.tag).trim() : "";
+    if (rawTag.length > 0) {
+        options.tag = rawTag;
+        options.renotify = (data.renotify !== undefined) ? Boolean(data.renotify) : true;
+    } else {
+        // Si no hay tag, bajo ninguna circunstancia se debe incluir renotify
+        delete options.renotify;
+        delete options.tag;
     }
 
     event.waitUntil(

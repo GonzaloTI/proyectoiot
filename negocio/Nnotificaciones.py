@@ -105,15 +105,19 @@ def enviar_notificacion_push(title="🔔 Proyecto IoT", body="¡Esta es una noti
     else:
         subscriptions = d_notificaciones.obtener_suscripciones()
 
+    # Siempre proveer un tag no vacío: si no se especifica tag (ej. difusión/broadcast),
+    # generamos uno único con timestamp para evitar colisiones y asegurar 100% de compatibilidad
+    # con la regla de Chrome: "renotify flag must specify a non-empty tag" tanto en SWs en caché como nuevos.
+    tag_seguro = str(tag).strip() if (tag and str(tag).strip()) else f"iot-broadcast-{tipo}-{int(time.time() * 1000)}"
+
     payload_dict = {
         "title": title,
         "body": body,
         "tipo": tipo,
-        "url": url or "/"
+        "url": url or "/",
+        "tag": tag_seguro,
+        "renotify": bool(renotify)
     }
-    if tag and str(tag).strip():
-        payload_dict["tag"] = str(tag).strip()
-        payload_dict["renotify"] = bool(renotify)
 
     payload = json.dumps(payload_dict)
 

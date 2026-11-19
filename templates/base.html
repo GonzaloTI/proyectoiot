@@ -1511,6 +1511,11 @@
 
                 pushEstado.textContent = "⌛ Registrando Service Worker y renovando suscripción Web Push...";
                 const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+                try {
+                    await registration.update();
+                } catch (e) {
+                    console.warn("Update SW:", e);
+                }
                 await navigator.serviceWorker.ready;
 
                 // Si ya existía una suscripción previa (posiblemente con clave antigua o desincronizada), renovarla
@@ -1591,6 +1596,7 @@
             try {
                 const reg = await navigator.serviceWorker.getRegistration();
                 if (reg) {
+                    try { reg.update(); } catch (e) {}
                     const sub = await reg.pushManager.getSubscription();
                     if (sub) {
                         pushEstado.innerHTML = "✅ <strong>Dispositivo conectado:</strong> Este navegador está registrado para recibir notificaciones.";
