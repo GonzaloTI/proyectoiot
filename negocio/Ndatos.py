@@ -104,6 +104,7 @@ def actualizar_estado_rele(relay_state, data):
     """
     Actualiza la configuración manual o automática de los relés enviada por la interfaz.
     Si se solicita alternar o forzar un relé, activa el modo manual para darle prioridad al operador.
+    Si se desactiva manual_mode (o se activa automatización), reanuda el control inteligente y re-evalúa.
     """
     if "manual_mode" in data:
         relay_state["manual_mode"] = bool(data["manual_mode"])
@@ -112,26 +113,51 @@ def actualizar_estado_rele(relay_state, data):
     relay_num = data.get("relay") or data.get("relay_id")
     if relay_num is not None:
         rid = int(relay_num)
-        relay_state["manual_mode"] = True
-        if "state" in data:
-            target_state = bool(data["state"])
-        else:
-            # Si no viene estado explícito, alternar el estado actual
-            curr = relay_state.get("manual_state", False) if rid == 1 else relay_state.get("manual_state_2", False)
-            target_state = not curr
+        if data.get("manual_mode") is False:
+            relay_state["manual_mode"] = False
+        elif "state" in data or "manual_state" in data or "manual_state_2" in data:
+            relay_state["manual_mode"] = True
+            if "state" in data:
+                target_state = bool(data["state"])
+            else:
+                # Si no viene estado explícito, alternar el estado actual
+                curr = relay_state.get("manual_state", False) if rid == 1 else relay_state.get("manual_state_2", False)
+                target_state = not curr
 
-        if rid == 1:
-            relay_state["manual_state"] = target_state
-        elif rid == 2:
-            relay_state["manual_state_2"] = target_state
+            if rid == 1:
+                relay_state["manual_state"] = target_state
+            elif rid == 2:
+                relay_state["manual_state_2"] = target_state
 
-    if "manual_state" in data:
+    if "manual_state" in data and data.get("manual_mode") is not False:
         relay_state["manual_mode"] = True
         relay_state["manual_state"] = bool(data["manual_state"])
 
-    if "manual_state_2" in data:
+    if "manual_state_2" in data and data.get("manual_mode") is not False:
         relay_state["manual_mode"] = True
         relay_state["manual_state_2"] = bool(data["manual_state_2"])
+
+    # Si se desactiva el modo manual (reanudando automatización), re-evaluar de inmediato con datos recientes
+    if not relay_state.get("manual_mode", False):
+        try:
+            from modelos.Ddatos import Ddatos
+            from negocio.Nactuadores import evaluar_automatizacion_inteligente
+            d = Ddatos()
+            history = d.obtener_historial(limit=1)
+            if history and len(history) > 0:
+                row = history[0]
+                telemetria = {
+                    "temperatura": row[1] if len(row) > 1 else 20.0,
+                    "presion": row[2] if len(row) > 2 else 1013.0,
+                    "altitud": row[3] if len(row) > 3 else 0.0,
+                    "co2": row[5] if len(row) > 5 else 400.0,
+                    "humo": row[6] if len(row) > 6 else 0.0,
+                    "humedad_suelo": row[7] if len(row) > 7 else 50.0
+                }
+                evaluacion = evaluar_automatizacion_inteligente(telemetria)
+                relay_state["smart_eval"] = evaluacion
+        except Exception as e:
+            print(f"Error evaluando smart tras toggle manual_mode: {e}")
 
     return {
         "status": "ok",

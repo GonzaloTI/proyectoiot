@@ -914,30 +914,50 @@
           text2.className = r2_online ? 'fw-bold fs-7 text-success' : 'fw-bold fs-7 text-secondary';
         }
 
-        if (data.smart_eval) {
-          const eval1 = document.getElementById('r1-eval-badge');
-          if (eval1 && data.smart_eval.rele1) {
-            eval1.innerText = data.smart_eval.rele1.reason;
-            eval1.className = data.smart_eval.rele1.active ? 'badge badge-eval-active px-2.5 py-1 rounded-pill fs-8' : 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
-          }
-          const eval2 = document.getElementById('r2-eval-badge');
-          if (eval2 && data.smart_eval.rele2) {
-            eval2.innerText = data.smart_eval.rele2.reason;
-            eval2.className = data.smart_eval.rele2.active ? 'badge badge-eval-active px-2.5 py-1 rounded-pill fs-8' : 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+        // Actualizar badges de estado y evaluación inteligente
+        const eval1 = document.getElementById('r1-eval-badge');
+        if (eval1) {
+          if (configActuadores.rele1.enabled) {
+            // Automatización HABILITADA: Desaparece por completo el modo manual forzado
+            if (data.smart_eval && data.smart_eval.rele1) {
+              eval1.innerText = data.smart_eval.rele1.reason;
+              eval1.className = data.smart_eval.rele1.active ? 'badge badge-eval-active px-2.5 py-1 rounded-pill fs-8' : 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+            } else {
+              eval1.innerText = '🤖 Automatización Inteligente Activa';
+              eval1.className = 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+            }
+          } else {
+            // Automatización DESHABILITADA: Mostrar forzado manual o deshabilitado
+            if (data.relay_state && data.relay_state.manual_mode) {
+              eval1.innerText = r1_online ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
+              eval1.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
+            } else {
+              eval1.innerText = '⚠️ Automatización deshabilitada';
+              eval1.className = 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+            }
           }
         }
 
-        // Si el relé está deshabilitado para automatización o en modo manual
-        if (data.relay_state && data.relay_state.manual_mode) {
-          const eval1 = document.getElementById('r1-eval-badge');
-          if (eval1 && !configActuadores.rele1.enabled) {
-            eval1.innerText = r1_online ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
-            eval1.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
-          }
-          const eval2 = document.getElementById('r2-eval-badge');
-          if (eval2 && !configActuadores.rele2.enabled) {
-            eval2.innerText = r2_online ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
-            eval2.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
+        const eval2 = document.getElementById('r2-eval-badge');
+        if (eval2) {
+          if (configActuadores.rele2.enabled) {
+            // Automatización HABILITADA: Desaparece por completo el modo manual forzado
+            if (data.smart_eval && data.smart_eval.rele2) {
+              eval2.innerText = data.smart_eval.rele2.reason;
+              eval2.className = data.smart_eval.rele2.active ? 'badge badge-eval-active px-2.5 py-1 rounded-pill fs-8' : 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+            } else {
+              eval2.innerText = '🤖 Automatización Inteligente Activa';
+              eval2.className = 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+            }
+          } else {
+            // Automatización DESHABILITADA: Mostrar forzado manual o deshabilitado
+            if (data.relay_state && data.relay_state.manual_mode) {
+              eval2.innerText = r2_online ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
+              eval2.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
+            } else {
+              eval2.innerText = '⚠️ Automatización deshabilitada';
+              eval2.className = 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+            }
           }
         }
       }
@@ -1056,13 +1076,26 @@
       configActuadores.rele2.enabled = isChecked;
     }
 
-    // Si el usuario reactiva la automatización inteligente, desactivar el modo manual forzado
+    const evalBadge = document.getElementById(`r${relayNum}-eval-badge`);
+
+    // Feedback visual inmediato: al activar automatización, desaparece Control Manual y pasa a Automático
+    if (evalBadge) {
+      if (isChecked) {
+        evalBadge.innerText = '🤖 Automatización Inteligente Activa';
+        evalBadge.className = 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+      } else {
+        evalBadge.innerText = '⚠️ Automatización deshabilitada';
+        evalBadge.className = 'badge badge-eval-status px-2.5 py-1 rounded-pill fs-8';
+      }
+    }
+
+    // Si el usuario reactiva la automatización inteligente, desactivar el modo manual forzado en el servidor
     if (isChecked) {
       try {
         await fetch('/api/relay/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ manual_mode: false })
+          body: JSON.stringify({ manual_mode: false, relay: relayNum, relay_id: relayNum })
         });
       } catch (e) {}
     }
@@ -1077,8 +1110,8 @@
     } catch (e) {}
 
     evaluarReglasLocales();
-    actualizarEstadoHardwareReal();
-    logConsole(`🤖 Automatización Inteligente para Relé ${relayNum} ${isChecked ? 'HABILITADA' : 'DESHABILITADA'}.`);
+    await actualizarEstadoHardwareReal();
+    logConsole(`🤖 Automatización Inteligente para Relé ${relayNum} ${isChecked ? 'HABILITADA (Modo Manual Desactivado)' : 'DESHABILITADA'}.`);
   }
 
   async function toggleManualRelay(relayNum) {

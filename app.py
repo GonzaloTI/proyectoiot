@@ -484,10 +484,32 @@ def api_actuadores_estado():
     """
     Retorna el estado en tiempo real de los relés y la última evaluación de la Automatización Inteligente.
     """
+    smart_eval = relay_state.get("smart_eval")
+    if not smart_eval:
+        try:
+            from modelos.Ddatos import Ddatos
+            from negocio.Nactuadores import evaluar_automatizacion_inteligente
+            d = Ddatos()
+            history = d.obtener_historial(limit=1)
+            if history and len(history) > 0:
+                row = history[0]
+                telemetria = {
+                    "temperatura": row[1] if len(row) > 1 else 20.0,
+                    "presion": row[2] if len(row) > 2 else 1013.0,
+                    "altitud": row[3] if len(row) > 3 else 0.0,
+                    "co2": row[5] if len(row) > 5 else 400.0,
+                    "humo": row[6] if len(row) > 6 else 0.0,
+                    "humedad_suelo": row[7] if len(row) > 7 else 50.0
+                }
+                smart_eval = evaluar_automatizacion_inteligente(telemetria)
+                relay_state["smart_eval"] = smart_eval
+        except Exception:
+            pass
+
     return jsonify({
         "status": "ok",
         "relay_state": relay_state,
-        "smart_eval": relay_state.get("smart_eval"),
+        "smart_eval": smart_eval,
         "config": obtener_config_actuadores()
     })
 
