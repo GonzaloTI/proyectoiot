@@ -929,7 +929,7 @@
           } else {
             // Automatización DESHABILITADA: Mostrar forzado manual o deshabilitado
             if (data.relay_state && data.relay_state.manual_mode) {
-              eval1.innerText = r1_online ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
+              eval1.innerText = r1_online ? 'Control Manual: Forzado ON' : 'Control Manual: Forzado OFF';
               eval1.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
             } else {
               eval1.innerText = '⚠️ Automatización deshabilitada';
@@ -952,7 +952,7 @@
           } else {
             // Automatización DESHABILITADA: Mostrar forzado manual o deshabilitado
             if (data.relay_state && data.relay_state.manual_mode) {
-              eval2.innerText = r2_online ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
+              eval2.innerText = r2_online ? 'Control Manual: Forzado ON' : 'Control Manual: Forzado OFF';
               eval2.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
             } else {
               eval2.innerText = '⚠️ Automatización deshabilitada';
@@ -1161,7 +1161,7 @@
 
       const evalBadge = document.getElementById(`r${relayNum}-eval-badge`);
       if (evalBadge) {
-        evalBadge.innerText = targetState ? 'Control Manual: Forzado ON (Auto OFF)' : 'Control Manual: Forzado OFF (Auto OFF)';
+        evalBadge.innerText = targetState ? 'Control Manual: Forzado ON' : 'Control Manual: Forzado OFF';
         evalBadge.className = 'badge badge-eval-manual px-2.5 py-1 rounded-pill fs-8';
       }
 
